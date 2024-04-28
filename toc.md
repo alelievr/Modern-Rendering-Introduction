@@ -1,0 +1,35 @@
+## Chapiters
+
+- Introduction
+- The meaning behind PBR
+- The 3D Euclidean space
+- Vectors + Vector Transformation (addition, scale, etc.)
+- Camera (ortho only, screen size, etc.)
+- Shaders
+- Ray Tracing
+- Plane
+- Sphere
+- Boxes
+- Matrices + transformations
+- Projections
+- Rasterization
+- Triangles
+- Meshes
+- Mesh Shaders
+- Bindless
+- Material
+- Texturing
+- Integral
+- The Rendering Equation
+- Directional Lights
+- Punctual Lights
+- Environment Lights
+- Normal Mapping
+- Smoothness
+- Metalness
+- BRDF
+- Furnace Test
+- Shading?
+- Shadow Maps
+- Participating Media
+- Emissive
