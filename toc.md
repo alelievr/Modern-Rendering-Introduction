@@ -1,7 +1,7 @@
 ## Chapiters
 
 - Introduction
-- The meaning behind PBR
+- The meaning of PBR
 - The 3D Euclidean space
 - Vectors + Vector Transformation (addition, scale, etc.)
 - Camera (ortho only, screen size, etc.)
@@ -31,5 +31,9 @@
 - Furnace Test
 - Shading?
 - Shadow Maps
+- Depth Buffer
+- Frustum Culling
+- Occlusion Culling
+- Transparency
 - Participating Media
 - Emissive
