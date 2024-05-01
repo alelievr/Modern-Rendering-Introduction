@@ -33,4 +33,17 @@ public class Line : MonoBehaviour
             lineRenderer.material.SetFloat("_LineLength", 0);
         }
     }
+
+    public void UpdateLine(Vector3 start, Vector3 end)
+    {
+        this.start = start;
+        this.end = end;
+        LineRenderer lineRenderer = GetComponent<LineRenderer>();
+        lineRenderer.SetPosition(0, start);
+        lineRenderer.SetPosition(1, end);
+        if (dotted)
+        {
+            lineRenderer.material.SetFloat("_LineLength", (end - start).magnitude);
+        }
+    }
 }

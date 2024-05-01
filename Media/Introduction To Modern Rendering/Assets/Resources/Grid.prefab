@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1551606527486914606
+--- !u!1 &5118850071196876247
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,45 +8,52 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 2528254309999990988}
-  - component: {fileID: 574116813601219939}
+  - component: {fileID: 6118946666676587615}
+  - component: {fileID: 7757748249876911305}
   m_Layer: 0
-  m_Name: Line
+  m_Name: Grid
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &2528254309999990988
+--- !u!4 &6118946666676587615
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1551606527486914606}
+  m_GameObject: {fileID: 5118850071196876247}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.037215468, y: 0.31078058, z: 0.4795224}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &574116813601219939
+--- !u!114 &7757748249876911305
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1551606527486914606}
+  m_GameObject: {fileID: 5118850071196876247}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc7dab2f59ad12641ba419ed36b43227, type: 3}
+  m_Script: {fileID: 11500000, guid: b22dbcf05658b784686c4c04b61eeac2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  start: {x: 0, y: 0.25, z: 0}
-  end: {x: 5, y: 0.25, z: 0}
-  color: {r: 1, g: 1, b: 1, a: 1}
-  dotted: 1
-  spacing: 0.25
-  width: 0.05
+  mainLineWidth: 0.025
+  secondaryLineWidth: 0.01
+  show3D: 0
+  mainColor: {r: 0.23696157, g: 0.60748017, b: 0.7075472, a: 1}
+  secondaryColor: {r: 0.3262727, g: 0.39751774, b: 0.49056602, a: 1}
+  scale: 1
+  coloredAxis: 1
+  showSecondaryLines: 1
+  xAxisColor: {r: 1, g: 0.33490568, b: 0.33490568, a: 1}
+  yAxisColor: {r: 0.2991723, g: 0.764151, b: 0.2991723, a: 1}
+  zAxisColor: {r: 0.18396229, g: 0.5269122, b: 1, a: 1}
+  neutralAxisColor: {r: 1, g: 1, b: 1, a: 1}
+  lineCount: 10

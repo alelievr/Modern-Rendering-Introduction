@@ -19,7 +19,9 @@ public class Arrow : MonoBehaviour
 
     const float arrowHeadHeight = 0.8157f;
 
-    public void Initialize(Vector3 start, Vector3 end, Color color)
+    MaterialPropertyBlock materialPropertyBlock;
+
+    public void Initialize(Vector3 start, Vector3 end, Color color = default)
     {
         this.start = start;
         this.end = end;
@@ -36,22 +38,18 @@ public class Arrow : MonoBehaviour
         arrowTail.transform.rotation = Quaternion.LookRotation(direction) * Quaternion.Euler(90, 0, 0); // model is rotated 90 degrees
         arrowTail.transform.localScale = new Vector3(width * scale, direction.magnitude - arrowOffset, width * scale);
 
-        if (!EditorApplication.isPlaying)
+        if (color != default)
             UpdateColors();
     }
 
     void UpdateColors()
     {
-        if (EditorApplication.isPlaying)
-        {
-            arrowHead.GetComponent<MeshRenderer>().material.color = color;
-            arrowTail.GetComponent<MeshRenderer>().material.color = color;
-        }
-        else
-        {
-            arrowHead.GetComponent<MeshRenderer>().sharedMaterial.color = color;
-            arrowTail.GetComponent<MeshRenderer>().sharedMaterial.color = color;
-        }
+        if (materialPropertyBlock == null)
+            materialPropertyBlock = new MaterialPropertyBlock();
+
+        materialPropertyBlock.SetColor("_Color", color);
+        arrowHead.GetComponent<MeshRenderer>().SetPropertyBlock(materialPropertyBlock);
+        arrowTail.GetComponent<MeshRenderer>().SetPropertyBlock(materialPropertyBlock);
     }
 
     void OnEnable() => UpdateColors();

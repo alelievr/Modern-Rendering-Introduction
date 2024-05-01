@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class Grid : MonoBehaviour
+public class BackgroundGrid : MonoBehaviour
 {
     public float mainLineWidth = 0.025f;
     public float secondaryLineWidth = 0.01f;
@@ -12,6 +12,8 @@ public class Grid : MonoBehaviour
     public Color secondaryColor = Color.gray;
     public float scale = 1;
     public bool coloredAxis = true;
+
+    public bool showSecondaryLines = true;
 
     public Color xAxisColor = Color.red;
     public Color yAxisColor = Color.green;
@@ -24,12 +26,15 @@ public class Grid : MonoBehaviour
 
     void Start()
     {
+        int lineAxisCount = this.lineCount;
+        float lineLength = lineCount;
         // Lines on X and Y axis
         int slices = show3D ? lineCount : 0;
+
         for (int z = -slices; z <= slices; z++)
         {
             // Vertical lines
-            for (int x = -lineCount; x <= lineCount; x++)
+            for (int x = -lineAxisCount; x <= lineAxisCount; x++)
             {
                 float w = mainLineWidth;
                 var color = mainColor;
@@ -39,14 +44,14 @@ public class Grid : MonoBehaviour
                     w += 0.01f;
                 }
                 // Main line
-                AddLine(new Vector3(x, -lineCount, z), new Vector3(x, lineCount, z), color, w);
+                AddLine(new Vector3(x, -lineLength, z), new Vector3(x, lineLength, z), color, w);
                 // Secondary line
-                if (x != lineCount)
-                    AddLine(new Vector3(x + 0.5f, -lineCount, z), new Vector3(x + 0.5f, lineCount, z), secondaryColor, secondaryLineWidth);
+                if (x != lineAxisCount && showSecondaryLines)
+                    AddLine(new Vector3(x + 0.5f, -lineLength, z), new Vector3(x + 0.5f, lineLength, z), secondaryColor, secondaryLineWidth);
             }
 
             // Horizontal lines
-            for (int y = -lineCount; y <= lineCount; y++)
+            for (int y = -lineAxisCount; y <= lineAxisCount; y++)
             {
                 float w = mainLineWidth;
                 var color = mainColor;
@@ -55,29 +60,29 @@ public class Grid : MonoBehaviour
                     color = coloredAxis ? xAxisColor : neutralAxisColor;
                     w += 0.01f;
                 }
-                AddLine(new Vector3(-lineCount, y, z), new Vector3(lineCount, y, z), color, w);
-                if (y != lineCount)
-                    AddLine(new Vector3(-lineCount, y + 0.5f, z), new Vector3(lineCount, y + 0.5f, z), secondaryColor, secondaryLineWidth);
+                AddLine(new Vector3(-lineLength, y, z), new Vector3(lineLength, y, z), color, w);
+                if (y != lineAxisCount && showSecondaryLines)
+                    AddLine(new Vector3(-lineLength, y + 0.5f, z), new Vector3(lineLength, y + 0.5f, z), secondaryColor, secondaryLineWidth);
             }
         }
 
         // Lines on Z axis
         if (show3D)
         {
-            for (int x = -lineCount; x <= lineCount; x++)
+            for (int x = -lineAxisCount; x <= lineAxisCount; x++)
             {
-                for (int y = -lineCount; y <= lineCount; y++)
+                for (int y = -lineAxisCount; y <= lineAxisCount; y++)
                 {
                     float w = mainLineWidth;
                     var color = mainColor;
                     if (x == 0 && y == 0)
                     {
                         color = coloredAxis ? zAxisColor : neutralAxisColor;
-                    w += 0.01f;
+                        w += 0.01f;
                     }
-                    AddLine(new Vector3(x, y, -lineCount), new Vector3(x, y, lineCount), color, w);
-                    if (y != lineCount || x != lineCount)
-                        AddLine(new Vector3(x + 0.5f, y + 0.5f, -lineCount), new Vector3(x + 0.5f, y + 0.5f, lineCount), secondaryColor, secondaryLineWidth);
+                    AddLine(new Vector3(x, y, -lineLength), new Vector3(x, y, lineLength), color, w);
+                    if ((y != lineAxisCount || x != lineAxisCount) && showSecondaryLines)
+                        AddLine(new Vector3(x + 0.5f, y + 0.5f, -lineLength), new Vector3(x + 0.5f, y + 0.5f, lineLength), secondaryColor, secondaryLineWidth);
                 }
             }
         }
