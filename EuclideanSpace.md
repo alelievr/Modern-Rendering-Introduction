@@ -10,7 +10,6 @@ In this course we'll exclusively look at 2D and 3D Euclidean spaces. The 3D spac
   <tr>
     <td><img src="Media/Recordings/Euclidean%20Space%2000.png"  alt="2D" width = 100% height = 100% ></td>
     <td><img src="Media/Recordings/Euclidean%20Space%2001.png"  alt="3D" width = 100% height = 100% ></td>
-  </td>
   </tr>
 </table>
 
