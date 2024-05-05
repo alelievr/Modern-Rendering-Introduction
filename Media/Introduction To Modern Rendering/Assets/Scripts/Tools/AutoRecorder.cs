@@ -101,11 +101,13 @@ public class AutoRecorder : MonoBehaviour
         if (mode == Mode.Picture && d > 1.0f / 30.0f)
         {
             m_RecorderController.StopRecording();
+            Debug.Log("Recording finished");
             enabled = false;
         }
         else if (d > recordingTimeInSeconds)
         {
             m_RecorderController.StopRecording();
+            Debug.Log("Recording finished");
             enabled = false;
         }
     }

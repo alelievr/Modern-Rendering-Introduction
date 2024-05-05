@@ -9,8 +9,6 @@ public class Camera02 : MonoBehaviour
     public float orthographic;
     public RenderTexture output;
     public TextMeshProUGUI text;
-    public List<MeshRenderer> objectsToTransform = new List<MeshRenderer>();
-    public List<Vector3> originalPositions = new();
 
     [Range(0, 1)]
     public float f = 0;
@@ -41,12 +39,6 @@ public class Camera02 : MonoBehaviour
         cam.cullingMask &= ~(1 << gameObject.layer);
         cam.targetTexture = output;
 
-        foreach (var t in objectsToTransform)
-        {
-            originalPositions.Add(t.transform.position);
-            t.transform.forward = transform.forward;
-        }
-
         Update();
     }
 
@@ -62,12 +54,24 @@ public class Camera02 : MonoBehaviour
         var nearCorners = new Vector3[4];
         cam.CalculateFrustumCorners(new Rect(0, 0, 1, 1), cam.nearClipPlane, Camera.MonoOrStereoscopicEye.Mono, nearCorners);
 
+        float nearPlaneSize = nearCorners[0].x - nearCorners[2].x;
+        float farPlaneSize = farCorners[0].x - farCorners[2].x;
+
         // Transform points using local matrix
         for (int i = 0; i < 4; i++)
         {
             farCorners[i] = transform.TransformPoint(farCorners[i]);
             nearCorners[i] = transform.TransformPoint(nearCorners[i]);
+
+            farCorners[i] = Vector3.Lerp(farCorners[i], nearCorners[i], f);
         }
+
+        var proj = GL.GetGPUProjectionMatrix(cam.projectionMatrix, false);
+        Shader.SetGlobalFloat("_ProjectionViewSlider", f);
+        Shader.SetGlobalMatrix("_ViewProjectionMatrix", proj * cam.worldToCameraMatrix);
+        Shader.SetGlobalMatrix("_InverseViewMatrix", cam.worldToCameraMatrix.inverse);
+        Shader.SetGlobalFloat("_NearPlane", cam.nearClipPlane);
+        Shader.SetGlobalFloat("_NearPlaneSize", nearPlaneSize);
 
         // Update line positions
         lines[0].UpdateLine(nearCorners[0], nearCorners[1]);
@@ -85,15 +89,5 @@ public class Camera02 : MonoBehaviour
 
         if (text != null)
             text.text = $"Field Of View: {fov:0.0}";
-
-        int index = 0;
-        foreach (var t in objectsToTransform)
-        {
-            t.transform.localScale = new Vector3(1, 1, 1 - f);
-            t.transform.position = transform.position + transform.forward * f;
-
-            t.transform.position = Vector3.Lerp(originalPositions[index], transform.position + transform.forward * near, f);
-            index++;
-        }
     }
 }
