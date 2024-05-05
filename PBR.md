@@ -14,7 +14,7 @@ PBR is not only a fancy thing to render photorealistic images, it has real impli
 
 This standardization means that artists can re-use and share the knowledge of how to create content between different projects and even proposes asset libraries that are compatible between different engines or renderer. In a way, you can see this standard way of creating content as an interface that when implemented correctly will make your content compatible with any renderer supporting the PBR workflow.
 
-In PBR, the lighting also become standard, this is because we need to use the equations derived from the observations of the real world, it means that for those equations to work, we also need the units that comes with them. This means that all the lighting will be quantified in physical light units which is great as it allows to use real-world values in the virtual world.
+In PBR, the lighting also become standard, this is because we need to use the equations derived from the observations of the real world, it means that for those equations to work, we also need the units that comes with them. This means that all the lighting will be quantified in [physical light units](https://en.wikipedia.org/wiki/Luminous_intensity) which is great as it allows to use real-world values in the virtual world.
 
 PBR also enables new workflows base on capturing real-world content, this is called photogrammetry, the idea is pretty simple: take a bunch of photos of an existing object and use these images to automatically model a 3D object out of it. And honestly, real-world data is the best source of PBR content because it's our ultimate reference so it seems like a good idea to take models directly from the real world
 
@@ -67,5 +67,7 @@ https://renderman.pixar.com/
 https://en.wikipedia.org/wiki/Physically_based_rendering
 
 https://pbr-book.org/4ed/contents
+
+https://en.wikipedia.org/wiki/Luminous_intensity
 
 https://advances.realtimerendering.com/s2023/SIGGRAPH2023-Advances-The-Rendering-of-The-Callisto-Protocol-JimenezPetersen.pdf

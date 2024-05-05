@@ -1,17 +1,16 @@
-## Chapiters
+# Chapiters
 
 - Introduction
 - The meaning of PBR
 - The 3D Euclidean space
-- Vectors + Vector Transformation (addition, scale, etc.)
-- Camera (ortho only, screen size, etc.)
+- Vectors
+- Basic Camera
 - Shaders
 - Ray Tracing
 - Plane
 - Sphere
 - Boxes
 - Matrices + transformations
-- Projections
 - Rasterization
 - Triangles
 - Meshes
@@ -26,7 +25,7 @@
 - Environment Lights
 - Normal Mapping
 - Smoothness
-- Metalness
+- Metallic
 - BRDF
 - Furnace Test
 - Shading?
@@ -37,3 +36,15 @@
 - Transparency
 - Participating Media
 - Emissive
+
+## Maybe
+
+
+- Advanced Camera
+- Bloom
+- Depth Of Field
+- Sensor Response
+- Auto Exposure
+- Chromatic Aberration
+- White Balance
+- Film grain
