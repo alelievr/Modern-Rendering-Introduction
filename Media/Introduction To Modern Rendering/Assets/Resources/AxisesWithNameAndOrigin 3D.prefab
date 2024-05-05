@@ -38,7 +38,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 903002287694352949, guid: 2e5bb13ec52a5d942acbe1d36f6bdbea, type: 3}
       propertyPath: m_Name
-      value: AxisesWithNameAndOrigin Variant
+      value: AxisesWithNameAndOrigin 3D
       objectReference: {fileID: 0}
     - target: {fileID: 1713995211105608044, guid: 2e5bb13ec52a5d942acbe1d36f6bdbea, type: 3}
       propertyPath: anchorMode
@@ -159,7 +159,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3322467285987559444, guid: d9cf0d1936d3fee4ab9fc3292df45f64, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.75
+      value: -0.75
       objectReference: {fileID: 0}
     - target: {fileID: 3322467285987559444, guid: d9cf0d1936d3fee4ab9fc3292df45f64, type: 3}
       propertyPath: m_LocalRotation.w
@@ -223,7 +223,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3933576029736099726, guid: d9cf0d1936d3fee4ab9fc3292df45f64, type: 3}
       propertyPath: position.z
-      value: 0.75
+      value: -0.75
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

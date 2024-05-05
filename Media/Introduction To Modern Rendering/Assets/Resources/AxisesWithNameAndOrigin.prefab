@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1036683816122043237, guid: 40e2dd0e6511c0e48a0596d61a8d542b, type: 3}
       propertyPath: m_Name
-      value: GridWithNameAndOrigin Variant
+      value: AxisesWithNameAndOrigin
       objectReference: {fileID: 0}
     - target: {fileID: 3507842841399453556, guid: 40e2dd0e6511c0e48a0596d61a8d542b, type: 3}
       propertyPath: m_IsActive
@@ -18,11 +18,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5897967833116515689, guid: 40e2dd0e6511c0e48a0596d61a8d542b, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.4
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5897967833116515689, guid: 40e2dd0e6511c0e48a0596d61a8d542b, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.25
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5897967833116515689, guid: 40e2dd0e6511c0e48a0596d61a8d542b, type: 3}
       propertyPath: m_LocalPosition.z

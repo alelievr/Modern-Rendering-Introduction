@@ -324,6 +324,10 @@ PrefabInstance:
       value: CameraPivot
       objectReference: {fileID: 0}
     - target: {fileID: 8017092527752117800, guid: 60883dd1187345947a06da234574394c, type: 3}
+      propertyPath: mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8017092527752117800, guid: 60883dd1187345947a06da234574394c, type: 3}
       propertyPath: timeToCompleteRotation
       value: 12.56
       objectReference: {fileID: 0}
