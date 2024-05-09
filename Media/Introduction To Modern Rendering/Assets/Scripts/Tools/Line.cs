@@ -38,10 +38,10 @@ public class Line : MonoBehaviour
 
     public void UpdateLine(Vector3 start, Vector3 end)
     {
-        if (lineRenderer == null)
-            return;
         this.start = start;
         this.end = end;
+        if (lineRenderer == null)
+            return;
         lineRenderer.SetPosition(0, start);
         lineRenderer.SetPosition(1, end);
         if (dotted)

@@ -25,7 +25,8 @@ public class Arrow : MonoBehaviour
     {
         this.start = start;
         this.end = end;
-        this.color = color;
+        if (color != default)
+            this.color = color;
 
         Vector3 direction = end - start;
 

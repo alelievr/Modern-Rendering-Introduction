@@ -51,5 +51,6 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "Introduction To Modern Rendering.sln"
+    "dotnet.defaultSolution": "Introduction To Modern Rendering.sln",
+    "circleci.persistedProjectSelection": []
 }
