@@ -62,9 +62,9 @@ For simplicity, our reference won't be the real world, as capturing all the nece
 
 ## References
 
-https://renderman.pixar.com/
-
 https://en.wikipedia.org/wiki/Physically_based_rendering
+
+https://renderman.pixar.com/
 
 https://pbr-book.org/4ed/contents
 

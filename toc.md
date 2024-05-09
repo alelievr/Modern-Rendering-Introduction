@@ -5,6 +5,7 @@
 - The 3D Euclidean space
 - Vectors
 - Basic Camera
+- Meshes
 - Shaders
 - Ray Tracing
 - Plane
@@ -13,8 +14,6 @@
 - Matrices + transformations
 - Rasterization
 - Triangles
-- Meshes
-- Mesh Shaders
 - Bindless
 - Material
 - Texturing
