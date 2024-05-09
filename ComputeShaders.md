@@ -1,4 +1,4 @@
-# Shaders
+# Compute Shaders
 
 A shader is a very lightweight program that runs on the GPU, it is designed to be spawned quickly from CPU commands such as dozens or hundreds of different shaders runs every frame. Shader are designed to work exclusively with the resources of GPU, so in term of feature set it's a lot more restricted than CPU programs (for example you cannot allocate memory on the GPU).
 The API to use the GPU is still evolving fast a new features are becoming unlocked as new hardware and drivers are released, a lot of the design choices on the rendering architecture come from these limitations.
@@ -22,7 +22,12 @@ In this guide, we'll focus on the Mesh Shader Pipeline which is the new preferre
 
 #### Amplification Shaders
 
-The amplification shader is an optional stage in the mesh shader pipeline that can take any data as input and outputs
+The amplification shader is an optional stage in the mesh shader pipeline that can take any data as input and outputs a list of vertices and primitives for the next stage (Mesh Shader). A vertex stores all the data needed to describe a mesh, usually each vertex has it's position, UVs, normal, etc. but the encoding of such data is fully controllable so you could pack data in any particular way you want as long as you have the code to interpret it correctly in the mesh shader.
+
+// TODO: find another way to say that, too technical too early
+This stage is called Amplification because it can generate more geometry as output than it has as input. Such use case is very handy as it serves as a replacement for the tessellation and facilitate LOD technique implementation.
+
+If this stage is not present, the mesh shader will be called for each vertex
 
 #### Mesh Shaders
 
@@ -30,30 +35,14 @@ The amplification shader is an optional stage in the mesh shader pipeline that c
 
 #### Fragment Shaders
 
-### Ray Tracing Pipeline
-
-Raytracing shaders
-
-[![](Media/Images/traceRayControlFlow.png)](https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html)
-
 ### Compute Pipeline
 
 The compute pipeline on the GPU only allows one type of shader to be executed: the compute shader.This is the simplest type of shader, it's multi-purpose and doesn't have access to any fixed hardware function, it's very good to do general purpose computation on the GPU ([GPGPU](https://fr.wikipedia.org/wiki/General-purpose_processing_on_graphics_processing_units)). Compute shaders are dispatched directly using a number of threads, it is the equivalent of having a job system handling all the boilerplate of starting jobs and distributing work between the workers.
 
-## GPU Architecture
-
-Modern GPUs are massively parallel and allow to run tens of thousands of threads at the same time, so it is crucial to keep in mind that we need to dispatch a large amount of tasks each time we want to execute something. Luckily the workload of rendering an image can be easily divided by each texel of the resulting image, for reference in a full HD image, there is a bit more than 2 million texels (1920 x 1080) so it'll be plenty of work to fill the GPU.
-
-The current rendering API are command based, which means that they use a pattern where the CPU is recording all the operation that the GPU needs to execute consecutively and then this command is passed to the GPU for execution. This command list is called a Command Buffer. Due to this command buffer pattern, the execution of shaders on the GPU is mostly serial (following the command buffer order) with little overlap between the different shaders executed. (note that this overlap is not necessarily wanted as running a lot of different shader programs on the GPU means that the GPU needs to switch context a lot and if there is not enough work dispatched per shader, it will result in most of the GPU doing nothing as a single SIMD block can only execute a single shader at a time. TODO: check this information).
-
-
 ## Languages
-
 
 ## References
 
 https://devblogs.microsoft.com/directx/d3d12-work-graphs/
 
 https://devblogs.microsoft.com/directx/dev-preview-of-new-directx-12-features/
-
-https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html

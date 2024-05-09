@@ -4,16 +4,18 @@
 - The meaning of PBR
 - The 3D Euclidean space
 - Vectors
-- Basic Camera
-- Meshes
-- Shaders
+- Simple Camera
+- GPU Architecture
+- Compute Shaders
 - Ray Tracing
-- Plane
-- Sphere
-- Boxes
+- Plane intersection
+- Sphere intersection
+- Box / AABB intersection
+- Triangle intersection
 - Matrices + transformations
+- Meshes
+- Mesh Shaders
 - Rasterization
-- Triangles
 - Bindless
 - Material
 - Texturing
@@ -25,8 +27,9 @@
 - Normal Mapping
 - Smoothness
 - Metallic
-- BRDF
+- BRDF / BSDF
 - Furnace Test
+- PBR Camera
 - Shading?
 - Shadow Maps
 - Depth Buffer
@@ -38,8 +41,7 @@
 
 ## Maybe
 
-
-- Advanced Camera
+- Advanced PBR Camera
 - Bloom
 - Depth Of Field
 - Sensor Response
