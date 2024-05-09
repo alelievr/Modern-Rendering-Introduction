@@ -13,6 +13,7 @@ public class AnchoredText : MonoBehaviour
         LineCenter,
         Manual,
         ArrowCenter,
+        CopyCurrentTransform,
     }
 
     public AnchorMode anchorMode;
@@ -35,6 +36,12 @@ public class AnchoredText : MonoBehaviour
         textMesh = GetComponentInChildren<TextMeshPro>();
         textMesh.color = color;
         textMesh.text = text;
+
+        if (anchorMode == AnchorMode.CopyCurrentTransform)
+        {
+            position = transform.position;
+            direction = Vector3.zero;
+        }
 
         cameras = FindObjectsByType<Camera>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
 
@@ -118,6 +125,7 @@ public class AnchoredText : MonoBehaviour
                     newPosition += lineNormal * radius;
                 break;
             case AnchorMode.Manual:
+            case AnchorMode.CopyCurrentTransform:
                 newPosition = position;
 
                 // Approximate offset depending on the size of the text:

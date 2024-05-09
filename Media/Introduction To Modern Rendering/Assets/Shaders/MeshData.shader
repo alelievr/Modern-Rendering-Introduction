@@ -1,5 +1,3 @@
-// Credits to https://github.com/Chaser324/unity-wireframe for the original shader
-
 Shader "Unlit/MeshData"
 {
 	Properties
