@@ -2,9 +2,9 @@
 
 [![Zero Day: https://developer.nvidia.com/orca/beeple-zero-day](Media/Images/ZeroDayMeasureOne_1.png)](https://developer.nvidia.com/orca/beeple-zero-day)
 
-Physically based rendering (PBR) is a method for rendering virtual content using equations derived from real-world observations. It often targets photorealistic rendering but PBR can also be used for stylized rendering when a more artistic control is given.
+Physically based rendering (PBR) is a method for rendering virtual content using equations derived from real-world observations. It often targets photorealistic rendering but PBR can also be used for stylized rendering when more artistic control is given.
 
-PBR has become the industry standard due to its numerous advantages for both artistic creation and engine development. It's employed in most contemporary films, from matching real-world footage to completely replacing it, and even finds application in highly stylized works from studios like Pixar and Disney.
+PBR has become the industry standard due to its numerous advantages for both artistic creation and engine development. It’s employed in most contemporary films, from matching real-world footage to completely replacing it, and even finds application in highly stylized works from studios like Pixar and Disney.
 
 The benefit of having light behave "as expected in reality" within a virtual world is big. It allows artists to leverage their intuition rather than solely memorizing complex rules.
 
@@ -22,13 +22,17 @@ PBR additionally opens doors to new workflows based on capturing real-world cont
 
 A core concept of PBR is the distinct separation between how a surface is modeled and how it interacts with light.
 
-Before the PBR workflow, creating a virtual asset involved building the 3D model in chosen software, followed by applying textures to define color and light interaction. This texture set could contain lighting information, often baked into the object's color. However, this presents a challenge for dynamic lighting scenarios. Baked-in lighting information within the model itself conflicts with the renderer's light simulation, as the renderer interprets it solely as color data and a lot of information about the light is lost when it's baked into a model. This workflow placed a heavy burden on artists, requiring them to manage both surface creation and a part of the lighting.
+Before the PBR workflow, creating a virtual asset involved building the 3D model in a chosen software, followed by applying textures to define color and light interaction. This texture set could contain lighting information, often baked into the object’s color. However, this presents a challenge for dynamic lighting scenarios. Baked-in lighting information within the model itself conflicts with the renderer’s light simulation, as the renderer interprets it solely as color data, and a lot of information about the light is lost when it’s baked into a model. This workflow placed a heavy burden on artists, requiring them to manage both surface creation and a part of the lighting.
 
 PBR divides 3D content creation into two distinct aspects: materials and lighting. Materials are essentially a set of textures and parameters that define how a surface interacts with light (e.g., surface roughness, metallic properties, color, etc.).
 
-On the lighting part, the renderer expect materials within the scene to provide this standardized set of inputs to ensure proper functioning of its lighting algorithms. It's important to note that this set of standard textures is not exhaustive and additional textures can be provided to the renderer to enhance the quality of the rendering like displacement maps or curvature maps which provide more information about the surface of the model itself.
+On the lighting part, the renderer expects materials within the scene to provide this standardized set of inputs to ensure the proper functioning of its lighting algorithms. The list of parameters (textures, constants, functions, etc.) is determined by the lighting algorithm we choose. There are several of them depending on the type of objects we’re rendering; we’ll take a look at that in a future chapter.
 
-Here's an example showcasing how various textures combine to create a photorealistic rendering of a rock. Don't worry about the specific textures yet; we'll delve deeper into material creation later.
+This separation essentially means that the 3D object will work as expected in any lighting conditions which makes it highly reusable between environments. This is what made PBR so popular in asset libraries, the PBR workflow ensures that the asset you download is compatible with your lighting setup.
+
+It’s important to note that some material information is actually derived from the geometry of the 3D model which is not linked to how the lighting interacts with the surface. For example, ambient occlusion or displacement is derived from the surface of the object and isn’t used during the lighting calculation of the surface.
+
+Here’s an example showcasing how various textures combine to create a photorealistic rendering of a rock. Don’t worry about the specific textures yet; we’ll delve deeper into material creation later.
 
 <table>
   <tr>
@@ -60,6 +64,12 @@ As you'll discover, these formulas can also become computationally expensive. To
 
 For simplicity, our reference won't be the real world, as capturing all the necessary lighting information for an accurate comparison would require a complex setup. If you're interested in practical applications of real-world reference data in video games, you can refer to [The Rendering Of Callisto Protocol](https://advances.realtimerendering.com/s2023/SIGGRAPH2023-Advances-The-Rendering-of-The-Callisto-Protocol-JimenezPetersen.pdf).
 
+## Coherence
+
+It’s important to think about all the components of a renderer to make sure they work with your lighting models, this requirement ensures that all the objects in your scene are receiving light the same way which makes the scene visually coherent. Every part of the lighting also needs to be energy-conserving, i.e. it’s important to respect the amount of incoming and outgoing light when simulating light interactions to make sure that no light is created from nothing or that the material absorbs too much.
+
+At first, this idea of coherence might seem obvious to respect PBR principles but you’ll see that this idea of coherence is highly impractical for real-time applications and that approximations that we rely on to make sure we maintain real-time frame rates are often getting more complicated to make sure that the lighting stays coherent.
+
 ## References
 
 https://en.wikipedia.org/wiki/Physically_based_rendering
@@ -71,3 +81,5 @@ https://pbr-book.org/4ed/contents
 https://en.wikipedia.org/wiki/Luminous_intensity
 
 https://advances.realtimerendering.com/s2023/SIGGRAPH2023-Advances-The-Rendering-of-The-Callisto-Protocol-JimenezPetersen.pdf
+
+https://seblagarde.wordpress.com/wp-content/uploads/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf
