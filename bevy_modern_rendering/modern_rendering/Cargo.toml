@@ -1,0 +1,39 @@
+[package]
+name = "modern_rendering"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = { git = "https://github.com/bevyengine/bevy", rev = "443ce9a62b6bb0136c192a6fe46e4c254a895e6c", default-features = false, features=[
+  "animation",
+  "bevy_asset",
+  "bevy_audio",
+  "bevy_color",
+  "bevy_gilrs",
+  "bevy_scene",
+  "bevy_winit",
+  "bevy_core_pipeline",
+  "bevy_pbr",
+  "bevy_render",
+  "bevy_gltf",
+  "bevy_sprite",
+  "bevy_text",
+  "bevy_ui",
+  "multi_threaded",
+  "png",
+  "hdr",
+  "vorbis",
+  "x11",
+  "bevy_gizmos",
+  "tonemapping_luts",
+  "default_font",
+  "sysinfo_plugin",
+  "meshlet",
+  "meshlet_processor",
+  "file_watcher"
+]}
+
+# bevy = { git = "https://github.com/bevyengine/bevy", rev = "443ce9a62b6bb0136c192a6fe46e4c254a895e6c", features=["shader_format_glsl"] }
+# bevy = "0.13"
+
+bevy_mod_hlsl = { path = "../bevy_mod_hlsl" }
