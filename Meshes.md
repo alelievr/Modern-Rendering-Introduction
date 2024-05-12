@@ -44,7 +44,11 @@ The normal values are playing a big part in the details of the lighting of a sur
 
 The normal values you see above are in object space, that's the same space as the vertex positions are in, it means that all the vertex data is relative to the object basis (the origin of this space is the object pivot or center most of the time). While it's possible to store the normals in object space in the normal map texture, it's not practical, for this reason almost every normal map texture is stored in tangent space nowadays. Tangent space is constructed from the basis formed using the vertex normal, tangent and bi-tangent.
 
-We already have the normal vector in out mesh data, what about the two others? like the normal, tangent data can be embed in the 3D model when it's created but sometimes it's missing so we have to re-compute it. I'll give the details
+We already have the normal vector in out mesh data, what about the two others? like the normal, tangent data can be embed in the 3D model when it's created but sometimes it's missing so we have to re-compute it.
+
+TODO: show how to compute tangent and bitangent from UV and vertex position (naive method).
+
+TODO: visualize the tangent space basis at a vertex on a mesh and how it allows to store data independent from the curvature of a surface
 
 Tangent space offers several advantages compared to object space to store normal values:
 

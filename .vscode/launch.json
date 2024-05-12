@@ -1,0 +1,24 @@
+{
+    "version": "0.1.0",
+    "configurations": [
+        {
+            "name": "Debug with LLDB",
+            "type": "lldb",
+            "request": "launch",
+            // The following configuration option, 'program', may in some cases need to be modified. 
+            // This is so that the correct executable is targeted.
+            // For example, on non-Windows systems, the ".exe" suffix must be removed. 
+            // Alternatively, the directory that rustc/cargo outputs debug builds may change in future
+            // As such, this path would have to change accordingly.
+            "program": "${workspaceFolder}/bevy_modern_rendering/target/debug/ModernRendering.exe",
+            // If you wish to supply arguments/parameters to the program, supply them below:
+            "args": [],
+            // Working folder for execution. Change as necessary if program requires a different value:
+            "cwd": "${workspaceFolder}/bevy_modern_rendering",
+            "terminal": "external",
+            "stopOnEntry": false,
+            // Instructs LLVM to apply special Rust-language-specific functionality to its analysis:
+            "sourceLanguages": ["rust"]
+        }
+    ]
+}
