@@ -1,7 +1,14 @@
-RWTexture2D<float4> _Output : register(u0);
+Texture2D<float> _Input;
+RWTexture2D<float> _Output : register(u0);
 
-[numthreads(1, 1, 1)]
+[numthreads(8, 8, 1)]
 void main(uint3 id : SV_DispatchThreadID)
 {
-    _Output[id.xy] = float4(1.0, 0.0, 0.0, 1.0);
+    _Output[id.xy] = 0;
 }
+
+// [numthreads(8, 8, 1)]
+// void update(uint3 id : SV_DispatchThreadID)
+// {
+//     _Output[id.xy] = 0;
+// }

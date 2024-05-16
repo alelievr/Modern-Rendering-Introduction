@@ -10,12 +10,9 @@ bevy = { git = "https://github.com/bevyengine/bevy", rev = "443ce9a62b6bb0136c19
   "bevy_audio",
   "bevy_color",
   "bevy_gilrs",
-  "bevy_scene",
   "bevy_winit",
-  "bevy_core_pipeline",
-  "bevy_pbr",
-  "bevy_render",
   "bevy_gltf",
+  "bevy_render", 
   "bevy_sprite",
   "bevy_text",
   "bevy_ui",
@@ -30,10 +27,7 @@ bevy = { git = "https://github.com/bevyengine/bevy", rev = "443ce9a62b6bb0136c19
   "sysinfo_plugin",
   "meshlet",
   "meshlet_processor",
-  "file_watcher"
+  "file_watcher",
 ]}
-
-# bevy = { git = "https://github.com/bevyengine/bevy", rev = "443ce9a62b6bb0136c192a6fe46e4c254a895e6c", features=["shader_format_glsl"] }
-# bevy = "0.13"
 
 bevy_mod_hlsl = { path = "../bevy_mod_hlsl" }

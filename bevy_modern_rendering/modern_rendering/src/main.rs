@@ -1,332 +1,59 @@
-use std::borrow::Cow;
+//! A compute shader that simulates Conway's Game of Life.
+//!
+//! Compute shaders use the GPU for computing arbitrary information, that may be independent of what
+//! is rendered to the screen.
+
 use bevy::{
-    ecs::query::QueryItem,
     prelude::*,
     render::{
-        extract_component::{
-            ComponentUniforms, ExtractComponent, ExtractComponentPlugin, UniformComponentPlugin,
-        }, extract_resource::ExtractResource, render_asset::{RenderAssetUsages, RenderAssets}, render_graph::{
-            NodeRunError, RenderGraphApp, RenderGraphContext, RenderLabel, RenderSubGraph, ViewNode, ViewNodeRunner
-        }, render_resource::{binding_types::texture_storage_2d, *}, renderer::{RenderContext, RenderDevice}, texture::GpuImage, view::ViewTarget, RenderApp
+        extract_resource::{ExtractResource, ExtractResourcePlugin},
+        render_asset::{RenderAssetUsages, RenderAssets},
+        render_graph::{self, RenderGraph, RenderLabel},
+        render_resource::{binding_types::texture_storage_2d, *},
+        renderer::{RenderContext, RenderDevice},
+        texture::GpuImage,
+        Render, RenderApp, RenderSet,
     },
 };
+use std::borrow::Cow;
 use bevy_mod_hlsl::{HLSLPlugin, HLSLRegistry};
 
-const WINDOW_RESOLUTION: (u32, u32) = (1920, 1080);
+const DISPLAY_FACTOR: u32 = 4;
+const SIZE: (u32, u32) = (1280 / DISPLAY_FACTOR, 720 / DISPLAY_FACTOR);
+const WORKGROUP_SIZE: u32 = 8;
 
-#[derive(Debug, Hash, PartialEq, Eq, Clone, RenderSubGraph)]
-pub struct ModernRenderer;
-
-fn main()
-{
-    let mut app = App::new();
-    let render_device = app.world().resource::<RenderDevice>();
-
-    // check if the device support the required feature
-    if !render_device
-        .features()
-        .contains(WgpuFeatures::SAMPLED_TEXTURE_AND_STORAGE_BUFFER_ARRAY_NON_UNIFORM_INDEXING)
-    {
-        error!(
-            "Render device doesn't support feature \
-            SAMPLED_TEXTURE_AND_STORAGE_BUFFER_ARRAY_NON_UNIFORM_INDEXING, \
-            which is required for texture binding arrays"
-        );
-        return;
-    }
-
-    app.add_plugins((
-            DefaultPlugins.set(AssetPlugin::default()),
+fn main() {
+    App::new()
+        .insert_resource(ClearColor(Color::BLACK))
+        .add_plugins((
+            DefaultPlugins
+            .set(WindowPlugin {
+                primary_window: Some(Window {
+                    resolution: (
+                        (SIZE.0 * DISPLAY_FACTOR) as f32,
+                        (SIZE.1 * DISPLAY_FACTOR) as f32,
+                    )
+                    .into(),
+                    // uncomment for unthrottled FPS
+                    // present_mode: bevy::window::PresentMode::AutoNoVsync,
+                    ..default()
+                }),
+                ..default()
+            })
+            .set(ImagePlugin::default_nearest()),
             HLSLPlugin,
-            PathTracerPlugin,
+            GameOfLifeComputePlugin,
         ))
         .add_systems(Startup, setup)
-        .add_systems(Update, (rotate, update_settings))
+        .add_systems(Update, switch_textures)
         .run();
 }
 
-struct PathTracerPlugin;
-
-impl Plugin for PathTracerPlugin {
-    fn build(&self, app: &mut App) {
-
-        // Probably not needed, we'll use structured buffers instead for most use cases
-        app.add_plugins((
-            ExtractComponentPlugin::<PathTracerSettings>::default(),
-            UniformComponentPlugin::<PathTracerSettings>::default(),
-        ));
-
-        let Some(render_app) = app.get_sub_app_mut(RenderApp) else {
-            return;
-        };
-
-        render_app
-            .add_render_sub_graph(ModernRenderer)
-            .add_render_graph_node::<ViewNodeRunner<PathTracerNode>>(ModernRenderer, PostProcessLabel)
-            ; // no need edges for now as we have only one node
-            // .add_render_graph_edge(
-            //     ModernRenderer,
-            //     (
-            //         Node3d::Tonemapping,
-            //         PostProcessLabel,
-            //         Node3d::EndMainPassPostProcessing,
-            //     ),
-            // );
-    }
-
-    fn finish(&self, app: &mut App) {
-        let Some(render_app) = app.get_sub_app_mut(RenderApp) else {
-            return;
-        };
-
-        render_app.init_resource::<PathTracerPipeline>();
-    }
-}
-
-#[derive(Resource)]
-struct PathTracerBindGroups([BindGroup; 1]);
-
-#[derive(Debug, Hash, PartialEq, Eq, Clone, RenderLabel)]
-struct PostProcessLabel;
-
-fn prepare_bind_group(
-    mut commands: Commands,
-    pipeline: Res<PathTracerPipeline>,
-    gpu_images: Res<RenderAssets<GpuImage>>,
-    builtin_resources: Res<BuiltinResources>,
-    render_device: Res<RenderDevice>,
-) {
-    let view = gpu_images.get(&builtin_resources.color_buffer).unwrap();
-    let bind_group_0 = render_device.create_bind_group(
-        None,
-        &pipeline.layout,
-        &BindGroupEntries::sequential((&view.texture_view)),
-    );
-    commands.insert_resource(PathTracerBindGroups([bind_group_0]));
-}
-
-#[derive(Default)]
-struct PathTracerNode;
-
-impl ViewNode for PathTracerNode {
-    type ViewQuery = &'static ViewTarget;
-
-    fn run(
-        &self,
-        _graph: &mut RenderGraphContext,
-        render_context: &mut RenderContext,
-        view_target: QueryItem<Self::ViewQuery>,
-        world: &World,
-    ) -> Result<(), NodeRunError> {
-        let path_tracer_pipeline = world.resource::<PathTracerPipeline>();
-
-        let pipeline_cache = world.resource::<PipelineCache>();
-
-        let Some(pipeline) = pipeline_cache.get_compute_pipeline(path_tracer_pipeline.pipeline_id)
-        else {
-            return Ok(());
-        };
-
-        // let settings_uniforms = world.resource::<ComponentUniforms<PathTracerSettings>>();
-        // let Some(settings_binding) = settings_uniforms.uniforms().binding() else {
-        //     return Ok(());
-        // };
-
-        let main_color_buffer = view_target.main_texture_view();
-
-        let bind_group = render_context.render_device().create_bind_group(
-            "path_tracer_bind_group",
-            &path_tracer_pipeline.layout,
-            &BindGroupEntries::sequential((&main_color_buffer)),
-        );
-
-        let command_encoder = render_context.command_encoder();
-
-        let mut pass = command_encoder.begin_compute_pass(&ComputePassDescriptor::default());
-
-        pass.set_pipeline(pipeline);
-        pass.set_bind_group(0, &bind_group, &[]);
-        pass.dispatch_workgroups(16, 16, 1);
-
-        // let mut render_pass = render_context.begin_tracked_render_pass(RenderPassDescriptor {
-        //     label: Some("path_tracer_pass"),
-        //     color_attachments: &[Some(RenderPassColorAttachment {
-        //         view: post_process,
-        //         resolve_target: None,
-        //         ops: Operations::default(),
-        //     })],
-        //     depth_stencil_attachment: None,
-        //     timestamp_writes: None,
-        //     occlusion_query_set: None,
-        // });
-
-        // render_pass.set_render_pipeline(pipeline);
-        // render_pass.set_bind_group(0, &bind_group, &[]);
-        // render_pass.draw(0..3, 0..1);
-
-        Ok(())
-    }
-}
-
-#[derive(Resource)]
-struct PathTracerPipeline {
-    layout: BindGroupLayout,
-    sampler: Sampler,
-    pipeline_id: CachedComputePipelineId,
-}
-
-impl FromWorld for PathTracerPipeline {
-    fn from_world(world: &mut World) -> Self {
-        let render_device = world.resource::<RenderDevice>();
-
-        let layout: BindGroupLayout = render_device.create_bind_group_layout(
-            Some("path_tracer_layout"),
-            &BindGroupLayoutEntries::sequential(
-                ShaderStages::COMPUTE,
-                (
-                    texture_storage_2d(TextureFormat::Rgba16Float, StorageTextureAccess::WriteOnly),
-                ),
-            ),
-        );
-
-        // let layout: BindGroupLayout = render_device.create_bind_group_layout(
-        //     Some("post_process_bind_group_layout"),
-        //     &[
-        //         BindGroupLayoutEntry {
-        //             binding: 0,
-        //             visibility: ShaderStages::FRAGMENT,
-        //             ty: BindingType::Texture {
-        //                 sample_type: TextureSampleType::Float { filterable: true },
-        //                 view_dimension: TextureViewDimension::D2,
-        //                 multisampled: false,
-        //             },
-        //             count: None,
-        //         },
-        //         BindGroupLayoutEntry {
-        //             binding: 1,
-        //             visibility: ShaderStages::FRAGMENT,
-        //             ty: BindingType::Sampler(SamplerBindingType::Filtering),
-        //             count: None,
-        //         },
-        //         BindGroupLayoutEntry {
-        //             binding: 2,
-        //             visibility: ShaderStages::FRAGMENT,
-        //             ty: BindingType::Buffer {
-        //                 ty: bevy::render::render_resource::BufferBindingType::Uniform,
-        //                 has_dynamic_offset: false,
-        //                 min_binding_size: Some(PathTracerSettings::min_size()),
-        //             },
-        //             count: None,
-        //         },
-        //     ],
-        // );
-
-        let sampler = render_device.create_sampler(&SamplerDescriptor::default());
-
-        // The HLSL Registry Holds HLSL shader handles so the file watcher will watch for updates and cause a new spv file to be generated when changes are made.
-        // We need at least shader model 6.5 for mesh shaders
-        let shader = HLSLRegistry::load_from_world("shaders/path_tracer_entry.hlsl", world, "cs_6_5");
-
-        let pipeline_id =
-            world
-                .resource_mut::<PipelineCache>()
-                .queue_compute_pipeline(ComputePipelineDescriptor  {
-                    label: Some("path_tracer".into()),
-                    layout: vec![layout.clone()],
-                    push_constant_ranges: Vec::new(),
-                    shader: shader,
-                    shader_defs: vec![],
-                    entry_point: Cow::from("main"),
-                });
-
-                // Regular shader pipeline (to transform with mesh shaders)
-                // let pipeline_id =
-                // world
-                //     .resource_mut::<PipelineCache>()
-                //     .queue_(RenderPipelineDescriptor {
-                //         label: Some("post_process_pipeline".into()),
-                //         layout: vec![layout.clone()],
-    
-                //         vertex: fullscreen_shader_vertex_state(),
-                //         fragment: Some(FragmentState {
-                //             shader,
-                //             shader_defs: vec![],
-                //             // When selecting a profile with "ps_", fragment will be used for the SPIR-V entry point
-                //             entry_point: "fragment".into(),
-                //             targets: vec![Some(ColorTargetState {
-                //                 format: TextureFormat::bevy_default(),
-                //                 blend: None,
-                //                 write_mask: ColorWrites::ALL,
-                //             })],
-                //         }),
-    
-                //         primitive: PrimitiveState::default(),
-                //         depth_stencil: None,
-                //         multisample: MultisampleState::default(),
-                //         push_constant_ranges: vec![],
-                //     });
-    
-        Self {
-            layout,
-            sampler,
-            pipeline_id,
-        }
-    }
-}
-
-#[derive(Component, Default, Clone, Copy, ExtractComponent, ShaderType)]
-struct PathTracerSettings {
-    intensity: f32,
-    padding: Vec3,
-}
-
-#[derive(Resource, Clone, ExtractResource)]
-struct BuiltinResources
-{
-    color_buffer: Handle<Image>,
-}
-
-fn setup(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut images: ResMut<Assets<Image>>
-) {
-    commands.spawn((
-        Camera3dBundle {
-            camera: Camera {
-                clear_color: ClearColorConfig::Custom(Color::WHITE),
-                ..default()
-            },
-            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 5.0))
-                .looking_at(Vec3::default(), Vec3::Y),
-            ..default()
-        },
-        PathTracerSettings {
-            intensity: 0.02,
-            ..default()
-        },
-    ));
-
-    commands.spawn((
-        PbrBundle {
-            mesh: meshes.add(Cuboid::default()),
-            material: materials.add(Color::srgb(0.8, 0.7, 0.6)),
-            transform: Transform::from_xyz(0.0, 0.5, 0.0),
-            ..default()
-        },
-        Rotates,
-    ));
-
-    commands.spawn(PointLightBundle {
-        transform: Transform::from_translation(Vec3::new(0.0, 0.0, 10.0)),
-        ..default()
-    });
-
+fn setup(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     let mut image = Image::new_fill(
         Extent3d {
-            width: WINDOW_RESOLUTION.0,
-            height: WINDOW_RESOLUTION.1,
+            width: SIZE.0,
+            height: SIZE.1,
             depth_or_array_layers: 1,
         },
         TextureDimension::D2,
@@ -336,35 +63,225 @@ fn setup(
     );
     image.texture_descriptor.usage =
         TextureUsages::COPY_DST | TextureUsages::STORAGE_BINDING | TextureUsages::TEXTURE_BINDING;
-    let color_buffer = images.add(image.clone());
+    let image0 = images.add(image.clone());
+    let image1 = images.add(image);
 
-    commands.insert_resource(BuiltinResources {
-        color_buffer : color_buffer
+    commands.spawn(SpriteBundle {
+        sprite: Sprite {
+            custom_size: Some(Vec2::new(SIZE.0 as f32, SIZE.1 as f32)),
+            ..default()
+        },
+        texture: image0.clone(),
+        transform: Transform::from_scale(Vec3::splat(DISPLAY_FACTOR as f32)),
+        ..default()
+    });
+    commands.spawn(Camera2dBundle::default());
+
+    commands.insert_resource(GameOfLifeImages {
+        texture_a: image0,
+        texture_b: image1,
     });
 }
 
-// TODO: cleanup
-
-#[derive(Component)]
-struct Rotates;
-
-fn rotate(time: Res<Time>, mut query: Query<&mut Transform, With<Rotates>>) {
-    for mut transform in &mut query {
-        transform.rotate_x(0.55 * time.delta_seconds());
-        transform.rotate_z(0.15 * time.delta_seconds());
+// Switch texture to display every frame to show the one that was written to most recently.
+fn switch_textures(images: Res<GameOfLifeImages>, mut displayed: Query<&mut Handle<Image>>) {
+    let mut displayed = displayed.single_mut();
+    if *displayed == images.texture_a {
+        *displayed = images.texture_b.clone_weak();
+    } else {
+        *displayed = images.texture_a.clone_weak();
     }
 }
 
-fn update_settings(mut settings: Query<&mut PathTracerSettings>, time: Res<Time>) {
-    for mut setting in &mut settings {
-        let mut intensity = time.elapsed_seconds().sin();
+struct GameOfLifeComputePlugin;
 
-        intensity = intensity.sin();
+#[derive(Debug, Hash, PartialEq, Eq, Clone, RenderLabel)]
+struct GameOfLifeLabel;
 
-        intensity = intensity * 0.5 + 0.5;
+impl Plugin for GameOfLifeComputePlugin {
+    fn build(&self, app: &mut App) {
+        // Extract the game of life image resource from the main world into the render world
+        // for operation on by the compute shader and display on the sprite.
+        app.add_plugins(ExtractResourcePlugin::<GameOfLifeImages>::default());
+        let render_app = app.sub_app_mut(RenderApp);
+        render_app.add_systems(
+            Render,
+            prepare_bind_group.in_set(RenderSet::PrepareBindGroups),
+        );
 
-        intensity *= 0.015;
+        let mut render_graph = render_app.world_mut().resource_mut::<RenderGraph>();
+        render_graph.add_node(GameOfLifeLabel, GameOfLifeNode::default());
+        render_graph.add_node_edge(GameOfLifeLabel, bevy::render::graph::CameraDriverLabel);
+    }
 
-        setting.intensity = intensity;
+    fn finish(&self, app: &mut App) {
+        let render_app = app.sub_app_mut(RenderApp);
+        render_app.init_resource::<GameOfLifePipeline>();
+    }
+}
+
+#[derive(Resource, Clone, ExtractResource)]
+struct GameOfLifeImages {
+    texture_a: Handle<Image>,
+    texture_b: Handle<Image>,
+}
+
+#[derive(Resource)]
+struct GameOfLifeImageBindGroups([BindGroup; 2]);
+
+fn prepare_bind_group(
+    mut commands: Commands,
+    pipeline: Res<GameOfLifePipeline>,
+    gpu_images: Res<RenderAssets<GpuImage>>,
+    game_of_life_images: Res<GameOfLifeImages>,
+    render_device: Res<RenderDevice>,
+) {
+    let view_a = gpu_images.get(&game_of_life_images.texture_a).unwrap();
+    let view_b = gpu_images.get(&game_of_life_images.texture_b).unwrap();
+    let bind_group_0 = render_device.create_bind_group(
+        None,
+        &pipeline.texture_bind_group_layout,
+        &BindGroupEntries::sequential((&view_a.texture_view, &view_b.texture_view)),
+    );
+    let bind_group_1 = render_device.create_bind_group(
+        None,
+        &pipeline.texture_bind_group_layout,
+        &BindGroupEntries::sequential((&view_b.texture_view, &view_a.texture_view)),
+    );
+    commands.insert_resource(GameOfLifeImageBindGroups([bind_group_0, bind_group_1]));
+}
+
+#[derive(Resource)]
+struct GameOfLifePipeline {
+    texture_bind_group_layout: BindGroupLayout,
+    init_pipeline: CachedComputePipelineId,
+    update_pipeline: CachedComputePipelineId,
+}
+
+impl FromWorld for GameOfLifePipeline {
+    fn from_world(world: &mut World) -> Self {
+        let render_device = world.resource::<RenderDevice>();
+        let texture_bind_group_layout = render_device.create_bind_group_layout(
+            "GameOfLifeImages",
+            &BindGroupLayoutEntries::sequential(
+                ShaderStages::COMPUTE,
+                (
+                    texture_storage_2d(TextureFormat::R32Float, StorageTextureAccess::ReadOnly),
+                    texture_storage_2d(TextureFormat::R32Float, StorageTextureAccess::WriteOnly),
+                ),
+            ),
+        );
+        let shader = HLSLRegistry::load_from_world("shaders/path_tracer_entry.hlsl", world, "cs_6_5");
+        let pipeline_cache = world.resource::<PipelineCache>();
+        let init_pipeline = pipeline_cache.queue_compute_pipeline(ComputePipelineDescriptor {
+            label: None,
+            layout: vec![texture_bind_group_layout.clone()],
+            push_constant_ranges: Vec::new(),
+            shader: shader.clone(),
+            shader_defs: vec![],
+            entry_point: Cow::from("main"),
+        });
+        let update_pipeline = pipeline_cache.queue_compute_pipeline(ComputePipelineDescriptor {
+            label: None,
+            layout: vec![texture_bind_group_layout.clone()],
+            push_constant_ranges: Vec::new(),
+            shader,
+            shader_defs: vec![],
+            entry_point: Cow::from("main"),
+        });
+
+        GameOfLifePipeline {
+            texture_bind_group_layout,
+            init_pipeline,
+            update_pipeline,
+        }
+    }
+}
+
+enum GameOfLifeState {
+    Loading,
+    Init,
+    Update(usize),
+}
+
+struct GameOfLifeNode {
+    state: GameOfLifeState,
+}
+
+impl Default for GameOfLifeNode {
+    fn default() -> Self {
+        Self {
+            state: GameOfLifeState::Loading,
+        }
+    }
+}
+
+impl render_graph::Node for GameOfLifeNode {
+    fn update(&mut self, world: &mut World) {
+        let pipeline = world.resource::<GameOfLifePipeline>();
+        let pipeline_cache = world.resource::<PipelineCache>();
+
+        // if the corresponding pipeline has loaded, transition to the next stage
+        match self.state {
+            GameOfLifeState::Loading => {
+                if let CachedPipelineState::Ok(_) =
+                    pipeline_cache.get_compute_pipeline_state(pipeline.init_pipeline)
+                {
+                    self.state = GameOfLifeState::Init;
+                }
+            }
+            GameOfLifeState::Init => {
+                if let CachedPipelineState::Ok(_) =
+                    pipeline_cache.get_compute_pipeline_state(pipeline.update_pipeline)
+                {
+                    self.state = GameOfLifeState::Update(1);
+                }
+            }
+            GameOfLifeState::Update(0) => {
+                self.state = GameOfLifeState::Update(1);
+            }
+            GameOfLifeState::Update(1) => {
+                self.state = GameOfLifeState::Update(0);
+            }
+            GameOfLifeState::Update(_) => unreachable!(),
+        }
+    }
+
+    fn run(
+        &self,
+        _graph: &mut render_graph::RenderGraphContext,
+        render_context: &mut RenderContext,
+        world: &World,
+    ) -> Result<(), render_graph::NodeRunError> {
+        let bind_groups = &world.resource::<GameOfLifeImageBindGroups>().0;
+        let pipeline_cache = world.resource::<PipelineCache>();
+        let pipeline = world.resource::<GameOfLifePipeline>();
+
+        let mut pass = render_context
+            .command_encoder()
+            .begin_compute_pass(&ComputePassDescriptor::default());
+
+        // select the pipeline based on the current state
+        match self.state {
+            GameOfLifeState::Loading => {}
+            GameOfLifeState::Init => {
+                let init_pipeline = pipeline_cache
+                    .get_compute_pipeline(pipeline.init_pipeline)
+                    .unwrap();
+                pass.set_bind_group(0, &bind_groups[0], &[]);
+                pass.set_pipeline(init_pipeline);
+                pass.dispatch_workgroups(SIZE.0 / WORKGROUP_SIZE, SIZE.1 / WORKGROUP_SIZE, 1);
+            }
+            GameOfLifeState::Update(index) => {
+                let update_pipeline = pipeline_cache
+                    .get_compute_pipeline(pipeline.update_pipeline)
+                    .unwrap();
+                pass.set_bind_group(0, &bind_groups[index], &[]);
+                pass.set_pipeline(update_pipeline);
+                pass.dispatch_workgroups(SIZE.0 / WORKGROUP_SIZE, SIZE.1 / WORKGROUP_SIZE, 1);
+            }
+        }
+
+        Ok(())
     }
 }

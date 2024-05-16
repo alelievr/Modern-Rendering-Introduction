@@ -4,7 +4,7 @@ version = "0.0.0"
 edition = "2021"
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", rev = "443ce9a62b6bb0136c192a6fe46e4c254a895e6c", features = ["shader_format_spirv", "bevy_render"] }
+bevy = { git = "https://github.com/bevyengine/bevy", rev = "443ce9a62b6bb0136c192a6fe46e4c254a895e6c", default-features = false, features = ["shader_format_spirv", "bevy_render"] }
 serde = "1.0.193"
 spirv-builder = { git = "https://github.com/EmbarkStudios/rust-gpu", rev = "83f8c72f04a6af673b0533a0f03527b7756f883e", optional = true }
 

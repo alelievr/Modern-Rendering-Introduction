@@ -33,6 +33,7 @@
 - Shading?
 - Shadow Maps
 - Depth Buffer
+- GPU Compute Optimizations
 - Frustum Culling
 - Occlusion Culling
 - Transparency
