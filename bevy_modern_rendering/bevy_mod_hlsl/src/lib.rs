@@ -57,6 +57,13 @@ impl HLSLRegistry {
             self.0.insert(p.clone(), h);
         }
         asset_server.load(p.with_extension("spv"))
+
+        let desc = wgpu::ShaderModuleDescriptor {
+            label: Some(desc.name),
+            source: wgpu::ShaderSource::SpirV(desc.source_spirv.as_ref().into()),
+        };
+
+        shader = self.gpu.device.create_shader_module(&desc);
     }
 
     /// <profile>: ps_6_0, ps_6_1, ps_6_2, ps_6_3, ps_6_4, ps_6_5, ps_6_6, ps_6_7,

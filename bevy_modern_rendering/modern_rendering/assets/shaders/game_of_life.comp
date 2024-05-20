@@ -1,0 +1,82 @@
+#version 450 core
+
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
+uniform sampler2D input;
+layout(binding = 0) uniform;
+
+out vec4 output_FragColor;
+layout(binding = 1) readonly;
+
+uint hash(uint value) {
+  uint state = value;
+  state ^= 2747636419u;
+  state *= 2654435769u;
+  state ^= state >> 16u;
+  state *= 2654435769u;
+  state ^= state >> 16u;
+  state *= 2654435769u;
+  return state;
+}
+
+float randomFloat(uint value) {
+  return float(hash(value)) / 4294967295.0;
+}
+
+void init() {
+  ivec2 location = ivec2(gl_GlobalInvocationID.xy);
+
+  float randomNumber = randomFloat(gl_GlobalInvocationID.y << 16 | gl_GlobalInvocationID.x);
+  bool alive = randomNumber > 0.9;
+  vec4 color = vec4(float(alive));
+
+  output_FragColor = color;
+}
+
+bool is_alive(ivec2 location, int offset_x, int offset_y) {
+  vec4 value = texture(input, vec2(location) + ivec2(offset_x, offset_y));
+  return value.x > 0.5;
+}
+
+int count_alive(ivec2 location) {
+  int sum = 0;
+  for (int y = -1; y <= 1; ++y) {
+    for (int x = -1; x <= 1; ++x) {
+      if (x == 0 && y == 0) continue;
+      sum += is_alive(location, x, y);
+    }
+  }
+  return sum;
+}
+
+void update() {
+  ivec2 location = ivec2(gl_GlobalInvocationID.xy);
+
+  int n_alive = count_alive(location);
+
+  bool alive;
+  if (n_alive == 3) {
+    alive = true;
+  } else if (n_alive == 2) {
+    alive = is_alive(location, 0, 0);
+  } else {
+    alive = false;
+  }
+  vec4 color = vec4(float(alive));
+
+  output_FragColor = color;
+}
+
+void main() {
+  if (gl_WorkGroupID.x + gl_LocalInvocationID.x >= gl_NumWorkgroups.x ||
+      gl_WorkGroupID.y + gl_LocalInvocationID.y >= gl_NumWorkgroups.y) {
+    return;
+  }
+  
+  if (gl_InvocationID.z != 0) {
+    return;
+  }
+  
+  init();
+  update();
+}
