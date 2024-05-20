@@ -8,7 +8,7 @@ $$a=(2, 4, -3), b=(-1, 0, 4),...$$
 
 ![](Media/Recordings/Vectors%2000.png)
 
-Another way of thinking about these coordinates is how they represent an arrow in space starting from the origin (0, 0, 0) and going to the point. I highly recommend watching this excellent series of video to build up your intuition about vectors and other mathematical tools related to linear algebra: [Essence of linear algebra](https://www.youtube.com/watch?v=fNk_zzaMoSs&list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab).
+Another way of thinking about these coordinates is how they represent an arrow in space starting from the origin (0, 0, 0) and going towards the point, in this view the tip of the arrows ends exactly on the coordinate of the vector. This representation of vectors is useful to help visualize what happens when we transform a vector (for example adding two vectors).
 
 This arrow based representation of vectors especially make sense when we represent directions using vectors. A direction is a normalized vector which means that it's length is always 1, this property makes some calculation a lot easier as we'll see in the next chapiters. Another way of thinking about direction vectors is that the tip of the arrow is always on the surface of a sphere (or a circle in 2D).
 
@@ -23,10 +23,20 @@ By combining these 3 vectors and a scale, you can reach every point in space. Th
 
 Note that vectors are not limited to storing position and direction data, they can contain literally anything and they are sometimes used to store things that are a bit less intuitive like colors or rotations.
 
+## Complementary references 
+
+I highly recommend watching this excellent series of video to build up your intuition about vectors and other mathematical tools related to linear algebra: [Essence of linear algebra](https://www.youtube.com/watch?v=fNk_zzaMoSs&list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab).
+
+If you would like something more mathemacical oriented, then I recommend reading [immersivemath](https://immersivemath.com/ila/index.html), it has amazing interactive illustrations and goes more deeply into the mathematical equations of linear algebra.
+
+There is also a very complete book about mathematics in computer graphics: [Mathematics for 3D Game Programming and Computer Graphics](https://canvas.projekti.info/ebooks/Mathematics%20for%203D%20Game%20Programming%20and%20Computer%20Graphics,%20Third%20Edition.pdf), it's quite old but the mathematical foundations behind graphics rendering hasn't changed so it's still a very good reference.
+
 ## References
 
 The [Essence of linear algebra](https://www.youtube.com/watch?v=fNk_zzaMoSs&list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab).
 
 [Mathematics for
 3D Game Programming
-and Computer Graphics 3rd edition](https://canvas.projekti.info/ebooks/Mathematics%20for%203D%20Game%20Programming%20and%20Computer%20Graphics,%20Third%20Edition.pdf).
+and Computer Graphics 3rd edition]().
+
+https://immersivemath.com/ila/index.html

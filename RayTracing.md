@@ -10,11 +10,13 @@ Each intersection with a ray allows to retrieve information such as the hit posi
 
 [Path tracing](https://en.wikipedia.org/wiki/Path_tracing) is the name of a [Light Transport](https://en.wikipedia.org/wiki/Light_transport_theory) algorithm, it uses the principle of ray-tracing to simulate how light rays interacts with a 3D scene.
 
-The idea of the algorithm is pretty simple: we're going to start shooting rays from the camera, these rays will intersect the objects in the scene and then generate other ray to propagate the light.
+The idea of the algorithm is pretty simple: we're going to start shooting rays from the camera, these rays will intersect the objects in the scene, at each intersection we'll evaluate how light interacts with the surface and we'll accumulate the lighting information to simulate light bouncing between objects.
 
-There are several types of path tracer that exist, for this section, we're particularly interested in "backward" path tracing. It's called backward because we generate rays from the camera and then trace back a path to a light after hitting one or more surfaces.
+There are several types of path tracer that exist, for this section, we're particularly interested in "backward" path tracing. It's called backward because we generate rays from the camera and then trace back to a surface before evaluating the lighting.
 
-## PBRT V4
+## PBRT 4th edition
+
+![](https://pbrt.org/images/bookcover-4ed.jpg)
 
 In this course the reference renderer we're making will mostly follow the guidelines of [PBRT V4](https://pbr-book.org/4ed/contents) with some simplifications. We're also doing it fully on the GPU from the start whereas the book only talk about GPU implantation at the end.
 
