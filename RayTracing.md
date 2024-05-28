@@ -16,9 +16,7 @@ There are several types of path tracer that exist, for this section, we're parti
 
 ## PBRT 4th edition
 
-![](https://pbrt.org/images/bookcover-4ed.jpg)
-
-In this course the reference renderer we're making will mostly follow the guidelines of [PBRT V4](https://pbr-book.org/4ed/contents) with some simplifications. We're also doing it fully on the GPU from the start whereas the book only talk about GPU implantation at the end.
+In this course the reference renderer we're making will mostly follow the guidelines of [Physically Based Rendering V4](https://pbr-book.org/4ed/contents) with some simplifications. We're also doing it fully on the GPU from the start whereas the book only talk about GPU implantation at the end.
 
 ## Approximations
 
