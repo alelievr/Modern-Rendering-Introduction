@@ -1,6 +1,0 @@
-[workspace]
-resolver = "2"
-members = [
-    "bevy_mod_hlsl",
-    "modern_rendering",
-]

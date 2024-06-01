@@ -1,0 +1,15 @@
+[package]
+name = "modern_renderer"
+version = "0.0.0"
+edition = "2021"
+
+[dependencies]
+log = "0.4.21"
+rusty-d3d12 = "0.5.2"
+winapi = { version = "0.3", features = ["winuser", "debugapi", "winbase"] }
+winit = "0.24"
+clap = "2.33"
+widestring = "0.4"
+memoffset = "0.5"
+hassle-rs = "0.3"
+simple_logger = "1.6"

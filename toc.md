@@ -19,6 +19,7 @@
 - Bindless
 - Material
 - Texturing
+- Aliasing and Filtering
 - Integral
 - The Rendering Equation
 - Directional Lights
