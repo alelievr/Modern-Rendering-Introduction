@@ -29,7 +29,7 @@
 - BRDF / BSDF
 - Furnace Test
 - Mapping PBR Textures
-- PBR Camera (tonemapping & HDR)
+- HDR and Tone Mapping
 - Shading?
 - Shadow Maps
 - Depth Buffer
