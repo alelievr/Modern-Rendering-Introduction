@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[ExecuteAlways]
 public class Line : MonoBehaviour
 {
     public Vector3 start;
@@ -13,10 +14,12 @@ public class Line : MonoBehaviour
 
     LineRenderer lineRenderer;
 
-    void Start()
+    void OnEnable()
     {
-        lineRenderer = gameObject.AddComponent<LineRenderer>();
-        lineRenderer.material = new Material(Shader.Find("Hidden/LineRenderer/DottedLine"));
+        lineRenderer = GetComponent<LineRenderer>();
+        if (lineRenderer == null)
+            lineRenderer = gameObject.AddComponent<LineRenderer>();
+        lineRenderer.sharedMaterial = new Material(Shader.Find("Hidden/LineRenderer/DottedLine"));
         lineRenderer.startColor = color;
         lineRenderer.endColor = color;
         lineRenderer.startWidth = width;
@@ -26,17 +29,17 @@ public class Line : MonoBehaviour
 
         if (dotted)
         {
-            lineRenderer.material.SetFloat("_LineSpacing", spacing);
-            lineRenderer.material.SetFloat("_LineLength", (end - start).magnitude);
+            lineRenderer.sharedMaterial.SetFloat("_LineSpacing", spacing);
+            lineRenderer.sharedMaterial.SetFloat("_LineLength", (end - start).magnitude);
         }
         else
         {
-            lineRenderer.material.SetFloat("_LineSpacing", 0);
-            lineRenderer.material.SetFloat("_LineLength", 0);
+            lineRenderer.sharedMaterial.SetFloat("_LineSpacing", 0);
+            lineRenderer.sharedMaterial.SetFloat("_LineLength", 0);
         }
     }
 
-    public void UpdateLine(Vector3 start, Vector3 end)
+    public void UpdateLine(Vector3 start, Vector3 end, bool useWorldSpace = true)
     {
         this.start = start;
         this.end = end;
@@ -44,9 +47,33 @@ public class Line : MonoBehaviour
             return;
         lineRenderer.SetPosition(0, start);
         lineRenderer.SetPosition(1, end);
+        lineRenderer.useWorldSpace = useWorldSpace;
         if (dotted)
+            lineRenderer.sharedMaterial.SetFloat("_LineLength", (end - start).magnitude);
+        else
+            lineRenderer.sharedMaterial.SetFloat("_LineLength", 0);
+
+        if (lineRenderer.startColor != color)
         {
-            lineRenderer.material.SetFloat("_LineLength", (end - start).magnitude);
+            lineRenderer.startColor = color;
+            lineRenderer.endColor = color;
         }
+
+        if (lineRenderer.startWidth != width)
+        {
+            lineRenderer.startWidth = width;
+            lineRenderer.endWidth = width;
+        }
+    }
+
+    public Vector3 GetDirection()
+    {
+        return (end - start).normalized;
+    }
+
+    void OnDisable()
+    {
+        if (lineRenderer != null)
+            DestroyImmediate(lineRenderer.sharedMaterial);
     }
 }

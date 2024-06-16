@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 4319383228306392988}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3.677073, y: 4.1692004, z: -1.4176543}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -47,3 +47,5 @@ MonoBehaviour:
   mode: 0
   recordOnPlay: 1
   recordingTimeInSeconds: 5
+  frameRate: 30
+  gifQuality: 40
