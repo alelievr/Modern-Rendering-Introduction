@@ -25,12 +25,11 @@
 - Directional Lights
 - Punctual Lights
 - Environment Lights
-- Normal Mapping
-- Smoothness
-- Metallic
+- Roughness 
 - BRDF / BSDF
 - Furnace Test
-- PBR Camera
+- Mapping PBR Textures
+- PBR Camera (tonemapping & HDR)
 - Shading?
 - Shadow Maps
 - Depth Buffer
@@ -38,7 +37,7 @@
 - Frustum Culling
 - Occlusion Culling
 - Transparency
-- Participating Media
+- Participating Media (Fog)
 - Emissive
 
 ## Maybe
