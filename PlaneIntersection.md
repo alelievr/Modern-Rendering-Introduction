@@ -4,7 +4,7 @@
 
 We already know how to describe a ray (3D origin and direction vectors) but how is a plane defined? There are several ways to describe a plane mathematically and through code. The definition we're going to use for intersection is the algebraic plane formula: $\mathbf{({\color{aquamarine}p} - {\color{orange}p_0}) \cdot {\color{lime}n}}$ where ${\color{aquamarine}\mathbf{p}}$ is a point in space, ${\color{orange}\mathbf{p_0}}$ is a point on the plane and ${\color{lime}\mathbf{n}}$ is the normal of the plane. Note that a plane can also be describe with only it's normal and a value representing how far it is located along the normal line: ${\mathbf{\color{aquamarine}p} \cdot {\color{lime}n} + h}$.
 
-By definition a plane encompasses all the points ${\mathbf{\color{aquamarine}p}}$ that satisfy this equation ${ (\mathbf{{\color{aquamarine}p} - {\color{orange}p_{0}}) \cdot {\color{lime}n} = 0}}$, in other world you can see the plane as an infinite set of points p. 
+By definition a plane encompasses all the points ${\mathbf{\color{aquamarine}p}}$ that satisfy this equation ${ (\mathbf{{\color{aquamarine}p} - {\color{orange}p_{0}}) \cdot {\color{lime}n} = 0}}$, in other world you can see the plane as an infinite set of points p.
 
 If the plane crosses the origin, the equation can be simplified by removing the ${\color{orange}\mathbf{p_0}}$ term, this simplification is often done in calculation because we can easily subtract the origin of our plane to the arbitrary point we're evaluating.
 
@@ -36,13 +36,17 @@ $${\mathbf{ ({l} \ d + {l_{0}} - {\color{orange}p_{0}})\cdot {\color{lime}n} = 0
 
 $${\mathbf{ ({l} \ d) \cdot {\color{lime}n} + ({l_{0}} - {\color{orange}p_{0}}) \cdot {\color{lime}n} = 0}}$$
 
-Extracting the variable $d$ outside of the dot product gives us this formula:
+Extracting the variable $d$ outside of the dot product
 
 $${\mathbf{ ({l} \cdot {\color{lime}n} )\ d+({l_{0}} -{\color{orange}p_{0}} )\cdot {\color{lime}n} = 0}}$$
 
-Then we simply have to isolate d, which gives us this final formula:
+Then we simply have to isolate d
 
-$${\mathbf{ d = {({\color{orange}p_{0}} -{l_{0}}) \cdot {\color{lime}n}  \over {l} \cdot {\color{lime}n} }}}$$
+$${\mathbf{ d = -{(l_{0} - {\color{orange}p_{0}}) \cdot {\color{lime}n}  \over {l} \cdot {\color{lime}n} }}}$$
+
+And we can remove the negative sign in front of the result by swapping ${\mathbf{\color{orange}p_{0}}}$ and $\mathbf{l_0}$. Swapping those two variables is equivalent to negating the vector in the parenthesis.
+
+$${\mathbf{ d = {({\color{orange}p_{0}} - l_{0}) \cdot {\color{lime}n}  \over {l} \cdot {\color{lime}n} }}}$$
 
 Note that we also need to handle the case where both the line and vector are parallel, in this case there is no intersection. Luckily we can know that in advance by first computing the dot product of $\mathbf{l}$ and $\mathbf{n}$ which will give 0 if both vectors are parallel. Look how this visualization of the dot product reacts whe the vector $l$ overlaps with the line $P$.
 
