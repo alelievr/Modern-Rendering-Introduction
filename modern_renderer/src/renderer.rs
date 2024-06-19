@@ -1,6 +1,7 @@
 use winit;
 use winit::platform::windows::WindowExtWindows;
 use rusty_d3d12::*;
+mod render_utils;
 
 #[no_mangle]
 pub static D3D12SDKVersion: u32 = 600;
@@ -28,11 +29,21 @@ pub struct Renderer {
     command_allocators: Vec<rusty_d3d12::CommandAllocator>,
     command_list: rusty_d3d12::CommandList,
     depth_stencil: Option<rusty_d3d12::Resource>,
+    path_tracing_pso : rusty_d3d12::PipelineState,
+    root_signature : rusty_d3d12::RootSignature,
 }
 
 impl Renderer {
+
     pub fn new(window: &winit::window::Window) -> Self {
-        let mut factory_flags = rusty_d3d12::CreateFactoryFlags::None;
+
+        // // Enable validation layer
+        // let debug_layer = Debug::new().expect("Cannot create debug layer");
+        // debug_layer.enable_debug_layer();
+        // debug_layer.enable_gpu_based_validation();
+        // debug_layer.enable_object_auto_name();
+
+        let factory_flags = rusty_d3d12::CreateFactoryFlags::None;
         let factory = Factory::new(factory_flags).expect("Cannot create factory");
 
         let hw_adapter = factory
@@ -135,7 +146,30 @@ impl Renderer {
             .expect("Cannot create command list");
         command_list.close().expect("Cannot close command list");
 
-        let skruv_main = Self {
+        let root_signature = render_utils::setup_root_signature(&device);
+
+        let path_tracing_compute = render_utils::compile_shader(
+            "PathTracing",
+            r"#
+            RWTexture2D<float4> output : register(u0);
+            
+            [numthreads(8, 8, 1)]
+            void CSMain(uint3 dispatchThreadId : SV_DispatchThreadID)
+            {
+                output[dispatchThreadId.xy] = float4(dispatchThreadId.x & 1, dispatchThreadId.y & 2, dispatchThreadId.x & 4, 1);
+            }
+            #",
+            "CSMain",
+            "cs_6_0"
+        );
+
+        let path_tracing_pso = render_utils::create_compute_pso(
+            &root_signature,
+            path_tracing_compute,
+            &device,
+        );
+
+        let renderer = Self {
             device,
             command_queue,
             fence,
@@ -153,9 +187,11 @@ impl Renderer {
             command_allocators,
             command_list,
             depth_stencil: None,
+            path_tracing_pso,
+            root_signature
         };
 
-        skruv_main
+        renderer
     }
 
     pub fn execute(&mut self) {
@@ -182,12 +218,15 @@ impl Renderer {
         self.command_list.set_viewports(&[self.viewport_desc]);
         self.command_list.set_scissor_rects(&[self.scissor_desc]);
 
+        let mut current_render_target = &self.render_targets[self.frame_index as usize];
+        let rt_desc = current_render_target.get_desc();
+
         // tell the driver that the current render target will be written to
         self.command_list
             .resource_barrier(&[ResourceBarrier::new_transition(
                 &ResourceTransitionBarrier::default()
                     .set_resource(
-                        &self.render_targets[self.frame_index as usize],
+                        current_render_target,
                     )
                     .set_state_before(ResourceStates::Common)
                     .set_state_after(ResourceStates::RenderTarget),
@@ -208,12 +247,19 @@ impl Renderer {
             Some(self.dsv_heap.get_cpu_descriptor_handle_for_heap_start()),
         );
 
-        let clear_color: [f32; 4] = [0.9, 0.2, 0.4, 1.0];
+        let clear_color: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
         self.command_list.clear_render_target_view(
             rtv_handle,
             clear_color,
             &[],
         );
+
+        self.command_list.set_compute_root_signature(&self.root_signature);
+        self.command_list.set_pipeline_state(&self.path_tracing_pso);
+        // self.command_list.set_compute_root_descriptor_table(0, self.dsv_heap.get_gpu_descriptor_handle_for_heap_start());
+        // self.command_list.set_compute_root_descriptor_table(0, self.rtv_heap.get_gpu_descriptor_handle_for_heap_start());
+    
+        self.command_list.dispatch(rt_desc.width() as u32 / 8, rt_desc.height() / 8, 1);
 
         //self.command_list.dispatch_mesh(self.meshlet_count, 1, 1);
 
