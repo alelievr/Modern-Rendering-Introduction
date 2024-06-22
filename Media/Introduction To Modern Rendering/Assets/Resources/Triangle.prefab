@@ -56,6 +56,8 @@ MonoBehaviour:
   showEdges: 1
   showDotVertices: 1
   dotVerticesSize: 0.04
+  textDistanceToVertices: 0.25
+  lineWidth: 0.025
 --- !u!33 &1014204596160137448
 MeshFilter:
   m_ObjectHideFlags: 0

@@ -6,11 +6,24 @@ using UnityEngine;
 [ExecuteAlways]
 public class Arrow : MonoBehaviour
 {
-    public Color color = Color.white;
+    public enum Mode
+    {
+        WorldPosition,
+        Transform,
+    }
+    public Mode mode = Mode.WorldPosition;
 
+
+    [Header("WorldPosition")]
     public Vector3 start;
     public Vector3 end;
 
+    [Header("Transform")]
+    public Transform startTransform;
+    public Transform endTransform;
+
+    [Header("Style")]
+    public Color color = Color.white;
     public float width = 0.25f;
     public float scale = 1;
 
@@ -57,6 +70,9 @@ public class Arrow : MonoBehaviour
 
     void Update()
     {
-        Initialize(start, end, color);
+        if (mode == Mode.WorldPosition || startTransform == null || endTransform == null)
+            Initialize(start, end, color);
+        else if (mode == Mode.Transform)
+            Initialize(startTransform.position, endTransform.position, color);
     }
 }

@@ -1,0 +1,52 @@
+#pragma kernel CSMain
+
+RWTexture2D<float4> _Output;
+
+float3 _V0;
+float3 _V1;
+float3 _V2;
+
+bool rayTriangleIntersect(
+    float3 orig, float3 dir,
+    float3 v0, float3 v1, float3 v2,
+    out float t, out float u, out float v)
+{
+    t = 0;
+    u = 0;
+    v = 0;
+
+    float3 v0v1 = v1 - v0;
+    float3 v0v2 = v2 - v0;
+    float3 pvec = cross(dir, v0v2);
+    float det = dot(v0v1, pvec);
+    // if the determinant is negative, the triangle is 'back facing'
+    // if the determinant is close to 0, the ray misses the triangle
+    if (det < 0.0001) return false;
+    float invDet = 1 / det;
+
+    float3 tvec = orig - v0;
+    u = dot(tvec, pvec) * invDet;
+    if (u < 0 || u > 1) return false;
+
+    float3 qvec = cross(tvec, v0v1);
+    v = dot(dir, qvec) * invDet;
+    if (v < 0 || u + v > 1) return false;
+    
+    t = dot(v0v2, qvec) * invDet;
+    
+    return true;
+}
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float3 orig = float3(0, 0, 0);
+    float2 uv = float2(id.x / 1024.0, id.y / 1024.0);
+    // 90 degree fov
+    float3 dir = normalize(float3(uv.x * 2 - 1, uv.y * 2 - 1, -1));
+
+    float t, u, v;
+        rayTriangleIntersect(orig, dir, _V0, _V1, _V2, t, u, v);
+
+    _Output[id.xy] = float4(t, u, v, 1.0);
+}

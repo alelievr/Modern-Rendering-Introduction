@@ -1,0 +1,65 @@
+#pragma kernel CSMain
+
+RWTexture2D<float4> _Output;
+
+float3 _V0;
+float3 _V1;
+float3 _V2;
+
+float ScalarTriple(float3 a, float3 b, float3 c)
+{
+    return dot(cross(a, b), c);
+}
+
+bool rayTriangleIntersect(
+    float3 orig, float3 dir,
+    float3 a, float3 b, float3 c,
+    out float u, out float v, out float w)
+{
+    float3 pq = dir;
+    float3 pa = a - orig;
+    float3 pb = b - orig;
+    float3 pc = c - orig;
+    // Test if pq is inside the edges bc, ca and ab. Done by testing
+    // that the signed tetrahedral volumes, computed using scalar triple
+    // products, are all positive
+
+    
+    // u = ScalarTriple(pq, pc, pb);
+    // if (u < 0.0f) return 0;
+    // v = ScalarTriple(pq, pa, pc);
+    // if (v < 0.0f) return 0;
+    // w = ScalarTriple(pq, pb, pa);
+    // if (w < 0.0f) return 0;
+
+    // More optimized
+    float3 m = cross(pq, pc);
+    u = dot(pb, m); // ScalarTriple(pq, pc, pb);
+    if (u < 0.0f) return 0;
+    v = -dot(pa, m); // ScalarTriple(pq, pa, pc);
+    if (v < 0.0f) return 0;
+    w = ScalarTriple(pq, pb, pa);
+    if (w < 0.0f) return 0;
+
+    // Compute the barycentric coordinates (u, v, w) determining the
+    // intersection point r, r = u*a + v*b + w*c
+    float denom = 1.0f / (u + v + w);
+    u *= denom;
+    v *= denom;
+    w *= denom; // w = 1.0f - u - v;
+    return 1;
+}
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float3 orig = float3(0, 0, 0);
+    float2 uv = float2(id.x / 1024.0, id.y / 1024.0);
+    // 90 degree fov
+    float3 dir = normalize(float3(uv.x * 2 - 1, uv.y * 2 - 1, -1));
+
+    float t, u, v;
+    rayTriangleIntersect(orig, dir, _V0, _V1, _V2, t, u, v);
+
+    _Output[id.xy] = float4(t, u, v, 1.0);
+}

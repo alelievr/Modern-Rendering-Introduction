@@ -55,6 +55,7 @@ public class AnchoredText : MonoBehaviour
 
     public void SetText(string text, Color color = default)
     {
+        this.text = text;
         textMesh.text = text;
         if (color != default)
             textMesh.color = color;
@@ -89,6 +90,12 @@ public class AnchoredText : MonoBehaviour
     {
         anchorMode = AnchorMode.TriangleCenter;
         followTriangle = triangle;
+    }
+
+    void Update()
+    {
+        if (textMesh.text != text)
+            textMesh.text = text;
     }
 
     void BeforeRender(Camera camera)
@@ -160,13 +167,6 @@ public class AnchoredText : MonoBehaviour
         }
 
         transform.position = newPosition;
-        if (camera.orthographic)
-        {
-            transform.rotation = Quaternion.LookRotation(cameraTransform.forward, cameraTransform.up);
-        }
-        else
-        {
-            transform.LookAt(-cameraTransform.position);
-        }
+        transform.rotation = Quaternion.LookRotation(cameraTransform.forward, cameraTransform.up);
     }
 }
