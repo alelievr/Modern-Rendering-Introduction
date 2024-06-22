@@ -44,33 +44,32 @@ In this animation, the point P represent the interpolated value of the 3 vertice
 
 $$P = A * u + B * v + C * w$$
 
-## Möller–Trumbore Intersection Algorithm
+## Fast Intersection Algorithm
 
 We already know tha barycentric coordinates are very important for interpolation of values on the surface of a triangle, so it's a given that we'll need to calculate them in addition to the intersection position.
 
 This algorithm proposes to formulate the intersection of the triangle in a different manner by directly solving for the barycentric coordinates of the point inside the triangle and then checks if the barycentric coordinates are inside the triangle.
 
-### Checking if the line is parallel to the triangle plane
+<!-- ### Checking if the line is parallel to the triangle plane
 
-Starting form our triangle, the first step is to formulate the plane passing through all the vertices of our triangle, for this, we'll use a different formula compared to what we used in the [Plane Intersection](PlaneIntersection.md) chapiter: our plane will be defined by two coplanar vectors in space created by linking the vertices of our triangle (i.e. subtracting the vertices position will create a vector representing the length and direction needed to move from one point to another in the triangle).
+Starting form our triangle, the first step is to formulate the plane passing through all the vertices of our triangle, for this, we'll use a different formula compared to what we used in the [Plane Intersection](PlaneIntersection.md) chapiter: our plane will be defined by two coplanar vectors in space created by linking the vertices of our triangle (i.e. subtracting the vertices position will create a vector representing the length and direction needed to move from one point to another in the triangle). -->
+
+Let's consider a triangle ABC and a line cross it, the line origin is denoted by a point called $P$, the line direction is called $L$ and it's length is 1.
+
+// TODO: visualization of this triangle and line
 
 $$\vec{AB} = B - A$$
 $$\vec{AC} = C - A$$
 
 From there, we could compute the normal of the plane with a cross product and then use it to check if our line intersects the plane but the original algorithm doesn't use it in further calculations. Instead it computes the cross product of the line direction and the edge $\vec{AC}$ which creates a vector $\vec{e}$ that will be perpendicular to the edge $\vec{AB}$ if the input line is parallel to the plane. This is greatly explained in the [Cross Product lesson by 3Blue1Brown](https://www.3blue1brown.com/lessons/cross-products), if you're uncertain about your understanding of cross products and determinants are I recommend you to see this lesson before continuing.
 
+// TODO: visualize the cross product vectors used in the algorithm and explain triple product
 
-
-// TODO: visualize the cross and dot product between the triangle edges and the line direction
-// This result is also the determinant of the triangle
-
-### Linear Equations Formulation
-
-### Cramer's rule
-
-// TODO: visualize the determinant in 3D (volume of the Parallelepiped)
+// TODO: overlap the volumes of the parallelepipeds with different color and hopefully we can understand something with this image.
 
 ### Optimizations in the code
+
+// sharing cross products calculations
 
 ## Back-face and Front-face
 
