@@ -54,9 +54,9 @@ This algorithm proposes to formulate the intersection of the triangle in a diffe
 
 Starting form our triangle, the first step is to formulate the plane passing through all the vertices of our triangle, for this, we'll use a different formula compared to what we used in the [Plane Intersection](PlaneIntersection.md) chapiter: our plane will be defined by two coplanar vectors in space created by linking the vertices of our triangle (i.e. subtracting the vertices position will create a vector representing the length and direction needed to move from one point to another in the triangle). -->
 
-Let's consider a triangle ABC and a line cross it, the line origin is denoted by a point called $P$, the line direction is called $L$ and it's length is 1.
+Let's consider a triangle ABC and a line called $l$ cross it, the line origin is denoted by a point called $P$, the line direction is called $\vec{L}$ and it's length is 1.
 
-// TODO: visualization of this triangle and line
+![](Media/Recordings/TriangleIntersection%2003%20Triangle.png)
 
 $$\vec{AB} = B - A$$
 $$\vec{AC} = C - A$$

@@ -5,6 +5,10 @@ using UnityEngine;
 [ExecuteAlways]
 public class TriangleIntersection03 : MonoBehaviour
 {
+    [Header("Settings")]
+    public Vector3 lineDir;
+
+    [Header("Objects")]
     public Arrow crossArrow;
     public Triangle triangle;
     public Line line;
@@ -31,6 +35,7 @@ public class TriangleIntersection03 : MonoBehaviour
 
     void Update()
     {
+        line.UpdateLine(p.transform.position - lineDir * 100, p.transform.position + lineDir * 100);
         // var ab = B.transform.position - A.transform.position;
         // var ac = C.transform.position - A.transform.position;
 
