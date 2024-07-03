@@ -67,6 +67,33 @@ From there, we could compute the normal of the plane with a cross product and th
 
 // TODO: overlap the volumes of the parallelepipeds with different color and hopefully we can understand something with this image.
 
+<!-- //Given line pq and ccw triangle abc, return whether line pierces triangle. If
+//so, also return the barycentric coordinates (u,v,w) of the intersection point
+int IntersectLineTriangle(Point p, Point q, Point a, Point b, Point c,
+float &u, float &v, float &w)
+{
+Vector pq = q - p;
+Vector pa = a - p;
+Vector pb = b - p;
+Vector pc = c - p;
+// Test if pq is inside the edges bc, ca and ab. Done by testing
+// that the signed tetrahedral volumes, computed using scalar triple
+// products, are all positive
+u = ScalarTriple(pq, pc, pb);
+if (u < 0.0f) return 0;
+v = ScalarTriple(pq, pa, pc);
+if (v < 0.0f) return 0;
+w = ScalarTriple(pq, pb, pa);
+if (w < 0.0f) return 0;
+// Compute the barycentric coordinates (u, v, w) determining the
+// intersection point r, r = u*a + v*b + w*c
+float denom = 1.0f / (u + v + w);
+u *= denom;
+v *= denom;
+w *= denom; // w = 1.0f - u - v;
+return 1; -->
+}
+
 ### Optimizations in the code
 
 // sharing cross products calculations
