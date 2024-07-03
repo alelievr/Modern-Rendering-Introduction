@@ -35,12 +35,18 @@ public class TriangleIntersection03 : MonoBehaviour
 
     void Update()
     {
-        line.UpdateLine(p.transform.position - lineDir * 100, p.transform.position + lineDir * 100);
+        if (line != null)
+            line.UpdateLine(p.transform.position - lineDir * 100, p.transform.position + lineDir * 100);
         // var ab = B.transform.position - A.transform.position;
         // var ac = C.transform.position - A.transform.position;
 
         // var cross = Vector3.Cross(ac, ab);
         // crossArrow.start = A.transform.position;
         // crossArrow.end = crossArrow.start + cross;
+
+        var lineDirection = line.GetDirection();
+
+        if (crossPA != null)
+            crossPA.Initialize(p.transform.position, p.transform.position + Vector3.Cross(lineDirection, pa.GetVector()));
     }
 }

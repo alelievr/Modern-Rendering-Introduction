@@ -35,11 +35,11 @@ bool rayTriangleIntersect(
     // More optimized
     float3 m = cross(pq, pc);
     u = dot(pb, m); // ScalarTriple(pq, pc, pb);
-    if (u < 0.0f) return 0;
+    if (u < 0.0f) return false;
     v = -dot(pa, m); // ScalarTriple(pq, pa, pc);
-    if (v < 0.0f) return 0;
+    if (v < 0.0f) return false;
     w = ScalarTriple(pq, pb, pa);
-    if (w < 0.0f) return 0;
+    if (w < 0.0f) return false;
 
     // Compute the barycentric coordinates (u, v, w) determining the
     // intersection point r, r = u*a + v*b + w*c
@@ -47,19 +47,24 @@ bool rayTriangleIntersect(
     u *= denom;
     v *= denom;
     w *= denom; // w = 1.0f - u - v;
-    return 1;
+    return true;
 }
 
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
+    float width, height;
+    _Output.GetDimensions(width, height);
     float3 orig = float3(0, 0, 0);
-    float2 uv = float2(id.x / 1024.0, id.y / 1024.0);
+    float2 uv = float2(id.x / width, id.y / height);
     // 90 degree fov
     float3 dir = normalize(float3(uv.x * 2 - 1, uv.y * 2 - 1, -1));
 
-    float t, u, v;
-    rayTriangleIntersect(orig, dir, _V0, _V1, _V2, t, u, v);
+    float u, v, w;
+    bool hit = rayTriangleIntersect(orig, dir, _V0, _V1, _V2, u, v, w);
 
-    _Output[id.xy] = float4(t, u, v, 1.0);
+    float3 interpolatedPosition = _V0 * u + _V1 * v + _V2 * w;
+
+    // _Output[id.xy] = float4(t, u, v, 1.0);
+    _Output[id.xy] = float4(hit ? interpolatedPosition : 0, 1);
 }

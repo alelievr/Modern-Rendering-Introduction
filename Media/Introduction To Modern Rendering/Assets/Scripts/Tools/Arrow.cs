@@ -10,6 +10,7 @@ public class Arrow : MonoBehaviour
     {
         WorldPosition,
         Transform,
+        TransformDirection,
     }
     public Mode mode = Mode.WorldPosition;
 
@@ -21,6 +22,9 @@ public class Arrow : MonoBehaviour
     [Header("Transform")]
     public Transform startTransform;
     public Transform endTransform;
+
+    [Header("TransformDirection")]
+    public Line directionLine;
 
     [Header("Style")]
     public Color color = Color.white;
@@ -74,5 +78,12 @@ public class Arrow : MonoBehaviour
             Initialize(start, end, color);
         else if (mode == Mode.Transform)
             Initialize(startTransform.position, endTransform.position, color);
+        else if (mode == Mode.TransformDirection)
+            Initialize(startTransform.position, startTransform.position + directionLine.GetDirection(), color);
+    }
+
+    public Vector3 GetVector()
+    {
+        return end - start;
     }
 }

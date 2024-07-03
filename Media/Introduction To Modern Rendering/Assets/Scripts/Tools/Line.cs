@@ -43,7 +43,7 @@ public class Line : MonoBehaviour
     {
         this.start = start;
         this.end = end;
-        if (lineRenderer == null)
+        if (lineRenderer == null || lineRenderer.sharedMaterial == null)
             return;
         lineRenderer.SetPosition(0, start);
         lineRenderer.SetPosition(1, end);

@@ -40,13 +40,18 @@ bool rayTriangleIntersect(
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
+    float width, height;
+    _Output.GetDimensions(width, height);
     float3 orig = float3(0, 0, 0);
-    float2 uv = float2(id.x / 1024.0, id.y / 1024.0);
+    float2 uv = float2(id.x / width, id.y / height);
     // 90 degree fov
     float3 dir = normalize(float3(uv.x * 2 - 1, uv.y * 2 - 1, -1));
 
     float t, u, v;
-        rayTriangleIntersect(orig, dir, _V0, _V1, _V2, t, u, v);
+    bool hit = rayTriangleIntersect(orig, dir, _V0, _V1, _V2, t, u, v);
 
-    _Output[id.xy] = float4(t, u, v, 1.0);
+    float3 interpolatedPosition = orig + dir * t;
+
+    // _Output[id.xy] = float4(t, u, v, 1.0);
+    _Output[id.xy] = float4(hit ? interpolatedPosition : 0, 1);
 }
