@@ -26,12 +26,11 @@ public class AnchoredText : MonoBehaviour
     public Vector3 position;
     public Vector3 direction;
 
-    [HideInInspector]
     public Vector3 transformOffset;
 
     TextMeshPro textMesh;
     Transform followTransform;
-    Line followLine;
+    public Line followLine;
     Arrow followArrow;
     Triangle followTriangle;
 
@@ -134,6 +133,7 @@ public class AnchoredText : MonoBehaviour
                 float radius = abs(radiusX) > abs(radiusY) ? radiusX : radiusY;
                 if (!isnan(lineNormal.x))
                     newPosition += lineNormal * radius;
+                newPosition += transformOffset;
                 break;
             case AnchorMode.ArrowCenter:
                 newPosition = followArrow.start + (followArrow.end - followArrow.start) / 2;

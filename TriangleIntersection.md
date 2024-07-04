@@ -58,12 +58,27 @@ Let's consider a triangle ABC and a line called $l$ cross it, the line origin is
 
 ![](Media/Recordings/TriangleIntersection%2003%20Triangle.png)
 
-$$\vec{AB} = B - A$$
-$$\vec{AC} = C - A$$
+We can use these 4 points to form vectors by simply substracting the position of those points, let's create 3 additional vectors pointing towards the 3 vertices of the triangle from $P$.
 
-From there, we could compute the normal of the plane with a cross product and then use it to check if our line intersects the plane but the original algorithm doesn't use it in further calculations. Instead it computes the cross product of the line direction and the edge $\vec{AC}$ which creates a vector $\vec{e}$ that will be perpendicular to the edge $\vec{AB}$ if the input line is parallel to the plane. This is greatly explained in the [Cross Product lesson by 3Blue1Brown](https://www.3blue1brown.com/lessons/cross-products), if you're uncertain about your understanding of cross products and determinants are I recommend you to see this lesson before continuing.
+$$\vec{PA} = A - P$$
+$$\vec{PB} = B - P$$
+$$\vec{PC} = C - P$$
 
-// TODO: visualize the cross product vectors used in the algorithm and explain triple product
+We now have 4 vectors (including the line direction) and we'll use the [Triple Product](https://en.wikipedia.org/wiki/Triple_product) to calculate the volume of 3 parallelepiped formed by those 4 vectors, let's see what it looks like with the first parallelepiped formed with the 3 vectors $\vec{L}$, $\vec{PA}$ and $\vec{PB}$.
+
+> Note that if you're unsure how the Triple Product relates to the volume of the parallelepiped formed by 3 vectors, you can check out this great lesson on [The Determinant by 3Blue1Brown](https://www.3blue1brown.com/lessons/determinant).
+
+![](Media/Recordings/TriangleIntersection%2003%20Parallelepiped.gif)
+
+We can observe a couple of things from this schema, but the most important one is that one of the face of the parallelepiped (the one with the vectors $\vec{PA}$ and $\vec{PB}$) overlaps with the triangle edge perfectly and that the volume of the parallelepiped crosses the surface of the triangle, in other words, the parallelepiped covers a part of the area of the triangle. The result of the triple product is the volume of the parallelepiped shown in transparent white, but if you remember correctly this calculation can also give a negative number as result, which indicates that the space was flipped during computation. Let's see what happens when we move the point P towards the edge of the triangle
+
+![](Media/Recordings/TriangleIntersection%2003%20Determinants.gif)
+
+As soon as the line crosses the edge of the triangle and doesn't intersect it anymore, we observe that the parallelepiped flips on itself, hence causing the determinant to be negative.
+
+We can use this cheap calculation (only a cross and dot product) to check on which "side" is the line from the point of view of the triangle. and then by doing that for all 3 sides of the triangle, we can ensure that the line indeed crosses the triangle at a point.
+
+At this stage of the algorithm with only have volume of 3 parallelepipeds, but we're interseted in the barycentric coordinates instead so let's finish the calculation. Fortunately we already know that the barycentric corrdinates are related to the area of the sub-triangles formed by the intersection point and the triangle vertices. We can apply the same logic using the voplume of our 3 parallelepipeds 
 
 // TODO: overlap the volumes of the parallelepipeds with different color and hopefully we can understand something with this image.
 
@@ -91,8 +106,17 @@ float denom = 1.0f / (u + v + w);
 u *= denom;
 v *= denom;
 w *= denom; // w = 1.0f - u - v;
-return 1; -->
+return 1; 
 }
+
+float ScalarTriple(pq, pc, pb)
+{
+Vector m = Cross(pq, pc);
+u = Dot(pb, m); // ScalarTriple(pq, pc, pb);
+if (u < 0.0f) return 0;
+return u;
+}
+-->
 
 ### Optimizations in the code
 
