@@ -78,66 +78,89 @@ As soon as the line crosses the edge of the triangle and doesn't intersect it an
 
 We can use this cheap calculation (only a cross and dot product) to check on which "side" is the line from the point of view of the triangle. and then by doing that for all 3 sides of the triangle, we can ensure that the line indeed crosses the triangle at a point.
 
-At this stage of the algorithm with only have volume of 3 parallelepipeds, but we're interseted in the barycentric coordinates instead so let's finish the calculation. Fortunately we already know that the barycentric corrdinates are related to the area of the sub-triangles formed by the intersection point and the triangle vertices. We can apply the same logic using the voplume of our 3 parallelepipeds 
+At this stage of the algorithm with only have volume of 3 parallelepipeds, but we're interseted in the barycentric coordinates instead so let's finish the calculation. Fortunately we already know that the barycentric corrdinates are related to the area of the sub-triangles formed by the intersection point and the triangle vertices. Since we already have the volume of the 3 parallelepipeds we can do a similar thing by normalizing their volumes, hence giving an identical result to the normalized area of the sub-triangles.
 
-// TODO: overlap the volumes of the parallelepipeds with different color and hopefully we can understand something with this image.
+![](Media/Recordings/TriangleIntersection%2003%20Volume%20Barycentric.gif)
 
-<!-- //Given line pq and ccw triangle abc, return whether line pierces triangle. If
-//so, also return the barycentric coordinates (u,v,w) of the intersection point
-int IntersectLineTriangle(Point p, Point q, Point a, Point b, Point c,
-float &u, float &v, float &w)
-{
-Vector pq = q - p;
-Vector pa = a - p;
-Vector pb = b - p;
-Vector pc = c - p;
-// Test if pq is inside the edges bc, ca and ab. Done by testing
-// that the signed tetrahedral volumes, computed using scalar triple
-// products, are all positive
-u = ScalarTriple(pq, pc, pb);
-if (u < 0.0f) return 0;
-v = ScalarTriple(pq, pa, pc);
-if (v < 0.0f) return 0;
-w = ScalarTriple(pq, pb, pa);
-if (w < 0.0f) return 0;
-// Compute the barycentric coordinates (u, v, w) determining the
-// intersection point r, r = u*a + v*b + w*c
-float denom = 1.0f / (u + v + w);
-u *= denom;
-v *= denom;
-w *= denom; // w = 1.0f - u - v;
-return 1; 
-}
-
-float ScalarTriple(pq, pc, pb)
-{
-Vector m = Cross(pq, pc);
-u = Dot(pb, m); // ScalarTriple(pq, pc, pb);
-if (u < 0.0f) return 0;
-return u;
-}
--->
+Once we have the 3 barycentric coordinates $u$, $v$ and $w$ we can compute the position of the intersection by interpolation like mentionned above.
 
 ### Optimizations in the code
 
-// sharing cross products calculations
+Let's take a look at the original HLSL code of the algorithm:
+
+
+```c
+float ScalarTriple(float3 a, float3 b, float3 c)
+{
+    return dot(cross(a, b), c);
+}
+
+bool RayTriangleIntersect(
+    float3 lineOrigin, float3 lineDirection,
+    float3 a, float3 b, float3 c,
+    out float u, out float v, out float w)
+{
+    // Create vectors from p to triangle vertices
+    float3 pa = a - lineOrigin;
+    float3 pb = b - lineOrigin;
+    float3 pc = c - lineOrigin;
+    
+    // Test if the line is inside the edges bc, ca and ab. Done by testing
+    // that the signed parallelepiped volumes, computed using scalar triple
+    // products, are all positive
+    u = ScalarTriple(lineDirection, pc, pb);
+    if (u < 0.0f) return false;
+    v = ScalarTriple(lineDirection, pa, pc);
+    if (v < 0.0f) return false;
+    w = ScalarTriple(lineDirection, pb, pa);
+    if (w < 0.0f) return false;
+
+    // Compute the barycentric coordinates (u, v, w) by normalizing the parallelepiped volumes.
+    float denom = 1.0f / (u + v + w);
+    u *= denom;
+    v *= denom;
+    w *= denom;
+    return true;
+}
+```
+
+In it's current state, we use the 3 triple products to compute the tethrahedral volumes but we can do better. For example, we can share the cross product calculations by rewriting the math using the properties of the triple product. First, let's write all the operation performed:
+$$u = pb \cdot (lineDirection \times pc)$$
+$$v = pc \cdot (lineDirection \times pa)$$
+$$w = pa \cdot (lineDirection \times pb)$$
+
+In the second line, we can change the order of the operands to perform the cross product between the line direction and pc, exactly the in the first line which allows us to share the calculation.
+
+$$pb \cdot (lineDirection \times pa) = - pa \cdot (lineDirection \times pc)$$
+
+We can the rewrite the core loop of the algorithm like so:
+
+```c
+float3 m = cross(lineDirection, pc);
+u = dot(pb, m); // ScalarTriple(lineDirection, pc, pb);
+if (u < 0.0f) return false;
+v = -dot(pa, m); // ScalarTriple(lineDirection, pa, pc);
+if (v < 0.0f) return false;
+w = ScalarTriple(lineDirection, pb, pa);
+if (w < 0.0f) return false;
+```
 
 ## Back-face and Front-face
+
+When we model 3D geometry using triangles, triangles are often sided, which means that the'll only be visible from one side and not the other. This allows to perform an early out when rendering a triangle not facing the correct direction. 
 
 // TODO: gif of two rotating triangle: backface, and cull off
 
 ## References
 
-https://www.graphics.cornell.edu/pubs/1997/MT97.pdf
-
-https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
-
 https://en.wikipedia.org/wiki/Barycentric_coordinate_system
-
-https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates.html
 
 https://en.wikipedia.org/wiki/Area_of_a_triangle
 
+https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates.html
+
+https://www.r-5.org/files/books/computers/algo-list/realtime-3d/Christer_Ericson-Real-Time_Collision_Detection-EN.pdf 5.3.4 Intersecting Line Against Triangle - page 184
+
 https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/moller-trumbore-ray-triangle-intersection.html
 
-https://www.youtube.com/watch?v=fK1RPmF_zjQ
+https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm

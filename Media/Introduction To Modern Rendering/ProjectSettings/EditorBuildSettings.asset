@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Tests/RayTrianglePerformanceTest.unity
+    guid: ed88e2b7f37e0bb43add9046b24c2de9
   m_configObjects: {}

@@ -38,7 +38,7 @@
         "buildCompressionLevel": 0,
         "keepPackageFiles": false,
         "buildSubtarget": 0,
-        "sdkOverride": "",
+        "sdkOverride": "C:/Program Files (x86)/SCE/Prospero SDKs/7.000",
         "saveDataImagePath": "",
         "configFileParsed": false,
         "operatingSystemCanDisableSplashScreen": false,

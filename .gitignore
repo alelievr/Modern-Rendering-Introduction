@@ -68,3 +68,10 @@ crashlytics-build.properties
 [Aa]ssets/[Ss]treamingAssets/aa.meta
 [Aa]ssets/[Ss]treamingAssets/aa/*
 .vscode/settings.json
+Media/Introduction To Modern Rendering/Build_PS4
+Media/Introduction To Modern Rendering/Build_PS4_BackUpThisFolder_ButDontShipItWithYourGame
+Media/Introduction To Modern Rendering/Build_PS4_SymbolFiles
+Media/Introduction To Modern Rendering/Build_PS5_BackUpThisFolder_ButDontShipItWithYourGame
+Media/Introduction To Modern Rendering/Build_PS5_SymbolFiles
+Media/Introduction To Modern Rendering/Build_PS5
+Media/Introduction To Modern Rendering/ProjectSettings/PS5Settings.json
