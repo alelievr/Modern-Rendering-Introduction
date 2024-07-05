@@ -18,6 +18,7 @@ public class Triangle : MonoBehaviour
     public float dotVerticesSize = 0.1f;
     public float textDistanceToVertices = 0.25f;
     public float lineWidth = 0.025f;
+    public int sortingPriority = 0;
 
     Line ab;
     Line bc;
@@ -136,7 +137,10 @@ public class Triangle : MonoBehaviour
         triangleMesh.RecalculateBounds();
 
         if (material != null)
+        {
             material.color = color;
+            material.renderQueue = 3000 + sortingPriority;
+        }
 
         if (showText && showEdges && showDotVertices)
         {

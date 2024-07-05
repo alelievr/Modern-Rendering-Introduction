@@ -76,7 +76,6 @@ public class Parallelepiped : MonoBehaviour
         var ad = a.GetVector();
         var bd = b.GetVector();
         
-        // Vector3[] v = new[] { a.start, c.end, c.end + ad, a.end, b.end + ad, c.end + ad + bd, c.end + bd, b.end };
         corners = new[] { b.end, c.end + bd, c.end, a.start, b.end + ad, c.end + ad + bd, c.end + ad, a.end };
 
         if (mesh == null)
@@ -107,7 +106,7 @@ public class Parallelepiped : MonoBehaviour
 
     void Update()
     {
-        transform.position = b.start;
+        transform.position = Vector3.zero;
         UpdateMesh();
         if (showEdges && lines.Count > 0)
         {

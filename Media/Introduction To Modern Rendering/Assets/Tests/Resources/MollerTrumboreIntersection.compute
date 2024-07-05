@@ -2,9 +2,9 @@
 
 RWTexture2D<float4> _Output;
 
-float3 _V0;
-float3 _V1;
-float3 _V2;
+StructuredBuffer<float3> _TriangleVertices;
+int _TriangleCount;
+float3 _RayOrigin;
 
 bool rayTriangleIntersect(
     float3 orig, float3 dir,
@@ -42,16 +42,23 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 {
     float width, height;
     _Output.GetDimensions(width, height);
-    float3 orig = float3(0, 0, 0);
     float2 uv = float2(id.x / width, id.y / height);
     // 90 degree fov
     float3 dir = normalize(float3(uv.x * 2 - 1, uv.y * 2 - 1, -1));
 
     float t, u, v;
-    bool hit = rayTriangleIntersect(orig, dir, _V0, _V1, _V2, t, u, v);
+    float hit = 0;
+    float3 interpolatedPosition = 0;
 
-    float3 interpolatedPosition = orig + dir * t;
+    for (int i = 0; i < _TriangleCount; i++)
+    {
+        float3 v0 = _TriangleVertices[i * 3 + 0];
+        float3 v1 = _TriangleVertices[i * 3 + 1];
+        float3 v2 = _TriangleVertices[i * 3 + 2];
+        if (rayTriangleIntersect(_RayOrigin, dir, v0, v1, v2, t, u, v))
+            interpolatedPosition += t * dir + _RayOrigin;
+    }
 
     // _Output[id.xy] = float4(t, u, v, 1.0);
-    _Output[id.xy] = float4(hit ? interpolatedPosition : 0, 1);
+    _Output[id.xy] = float4(interpolatedPosition / float(_TriangleCount), 1);
 }

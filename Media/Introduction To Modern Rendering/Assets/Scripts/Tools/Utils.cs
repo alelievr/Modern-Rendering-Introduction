@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
+#if UNITY_EDITOR
 [InitializeOnLoad]
+#endif
 public static class Utils 
 {
     static BackgroundAxises axises;
