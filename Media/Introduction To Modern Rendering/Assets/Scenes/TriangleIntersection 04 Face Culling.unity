@@ -829,7 +829,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1612817774109872911, guid: 7ecd69fd625146540a826e1bf0bb5882, type: 3}
       propertyPath: recordingTimeInSeconds
-      value: 6
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 4319383228306392988, guid: 7ecd69fd625146540a826e1bf0bb5882, type: 3}
       propertyPath: m_Name
