@@ -145,11 +145,35 @@ w = ScalarTriple(lineDirection, pb, pa);
 if (w < 0.0f) return false;
 ```
 
+With these optimization, this intersection is quite fast. In fact it's often faster by a small margin than the famous [Möller–Trumbore intersection algorithm](https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm). Of course, the results depends on the hardware you test on but in most case, this one should be faster.
+
 ## Back-face and Front-face
 
-When we model 3D geometry using triangles, triangles are often sided, which means that the'll only be visible from one side and not the other. This allows to perform an early out when rendering a triangle not facing the correct direction. 
+When we model 3D geometry using triangles, we often use triangles that have a single visible side. This is an optimization so that triangles that are facing "away" from the camera are ignored, we'll see this in more details when talking about rasterization. The important point here is that a triangle has a front and back face.
 
-// TODO: gif of two rotating triangle: backface, and cull off
+Depending on the configuration of the 3D model we want to render, it's interesting to be able to render both front and back faces of the triangle. Right now our algorithm is not capable of doing that as it only renders it's front face.
+
+To fix this, we need to change how we check the signs of the parallelepiped volumes: instead of just checking that they are all above 0, we can check that all u, v and w have the same sign like so:
+
+```c
+bool SameSign(float a, float b)
+{
+    return (a <= 0 && b <= 0) || (a > 0 && b > 0);
+}
+
+...
+
+float3 m = cross(lineDirection, pc);
+u = dot(pb, m); // ScalarTriple(lineDirection, pc, pb);
+v = -dot(pa, m); // ScalarTriple(lineDirection, pa, pc);
+if (!SameSign(u, v)) return false;
+w = ScalarTriple(lineDirection, pb, pa);
+if (!SameSign(u, w)) return false;
+```
+
+In this 3D scene you can see the front and back faces of the triangle, the green represent the front face and red the back face. Notice how the twi triangles on the right pop in and out as they rotate, this is because the shader applied to them was configured to cull or discard one of the faces. The effect is also interesting on a sphere where we see the inside of the sphere when the front face are culled. In this scene the white cylinder crosses both sphere at the exact same locations.
+
+![](Media/Recordings/TriangleIntersection%2004%20Face%20Culling.gif)
 
 ## References
 
