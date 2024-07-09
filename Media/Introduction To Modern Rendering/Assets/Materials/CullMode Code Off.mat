@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: CullMode Code Off
-  m_Shader: {fileID: 4800000, guid: a4aff971cf301c740bc69233168e2612, type: 3}
+  m_Shader: {fileID: 4800000, guid: 42db76118b21d5f419e20c7d39ca1450, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -26,7 +26,13 @@ Material:
     m_Ints: []
     m_Floats:
     - _CullMode: 0
+    - _MaxTriSize: 25
+    - _WireSmoothness: 1.44
+    - _WireThickness: 322
     m_Colors:
     - _BackColor: {r: 1, g: 0, b: 0, a: 1}
+    - _BaseColorBack: {r: 1, g: 0, b: 0, a: 1}
+    - _BaseColorFront: {r: 0, g: 1, b: 0.013520718, a: 1}
     - _FrontColor: {r: 0.08204675, g: 1, b: 0, a: 1}
+    - _WireColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []

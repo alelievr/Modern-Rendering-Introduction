@@ -13,7 +13,7 @@ float ScalarTriple(float3 a, float3 b, float3 c)
 
 bool SameSign(float a, float b)
 {
-    return (a <= 0 && b <= 0) || (a > 0 && b > 0);
+    return (a < 0 && b < 0) || (a > 0 && b > 0);
 }
 
 bool RayTriangleIntersect(

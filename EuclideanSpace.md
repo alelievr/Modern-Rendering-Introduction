@@ -17,7 +17,7 @@ It's worth noting that the we'll be using the Cartesian coordinate system, it es
 
 ![](Media/Recordings/Euclidean%20Space%2002.gif)
 
-The last thing missing we need to choose before starting to place objects into our space is the handedness, this mean in which direction our axises points. Since this course is built upon the [Bevy](https://bevyengine.org/) engine, we'll adopt the right-handed Y-up convention.  Imagine your right hand with your thumb pointing along the X-axis, your index finger along the Y-axis (pointing upwards), and your middle finger curled along the Z-axis. This configuration defines the positive direction for each axis.
+The last thing missing we need to choose before starting to place objects into our space is the handedness, this mean in which direction our axises points. Since this course is built using D3D12 as main graphic API, we'll adopt the left-handed Y-up convention.  Imagine your right hand with your thumb pointing along the X-axis, your index finger along the Y-axis (pointing upwards), and your middle finger curled along the Z-axis. This configuration defines the positive direction for each axis.
 
 ![Handedness](Media/Images/handedness.png) (source: [Bevy documentation](https://bevy-cheatbook.github.io/fundamentals/coords.html))
 
@@ -28,3 +28,5 @@ With this foundational understanding of Euclidean space in hand, we're now equip
 https://en.wikipedia.org/wiki/Cartesian_coordinate_system
 
 https://en.wikipedia.org/wiki/Euclidean_space
+
+https://learn.microsoft.com/en-us/windows/win32/direct3d9/coordinate-systems

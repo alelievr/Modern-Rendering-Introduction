@@ -18,17 +18,17 @@ If you're interested in seeing how this solution is implemented in great detail,
 
 In this chapiter we're particularly interested in the specific case of barycentric coordinates inside a triangle. These coordinates are represented with 3 values (or a single 3 component vector) often called $u$, $v$ and $w$, these values represent the position of a point inside the triangle.
 
-In essence, computing the barycentric coordinates is as simple as calculating the area of each sub-triangles using the [triangle area formula](https://en.wikipedia.org/wiki/Area_of_a_triangle) which is why it's often more intuitive to think about barycentric coordinates as the 3 normalized areas of the 3 triangles formed by subdividing the triangle around an arbitrary point.
+In essence, computing the barycentric coordinates is as simple as calculating the area of the 3 sub-triangles formed by the new point inside the triangle (see figure below) using the [triangle area formula](https://en.wikipedia.org/wiki/Area_of_a_triangle). It's often more intuitive to think about barycentric coordinates as the 3 normalized areas of the 3 triangles formed by subdividing the triangle around an arbitrary point.
 
 ![](media/Recordings/TriangleIntersection%2000.gif)
 
 We can observe a few tings by looking at this animation:
-- first the values of $u$, $v$ and $w$ never go below 0 or above 1, this is a consequence of P staying inside the triangle.
-- summing the areas of the 3 small triangle always give the area of the main triangle $ABC$
+- first the values of $u$, $v$ and $w$ never go below 0 or above 1, this is a consequence of P staying inside the triangle. If P is outside of the triangle, then the barycentric coordinates are outside of the $(0, 1)$ range
+- summing the areas of the 3 colored triangles always give the area of the main triangle $ABC$
 - When the point P overlaps with a vertex of the triangle, only one of the barycentric values is equal to 1 and the two other are equal to 0.
 - When the point P is on an edge of the triangle, a single barycentric value is 0.
 
-Summing the area of the 3 colored triangles always gives you the area of the main triangle, this is a very important property as it allows to use the barycentric coordinate to interpolate data between the vertices of a triangle while always making sure that the quantities are preserved.
+The fact that the sum of the area of the sub-triangles is equal to the area of the main triangle is a very important property as it allows to use the barycentric coordinate to interpolate data between the vertices of a triangle while always making sure that the quantities are preserved.
 
 For simplicity, we always consider that the main triangle have an area of 1, so we can directly use the barycentric coordinates to do the interpolation instead of having to scale the values with the actual area of the triangle.
 
@@ -158,7 +158,7 @@ To fix this, we need to change how we check the signs of the parallelepiped volu
 ```c
 bool SameSign(float a, float b)
 {
-    return (a <= 0 && b <= 0) || (a > 0 && b > 0);
+    return (a < 0 && b < 0) || (a > 0 && b > 0);
 }
 
 ...
