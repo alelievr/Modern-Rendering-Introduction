@@ -485,9 +485,9 @@ MonoBehaviour:
   v1: {x: -0.38, y: 0.42, z: -0.5}
   v2: {x: 0.09, y: -0.45, z: -0.5}
   triangleCount: 10
-  randomRadius: 0.1
+  randomRadius: 0
   useCS1: 1
-  useBoth: 1
+  useBoth: 0
 --- !u!4 &1132405786
 Transform:
   m_ObjectHideFlags: 0

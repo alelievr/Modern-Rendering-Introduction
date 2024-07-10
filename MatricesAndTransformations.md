@@ -31,7 +31,7 @@ a_6 & a_7 & a_8
 
 You've probably noticed that the numbers on the diagonal (top left corner to bottom right) are unchanged when we use the two different matrix formats. This is because the row major matrix is the transpose of the column major matrix (and vice versa). Indeed transposing a matrix allows to move back and forth between column and row major formats, you can see this operation as the matrix rotating around it's diagonal.
 
-// TODO: gif of flipping matrix because this page will be boring to read.
+![](Media/Recordings/Matrix%2000%20Transpose.gif)
 
 In this course, we'll be using the row major matrices as it is the default in DirectX and HLSL.
 

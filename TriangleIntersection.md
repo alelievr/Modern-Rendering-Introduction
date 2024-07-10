@@ -16,7 +16,13 @@ If you're interested in seeing how this solution is implemented in great detail,
 
 ## Barycentric Coordinates
 
-In this chapiter we're particularly interested in the specific case of barycentric coordinates inside a triangle. These coordinates are represented with 3 values (or a single 3 component vector) often called $u$, $v$ and $w$, these values represent the position of a point inside the triangle.
+In this chapiter we're particularly interested in the specific case of barycentric coordinates inside a triangle. These coordinates are composed of 3 values (or a single 3 component vector) often called $u$, $v$ and $w$, these values represent the position of a point inside the triangle.
+
+To visualize what it means, let's add a point $P$ on the same plane than the triangle ABC, we'll also make sure that the position of P is within the triangle. Then we draw a segment from each vertex of the triangle towards the point $P$.
+
+![](Media/Recordings/TriangleIntersection%2005%20Sub-Triangles.gif)
+
+Drawing these lines forms 3 new triangles: $\triangle PAB$, $\triangle PCA$, and $\triangle PBC$ and each one of this triangle correspond to a single barycentric coordinate. What can be counter intuitive here is that the barycentric coordinate of a vertex is represented by it's opposing triangle. In other words in this example, the barycentric coordinate of $B$ is represented by the triangle $\triangle PCA$.
 
 In essence, computing the barycentric coordinates is as simple as calculating the area of the 3 sub-triangles formed by the new point inside the triangle (see figure below) using the [triangle area formula](https://en.wikipedia.org/wiki/Area_of_a_triangle). It's often more intuitive to think about barycentric coordinates as the 3 normalized areas of the 3 triangles formed by subdividing the triangle around an arbitrary point.
 

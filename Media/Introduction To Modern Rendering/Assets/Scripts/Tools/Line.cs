@@ -5,8 +5,23 @@ using UnityEngine;
 [ExecuteAlways]
 public class Line : MonoBehaviour
 {
+    public enum Mode
+    {
+        Positions,
+        Transforms,
+    }
+
+    public Mode mode;
+    
+    [Header("Positions")]
     public Vector3 start;
     public Vector3 end;
+
+    [Header("Transforms")]
+    public Transform startTransform;
+    public Transform endTransform;
+    
+    [Header("Settings")]
     public Color color = Color.white;
     public bool dotted = false;
     public float spacing = 0.25f;
@@ -63,6 +78,15 @@ public class Line : MonoBehaviour
         {
             lineRenderer.startWidth = width;
             lineRenderer.endWidth = width;
+        }
+    }
+
+    void Update()
+    {
+        if (mode == Mode.Transforms)
+        {
+            start = startTransform.position;
+            end = endTransform.position;
         }
     }
 
