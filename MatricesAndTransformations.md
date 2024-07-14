@@ -37,6 +37,15 @@ In this course, we'll be using the row major matrices as it is the default in Di
 
 ## Translation
 
+We already know how to represent a translation using a 3D vector, so let's see how to encode it into a 4x4 matrix so that it gives the same result as if we used a vector to translate the object:
+
+$$\begin{bmatrix}
+1 & 0 & 0 & x \\
+0 & 1 & 0 & y \\
+0 & 0 & 1 & z \\
+0 & 0 & 0 & 1
+\end{bmatrix}$$
+
 ## Rotation
 
 ## Scale
