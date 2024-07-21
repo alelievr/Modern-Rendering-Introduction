@@ -7,10 +7,30 @@ edition = "2021"
 log = "0.4.21"
 rusty-d3d12 = "0.5.2"
 winapi = { version = "0.3", features = ["winuser", "debugapi", "winbase"] }
-winit = "0.24"
 clap = "2.33"
 widestring = "0.4"
 memoffset = "0.5"
 hassle-rs = "0.3"
 simple_logger = "1.6"
 windows = { version = "0.57.0", features = ["Win32_Foundation", "Win32_Graphics_Dxgi_Common", "Win32_Security", "Win32_System", "Win32_System_Threading", "Win32_Graphics_Direct3D", "Win32_Graphics_Direct3D12", "Win32_Graphics_Dxgi", "Win32_Graphics_Direct3D_Dxc"]}
+caldera-macro = { path = "caldera/caldera-macro" }
+caldera = { path = "caldera/caldera" }
+arrayvec = "0.7.2"
+spark = { git = "https://github.com/sjb3d/spark/" }
+spark-egui = { git = "https://github.com/sjb3d/spark/" }
+notify = "4.0.17"
+winit = "0.28"
+raw-window-handle = "0.5"
+egui = "0.23"
+egui-winit = "0.23"
+bytemuck = { version = "1.8.0", features = ["derive", "min_const_generics"] }
+ultraviolet = { version = "0.9.0", features = ["int", "bytemuck"] }
+structopt = "0.3.26"
+strum = { version = "0.24.0", features = ["derive"] }
+slotmap = "1.0.6"
+tinyvec = "1.5.1"
+tokio = { version = "1.17.0", features = ["full"] }
+rayon = "1.5.1"
+rand = { version = "0.8.5", features = ["small_rng"] }
+pmj = { git = "https://github.com/sjb3d/pmj/" }
+lazy_static = "1.4.0"

@@ -1,43 +1,397 @@
-mod renderer;
-use renderer::*;
-
+use bytemuck::{Pod, Zeroable};
+use caldera::prelude::*;
+use rand::{prelude::*, rngs::SmallRng};
+use rayon::prelude::*;
+use spark::vk;
+use structopt::StructOpt;
+use strum::VariantNames;
+use utils::*;
 use winit::{
-    event::{Event, WindowEvent},
-    event_loop::{ControlFlow, EventLoop},
-    window::WindowBuilder,
+    dpi::{LogicalSize, Size},
+    event_loop::EventLoop,
+    monitor::VideoMode,
+    window::{Fullscreen, WindowBuilder},
 };
 
-const WINDOW_WIDTH: u32 = 640;
-const WINDOW_HEIGHT: u32 = 480;
+mod utils;
 
+#[derive(Clone, Copy, Zeroable, Pod)]
+#[repr(C)]
+struct TraceData {
+    dims: UVec2,
+    dims_rcp: Vec2,
+    pass_index: u32,
+}
+
+descriptor_set!(TraceDescriptorSet {
+    trace: UniformData<TraceData>,
+    result: [StorageImage; 3],
+    samples: StorageImage,
+});
+
+#[derive(Clone, Copy, Zeroable, Pod)]
+#[repr(C)]
+struct CopyData {
+    offset: IVec2,
+    trace_dims: UVec2,
+    trace_scale: f32,
+}
+
+descriptor_set!(CopyDescriptorSet {
+    copy: UniformData<CopyData>,
+    image: [StorageImage; 3],
+});
+
+struct App {
+    sample_image_view: TaskOutput<vk::ImageView>,
+    trace_image_ids: (ImageId, ImageId, ImageId),
+
+    log2_exposure_scale: f32,
+    target_pass_count: u32,
+    next_pass_index: u32,
+}
+
+impl App {
+    const SEQUENCE_COUNT: u32 = 1024;
+    const SAMPLES_PER_SEQUENCE: u32 = 256;
+    const MAX_PASS_COUNT: u32 = Self::SAMPLES_PER_SEQUENCE / 4;
+
+    fn trace_image_size() -> UVec2 {
+        UVec2::new(640, 480)
+    }
+
+    fn new(base: &mut AppBase) -> Self {
+        let resource_loader = base.systems.resource_loader.clone();
+        let sample_image_view = base.systems.task_system.spawn_task(async move {
+            let sequences: Vec<Vec<_>> = (0..Self::SEQUENCE_COUNT)
+                .into_par_iter()
+                .map(|i| {
+                    let mut rng = SmallRng::seed_from_u64(i as u64);
+                    pmj::generate(Self::SAMPLES_PER_SEQUENCE as usize, 4, &mut rng)
+                })
+                .collect();
+
+            let desc = ImageDesc::new_2d(
+                UVec2::new(Self::SAMPLES_PER_SEQUENCE, Self::SEQUENCE_COUNT),
+                vk::Format::R32G32_SFLOAT,
+                vk::ImageAspectFlags::COLOR,
+            );
+            let mut writer = resource_loader
+                .image_writer(&desc, ImageUsage::COMPUTE_STORAGE_READ)
+                .await;
+
+            for sample in sequences.iter().flat_map(|sequence| sequence.iter()) {
+                let pixel: [f32; 2] = [sample.x(), sample.y()];
+                writer.write(&pixel);
+            }
+
+            resource_loader.get_image_view(writer.finish().await, ImageViewDesc::default())
+        });
+        let trace_image_ids = {
+            let size = Self::trace_image_size();
+            let desc = ImageDesc::new_2d(size, vk::Format::R32_SFLOAT, vk::ImageAspectFlags::COLOR);
+            let usage = ImageUsage::FRAGMENT_STORAGE_READ
+                | ImageUsage::COMPUTE_STORAGE_READ
+                | ImageUsage::COMPUTE_STORAGE_WRITE;
+            let render_graph = &mut base.systems.render_graph;
+            (
+                render_graph.create_image(&desc, usage),
+                render_graph.create_image(&desc, usage),
+                render_graph.create_image(&desc, usage),
+            )
+        };
+
+        Self {
+            sample_image_view,
+            trace_image_ids,
+
+            log2_exposure_scale: 0f32,
+            target_pass_count: 16,
+            next_pass_index: 0,
+        }
+    }
+
+    fn render(&mut self, base: &mut AppBase) {
+        let cbar = base.systems.acquire_command_buffer();
+
+        base.ui_begin_frame();
+        base.egui_ctx.clone().input(|i| {
+            if i.key_pressed(egui::Key::Escape) {
+                base.exit_requested = true;
+            }
+        });
+        egui::Window::new("Debug")
+            .default_pos([5.0, 5.0])
+            .default_size([350.0, 150.0])
+            .show(&base.egui_ctx, |ui| {
+                ui.add(
+                    egui::DragValue::new(&mut self.log2_exposure_scale)
+                        .speed(0.05f32)
+                        .prefix("Exposure: "),
+                );
+                ui.add(
+                    egui::Slider::new(&mut self.target_pass_count, 1..=Self::MAX_PASS_COUNT).prefix("Max Pass Count: "),
+                );
+                ui.label(format!("Passes: {}", self.next_pass_index));
+
+                if ui.button("Reset").clicked() {
+                    self.next_pass_index = 0;
+                }
+            });
+        base.systems.draw_ui(&base.egui_ctx);
+        base.ui_end_frame(cbar.pre_swapchain_cmd);
+
+        let mut schedule = base.systems.resource_loader.begin_schedule(
+            &mut base.systems.render_graph,
+            base.context.as_ref(),
+            &base.systems.descriptor_pool,
+            &base.systems.pipeline_cache,
+        );
+
+        let sample_image_view = self.sample_image_view.get().copied();
+
+        let trace_image_size = Self::trace_image_size();
+        let pass_count = if let Some(sample_image_view) =
+            sample_image_view.filter(|_| self.next_pass_index != self.target_pass_count)
+        {
+            if self.next_pass_index > self.target_pass_count {
+                self.next_pass_index = 0;
+            }
+            schedule.add_compute(
+                command_name!("trace"),
+                |params| {
+                    params.add_image(
+                        self.trace_image_ids.0,
+                        ImageUsage::COMPUTE_STORAGE_READ | ImageUsage::COMPUTE_STORAGE_WRITE,
+                    );
+                    params.add_image(
+                        self.trace_image_ids.1,
+                        ImageUsage::COMPUTE_STORAGE_READ | ImageUsage::COMPUTE_STORAGE_WRITE,
+                    );
+                    params.add_image(
+                        self.trace_image_ids.2,
+                        ImageUsage::COMPUTE_STORAGE_READ | ImageUsage::COMPUTE_STORAGE_WRITE,
+                    );
+                },
+                {
+                    let context = base.context.as_ref();
+                    let descriptor_pool = &base.systems.descriptor_pool;
+                    let pipeline_cache = &base.systems.pipeline_cache;
+                    let trace_image_ids = &self.trace_image_ids;
+                    let next_pass_index = self.next_pass_index;
+                    move |params, cmd| {
+                        let sample_image_view = sample_image_view;
+                        let trace_image_views = [
+                            params.get_image_view(trace_image_ids.0, ImageViewDesc::default()),
+                            params.get_image_view(trace_image_ids.1, ImageViewDesc::default()),
+                            params.get_image_view(trace_image_ids.2, ImageViewDesc::default()),
+                        ];
+
+                        let descriptor_set = TraceDescriptorSet::create(
+                            descriptor_pool,
+                            |buf: &mut TraceData| {
+                                let dims_rcp = Vec2::broadcast(1.0) / trace_image_size.as_float();
+                                *buf = TraceData {
+                                    dims: trace_image_size,
+                                    dims_rcp,
+                                    pass_index: next_pass_index,
+                                };
+                            },
+                            &trace_image_views,
+                            sample_image_view,
+                        );
+
+                        dispatch_compute(
+                            &context.device,
+                            pipeline_cache,
+                            cmd,
+                            "assets/shaders/path_tracer_entry.hlsl",
+                            "main",
+                            &[],
+                            descriptor_set,
+                            trace_image_size.div_round_up(16),
+                        );
+                    }
+                },
+            );
+            self.next_pass_index + 1
+        } else {
+            self.next_pass_index
+        };
+
+        let swap_vk_image = base
+            .display
+            .acquire(&base.window, cbar.image_available_semaphore.unwrap());
+        let swap_size = base.display.swapchain.get_size();
+        let swap_format = base.display.swapchain.get_format();
+        let swap_image = schedule.import_image(
+            &ImageDesc::new_2d(swap_size, swap_format, vk::ImageAspectFlags::COLOR),
+            ImageUsage::COLOR_ATTACHMENT_WRITE | ImageUsage::SWAPCHAIN,
+            swap_vk_image,
+            ImageUsage::empty(),
+            ImageUsage::SWAPCHAIN,
+        );
+
+        let main_sample_count = vk::SampleCountFlags::N1;
+        let main_render_state = RenderState::new().with_color(swap_image, &[0f32, 0f32, 0f32, 0f32]);
+
+        schedule.add_graphics(
+            command_name!("main"),
+            main_render_state,
+            |params| {
+                params.add_image(self.trace_image_ids.0, ImageUsage::FRAGMENT_STORAGE_READ);
+                params.add_image(self.trace_image_ids.1, ImageUsage::FRAGMENT_STORAGE_READ);
+                params.add_image(self.trace_image_ids.2, ImageUsage::FRAGMENT_STORAGE_READ);
+            },
+            {
+                let context = base.context.as_ref();
+                let descriptor_pool = &base.systems.descriptor_pool;
+                let pipeline_cache = &base.systems.pipeline_cache;
+                let trace_images = &self.trace_image_ids;
+                let log2_exposure_scale = self.log2_exposure_scale;
+                let pixels_per_point = base.egui_ctx.pixels_per_point();
+                let egui_renderer = &mut base.egui_renderer;
+                move |params, cmd, render_pass| {
+                    let trace_image_views = [
+                        params.get_image_view(trace_images.0, ImageViewDesc::default()),
+                        params.get_image_view(trace_images.1, ImageViewDesc::default()),
+                        params.get_image_view(trace_images.2, ImageViewDesc::default()),
+                    ];
+
+                    set_viewport_helper(&context.device, cmd, swap_size);
+
+                    let copy_descriptor_set = CopyDescriptorSet::create(
+                        descriptor_pool,
+                        |buf| {
+                            *buf = CopyData {
+                                offset: ((trace_image_size.as_signed() - swap_size.as_signed()) / 2),
+                                trace_dims: trace_image_size,
+                                trace_scale: log2_exposure_scale.exp2() / (pass_count as f32),
+                            };
+                        },
+                        &trace_image_views,
+                    );
+                    render_primitives(
+                        &context.device,
+                        pipeline_cache,
+                        cmd,
+                        &GraphicsPipelineState::new(render_pass, main_sample_count),
+                        "assets/shaders/copy.vert.hlsl",
+                        "assets/shaders/copy.frag.hlsl",
+                        copy_descriptor_set,
+                        3,
+                        1
+                    );
+
+                    // draw ui
+                    let egui_pipeline = pipeline_cache.get_ui(egui_renderer, render_pass, main_sample_count);
+                    egui_renderer.render(
+                        &context.device,
+                        cmd,
+                        egui_pipeline,
+                        swap_size.x,
+                        swap_size.y,
+                        pixels_per_point,
+                    );
+                }
+            },
+        );
+
+        schedule.run(
+            &base.context,
+            cbar.pre_swapchain_cmd,
+            cbar.post_swapchain_cmd,
+            Some(swap_image),
+            &mut base.systems.query_pool,
+        );
+
+        let rendering_finished_semaphore = base.systems.submit_command_buffer(&cbar);
+        base.display
+            .present(swap_vk_image, rendering_finished_semaphore.unwrap());
+
+        self.next_pass_index = pass_count;
+    }
+}
+
+#[derive(Debug, StructOpt)]
+#[structopt(no_version)]
+struct AppParams {
+    /// Core Vulkan version to load
+    #[structopt(short, long, parse(try_from_str=try_version_from_str), default_value="1.0")]
+    version: vk::Version,
+
+    /// Whether to use EXT_inline_uniform_block
+    #[structopt(long, possible_values=&ContextFeature::VARIANTS, default_value="optional")]
+    inline_uniform_block: ContextFeature,
+
+    /// Run fullscreen
+    #[structopt(short, long)]
+    fullscreen: bool,
+
+    /// Test ACES fit matrices and exit
+    #[structopt(long)]
+    test: bool,
+}
 
 fn main() {
+    simple_logger::init().unwrap();
+    let app_params = AppParams::from_args();
+    let context_params = ContextParams {
+        version: app_params.version,
+        inline_uniform_block: app_params.inline_uniform_block,
+        ..Default::default()
+    };
+    if app_params.test {
+        derive_aces_fit_matrices();
+        return;
+    }
+
     let event_loop = EventLoop::new();
-    let window = WindowBuilder::new()
-        .with_title("Modern Renderer")
-        .build(&event_loop)
-        .expect("Cannot create window");
-    window.set_inner_size(winit::dpi::LogicalSize::new(
-        WINDOW_WIDTH,
-        WINDOW_HEIGHT,
-    ));
 
-    let mut renderer = Renderer::new(&window);
+    let mut window_builder = WindowBuilder::new().with_title("compute");
+    window_builder = if app_params.fullscreen {
+        let monitor = event_loop.primary_monitor().unwrap();
+        let size = monitor.size();
+        let video_mode = monitor
+            .video_modes()
+            .filter(|m| m.size() == size)
+            .max_by(|a, b| {
+                let t = |m: &VideoMode| (m.bit_depth(), m.refresh_rate_millihertz());
+                Ord::cmp(&t(a), &t(b))
+            })
+            .unwrap();
+        println!(
+            "full screen mode: {}x{} {}bpp {}mHz",
+            video_mode.size().width,
+            video_mode.size().height,
+            video_mode.bit_depth(),
+            video_mode.refresh_rate_millihertz()
+        );
+        window_builder.with_fullscreen(Some(Fullscreen::Exclusive(video_mode)))
+    } else {
+        window_builder.with_inner_size(Size::Logical(LogicalSize::new(640.0, 480.0)))
+    };
+    let window = window_builder.build(&event_loop).unwrap();
 
-    event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Poll;
-        match event {
-            Event::WindowEvent {
-                event: WindowEvent::CloseRequested,
-                ..
-            } => *control_flow = ControlFlow::Exit,
-            Event::MainEventsCleared => {
-                window.request_redraw();
+    let mut base = AppBase::new(window, &context_params);
+    let app = App::new(&mut base);
+
+    let mut apps = Some((base, app));
+    event_loop.run(move |event, target, control_flow| {
+        match apps
+            .as_mut()
+            .map(|(base, _)| base)
+            .unwrap()
+            .process_event(&event, target, control_flow)
+        {
+            AppEventResult::None => {}
+            AppEventResult::Redraw => {
+                let (base, app) = apps.as_mut().unwrap();
+                app.render(base);
             }
-            Event::RedrawRequested(_) => {
-                renderer.execute();
+            AppEventResult::Destroy => {
+                apps.take();
             }
-            _ => (),
         }
     });
 }

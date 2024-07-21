@@ -1,0 +1,3 @@
+[submodule "modern_renderer/caldera"]
+	path = modern_renderer/caldera
+	url = https://github.com/sjb3d/caldera
