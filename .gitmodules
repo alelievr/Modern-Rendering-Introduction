@@ -1,3 +1,6 @@
-[submodule "modern_renderer/caldera"]
-	path = modern_renderer/caldera
-	url = https://github.com/sjb3d/caldera
+[submodule "ModernRenderer/deps/litefx"]
+	path = ModernRenderer/deps/litefx
+	url = https://github.com/crud89/litefx
+[submodule "ModernRenderer/deps/vcpkg"]
+	path = ModernRenderer/deps/vcpkg
+	url = https://github.com/microsoft/vcpkg.git
