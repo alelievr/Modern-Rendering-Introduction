@@ -26,15 +26,20 @@ struct TransformBuffer {
 } transform;
 
 template<typename TRenderBackend> requires
-    meta::implements<TRenderBackend, IRenderBackend>
+meta::implements<TRenderBackend, IRenderBackend>
 struct FileExtensions {
     static const String SHADER;
 };
 
+#ifdef LITEFX_BUILD_VULKAN_BACKEND
+const String FileExtensions<VulkanBackend>::SHADER = "spv";
+#endif // LITEFX_BUILD_VULKAN_BACKEND
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
 const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
 template<typename TRenderBackend> requires
-    meta::implements<TRenderBackend, IRenderBackend>
+meta::implements<TRenderBackend, IRenderBackend>
 void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputAssemblerState)
 {
     using RenderPass = TRenderBackend::render_pass_type;
@@ -59,9 +64,9 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
         .topology(PrimitiveTopology::TriangleList)
         .indexType(IndexType::UInt16)
         .vertexBuffer(sizeof(Vertex), 0)
-            .withAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position), AttributeSemantic::Position)
-            .withAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color), AttributeSemantic::Color)
-            .add();
+        .withAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position), AttributeSemantic::Position)
+        .withAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color), AttributeSemantic::Color)
+        .add();
 
     inputAssemblerState = std::static_pointer_cast<IInputAssembler>(inputAssembler);
 
@@ -71,10 +76,10 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
         .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
     // Map all render targets to the frame buffer.
-    std::ranges::for_each(frameBuffers, [&renderPass](auto& frameBuffer) { 
+    std::ranges::for_each(frameBuffers, [&renderPass](auto& frameBuffer) {
         frameBuffer->addImage(renderPass->renderTarget(0), MultiSamplingLevel::x1, ResourceUsage::FrameBufferImage | ResourceUsage::AllowWrite);
-        frameBuffer->addImage(renderPass->renderTarget(1)); 
-    });
+        frameBuffer->addImage(renderPass->renderTarget(1));
+        });
 
     // Create the shader program.
     SharedPtr<ShaderProgram> shaderProgram = device->buildShaderProgram()
@@ -126,7 +131,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& cameraBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
     auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBindingLayout, 0, ResourceHeap::Resource);
-    auto cameraBindings = cameraBindingLayout.allocate({ { .resource = *cameraBuffer } });
+    auto cameraBindings = cameraBindingLayout.allocate({ {.resource = *cameraBuffer } });
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer, *cameraBuffer);
@@ -137,21 +142,21 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
     auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, ResourceHeap::Dynamic, 3);
     auto transformBindings = transformBindingLayout.allocateMultiple(3, {
-        { { .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
-        { { .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
-        { { .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
-    });
+        { {.resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
+        { {.resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
+        { {.resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
+        });
 
     // Allocate bindings for the post-processing pass.
     auto& renderPass = m_device->state().renderPass("Opaque");
     auto& postPipeline = m_device->state().pipeline("Post");
     auto& postInputLayout = postPipeline.layout()->descriptorSet(0);
     auto postBindings = postInputLayout.allocateMultiple(3, {
-        { { .resource = m_device->state().frameBuffer("Frame Buffer 0").resolveImage("Color Target"_hash) } },
-        { { .resource = m_device->state().frameBuffer("Frame Buffer 1").resolveImage("Color Target"_hash) } },
-        { { .resource = m_device->state().frameBuffer("Frame Buffer 2").resolveImage("Color Target"_hash) } }
-    });
-    
+        { {.resource = m_device->state().frameBuffer("Frame Buffer 0").resolveImage("Color Target"_hash) } },
+        { {.resource = m_device->state().frameBuffer("Frame Buffer 1").resolveImage("Color Target"_hash) } },
+        { {.resource = m_device->state().frameBuffer("Frame Buffer 2").resolveImage("Color Target"_hash) } }
+        });
+
     // Add everything to the state.
     m_device->state().add(std::move(vertexBuffer));
     m_device->state().add(std::move(indexBuffer));
@@ -198,13 +203,13 @@ void SampleApp::onInit()
 
     ::glfwSetFramebufferSizeCallback(m_window.get(), [](GLFWwindow* window, int width, int height) {
         auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
-        app->resize(width, height); 
-    });
+        app->resize(width, height);
+        });
 
     ::glfwSetKeyCallback(m_window.get(), [](GLFWwindow* window, int key, int scancode, int action, int mods) {
         auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
         app->keyDown(key, scancode, action, mods);
-    });
+        });
 
     // Create a callback for backend startup and shutdown.
     auto startCallback = [this]<typename TBackend>(TBackend * backend) {
@@ -240,12 +245,20 @@ void SampleApp::onInit()
         backend->releaseDevice("Default");
     };
 
+#ifdef LITEFX_BUILD_VULKAN_BACKEND
+    // Register the Vulkan backend de-/initializer.
+    this->onBackendStart<VulkanBackend>(startCallback);
+    this->onBackendStop<VulkanBackend>(stopCallback);
+#endif // LITEFX_BUILD_VULKAN_BACKEND
+
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
     // We do not need to provide a root signature for shader reflection (refer to the project wiki for more information: https://github.com/crud89/LiteFX/wiki/Shader-Development).
     DirectX12ShaderProgram::suppressMissingRootSignatureWarning();
 
     // Register the DirectX 12 backend de-/initializer.
     this->onBackendStart<DirectX12Backend>(startCallback);
     this->onBackendStop<DirectX12Backend>(stopCallback);
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 }
 
 void SampleApp::onResize(const void* sender, ResizeEventArgs e)
@@ -282,8 +295,15 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
 
 void SampleApp::keyDown(int key, int scancode, int action, int mods)
 {
+#ifdef LITEFX_BUILD_VULKAN_BACKEND
+    if (key == GLFW_KEY_F9 && action == GLFW_PRESS)
+        this->startBackend<VulkanBackend>();
+#endif // LITEFX_BUILD_VULKAN_BACKEND
+
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
     if (key == GLFW_KEY_F10 && action == GLFW_PRESS)
         this->startBackend<DirectX12Backend>();
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
     if (key == GLFW_KEY_F8 && action == GLFW_PRESS)
     {

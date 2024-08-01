@@ -1,16 +1,10 @@
-#define LITEFX_BUILD_DIRECTX_12_BACKEND
-//#define LITEFX_AUTO_IMPORT_BACKEND_HEADERS
-#include <litefx/litefx.h>
-#include <litefx/backends/dx12.hpp>
-#include <litefx/backends/dx12_builders.hpp>
-
+#define LITEFX_DEFINE_GLOBAL_EXPORTS
 #include "sample.h"
-
-#include <CLI/CLI.hpp>
 
 // CLI11 parses optional values as double by default, which yields an implicit-cast warning.
 #pragma warning(disable: 4244)
 
+#include <CLI/CLI.hpp>
 #include <iostream>
 #include <filesystem>
 #include <shlobj.h>
@@ -72,7 +66,7 @@ int main(const int argc, const char** argv)
 	const String appName = SampleApp::Name();
 
 	CLI::App app{ "Demonstrates compute shaders, dedicated queue usage and post-processing techniques.", appName };
-	
+
 	Optional<UInt32> adapterId;
 	app.add_option("-a,--adapter", adapterId)->take_first();
 	auto validationLayers = app.add_option("-l,--vk-validation-layers")->take_all();
@@ -131,12 +125,18 @@ int main(const int argc, const char** argv)
 		requiredExtensions.push_back(String(extensionNames[i]));
 
 	// Create the app.
-	try 
+	try
 	{
 		UniquePtr<App> app = App::build<SampleApp>(std::move(window), adapterId)
 			.logTo<ConsoleSink>(LogLevel::Trace)
 			.logTo<RollingFileSink>("sample.log", LogLevel::Debug)
-			.useBackend<DirectX12Backend>();
+//#ifdef LITEFX_BUILD_VULKAN_BACKEND
+//			.useBackend<VulkanBackend>(requiredExtensions, enabledLayers)
+//#endif // LITEFX_BUILD_VULKAN_BACKEND
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
+			.useBackend<DirectX12Backend>()
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
+			;
 
 		app->run();
 	}

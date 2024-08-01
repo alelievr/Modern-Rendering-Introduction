@@ -1,7 +1,7 @@
 #pragma once
 
-#define LITEFX_BUILD_DIRECTX_12_BACKEND
 #define LITEFX_AUTO_IMPORT_BACKEND_HEADERS
+#define LITEFX_BUILD_DIRECTX_12_BACKEND
 #include <litefx/litefx.h>
 
 #if (defined _WIN32 || defined WINCE)
@@ -13,6 +13,8 @@
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include <memory>
+
+#include "config.h"
 
 #ifdef LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER
 #include <renderdoc_app.h>
@@ -77,7 +79,7 @@ private:
 	UInt64 m_transferFence = 0;
 
 public:
-	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) : 
+	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) :
 		App(), m_window(std::move(window)), m_adapterId(adapterId), m_device(nullptr)
 	{
 		this->initializing += std::bind(&SampleApp::onInit, this);
