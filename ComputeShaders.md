@@ -57,7 +57,7 @@ The kernel have access to all the resources that were bound by the CPU to this c
 
 ![](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/images/threadgroupids.png)
 
-To know all the special values that are supported in parameter of a compute shader kernel, see the [Semantic](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-semantics) documentation of  DirectX.
+To know all the special values that are supported in parameter of a compute shader kernel, see the [Semantic](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-semantics) documentation of DirectX.
 
 To learn more about the syntax of compute shader in HLSL, you can consult the reference documentation: https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-reference.
 

@@ -1,0 +1,1 @@
+Could be a good example for simple implementation: https://blog.selfshadow.com/publications/s2017-shading-course/imageworks/s2017_pbs_imageworks_sheen.pdf

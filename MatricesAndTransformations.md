@@ -33,20 +33,51 @@ You've probably noticed that the numbers on the diagonal (top left corner to bot
 
 ![](Media/Recordings/Matrix%2000%20Transpose.gif)
 
-In this course, we'll be using the row major matrices as it is the default in DirectX and HLSL.
+In this course, we'll be using row major matrices which widely used in HLSL and DirectX which means that we'll be using the pre-multiplication order where the value to transform is planed on the left side of the operand.
+
+$$result = vector * matrix$$
 
 ## Translation
 
-We already know how to represent a translation using a 3D vector, so let's see how to encode it into a 4x4 matrix so that it gives the same result as if we used a vector to translate the object:
+We already know how to represent a translation using a 3D vector, so let's see how to encode it into a 4x4 matrix so that it gives the same result as if we used a vector to translate the object.
+
+We can write our position vector like so: $v = [x, y, z]$ The first visible problem is that there is only 3 components in this vector which mean that we cannot multiply it directly with our 4x4 matrix, we need to add 1 value. This value will be called $w$.
+
+To build our translation matrix, let's start from the identity matrix which once multiplied by our vectors, leave it unchanged:
 
 $$\begin{bmatrix}
-1 & 0 & 0 & x \\
-0 & 1 & 0 & y \\
-0 & 0 & 1 & z \\
+1 & 0 & 0 & 0 \\
+0 & 1 & 0 & 0 \\
+0 & 0 & 1 & 0 \\
 0 & 0 & 0 & 1
 \end{bmatrix}$$
 
+For our translation matrix to work we want to add 3 different values to our vector, each corresponding to a translation on one axis. In other words we simply want that our matrix multiplication operation simplifies itself to a simple vector addition. If we look closely to the matrix multiplcation, we can find such values on the bottom row of the matrix, adding the X, Y, and Z components of a translation vector will have the same effect as adding the two vectors when the matrix multiplication is performed:
+
+$$
+\begin{bmatrix} v_x & v_y & v_z & v_w \end{bmatrix}
+*
+\begin{bmatrix}
+1 & 0 & 0 & 0 \\
+0 & 1 & 0 & 0 \\
+0 & 0 & 1 & 0 \\
+t_x & t_y & t_z & 1
+\end{bmatrix}
+=
+\begin{bmatrix} v_x * 1 + v_w * t_x & v_y * 1 + v_w * t_y & v_z * 1 + v_w * t_z & v_w \end{bmatrix}
+$$
+
+If you observe closely the result, we see that the $w$ component of $v$ is a factor of the translation of the matrix. Simply setting is to 1 in the vector before performing the multiplication will make sure that we translate our position vector by exactly the amount inside the translation matrix. Note that we can ignore the $w$ component after performing the multiplication because we only need the 3 dimensions for our resulting position.
+
+![](Media/Recordings/Matrix%2001.gif)
+
 ## Rotation
+
+The rotation is a bit more complex but it uses the same principle as we've seen in the translation matrix which is simplifying the matrix multiplication operation by keeping some '0' inside to control the operation we want to perform.
+
+Let's start by describing what kind of rotation our matrix will perform. The rotation matrix rotate a position around an origin in 3 axises. In fact the common rotation matrix we can observe in most game engine is in fact a combination of 3 separate rotation matrices multiplied by each others.
+
+
 
 ## Scale
 
@@ -79,3 +110,5 @@ http://davidlively.com/programming/graphics/opengl-matrices/row-major-vs-column-
 https://www.scratchapixel.com/lessons/mathematics-physics-for-computer-graphics/geometry/row-major-vs-column-major-vector.html
 
 https://en.wikipedia.org/wiki/Transpose
+
+https://en.wikipedia.org/wiki/Rotation_matrix
