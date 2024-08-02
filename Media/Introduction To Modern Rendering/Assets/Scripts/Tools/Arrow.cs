@@ -22,6 +22,7 @@ public class Arrow : MonoBehaviour
     [Header("Transform")]
     public Transform startTransform;
     public Transform endTransform;
+    public float offsetFromEnd = 0;
 
     [Header("TransformDirection")]
     public Line directionLine;
@@ -72,12 +73,15 @@ public class Arrow : MonoBehaviour
 
     void OnEnable() => UpdateColors();
 
-    void Update()
+    void LateUpdate()
     {
         if (mode == Mode.WorldPosition || startTransform == null || endTransform == null)
             Initialize(start, end, color);
         else if (mode == Mode.Transform)
-            Initialize(startTransform.position, endTransform.position, color);
+        {
+            var dir = (endTransform.position - startTransform.position).normalized;
+            Initialize(startTransform.position, endTransform.position - dir * offsetFromEnd, color);
+        }
         else if (mode == Mode.TransformDirection)
             Initialize(startTransform.position, startTransform.position + directionLine.GetDirection(), color);
     }
