@@ -170,38 +170,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!21 &120751095
-Material:
-  serializedVersion: 8
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Hidden/LineRenderer/DottedLine
-  m_Shader: {fileID: 4800000, guid: cc1dabec2c9045a44887251dfad6ac0b, type: 3}
-  m_Parent: {fileID: 0}
-  m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_LockedProperties: 
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs:
-    - _MainTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    m_Ints: []
-    m_Floats:
-    - _LineSpacing: 0
-    m_Colors: []
-  m_BuildTextureStacks: []
 --- !u!1 &319530543
 GameObject:
   m_ObjectHideFlags: 0
@@ -1095,7 +1063,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 120751095}
+  - {fileID: 1606983784}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1208,6 +1176,38 @@ MonoBehaviour:
   dotted: 0
   spacing: 0.25
   width: 0.02
+--- !u!21 &1606983784
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Hidden/LineRenderer/DottedLine
+  m_Shader: {fileID: 4800000, guid: cc1dabec2c9045a44887251dfad6ac0b, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _LineSpacing: 0
+    m_Colors: []
+  m_BuildTextureStacks: []
 --- !u!1 &1769114621
 GameObject:
   m_ObjectHideFlags: 0
@@ -1477,7 +1477,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8581154649422775352, guid: 60883dd1187345947a06da234574394c, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 2.128
+      value: 2.888
       objectReference: {fileID: 0}
     - target: {fileID: 8581154649422775352, guid: 60883dd1187345947a06da234574394c, type: 3}
       propertyPath: m_LocalPosition.y
