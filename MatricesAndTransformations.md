@@ -75,8 +75,31 @@ If you observe closely the result, we see that the $w$ component of $v$ is a fac
 
 The rotation is a bit more complex but it uses the same principle as we've seen in the translation matrix which is simplifying the matrix multiplication operation by keeping some '0' inside to control the operation we want to perform.
 
-Let's start by describing what kind of rotation our matrix will perform. The rotation matrix rotate a position around an origin in 3 axises. In fact the common rotation matrix we can observe in most game engine is in fact a combination of 3 separate rotation matrices multiplied by each others.
+Let's start by describing what kind of rotation our matrix will perform. The rotation matrix rotate a position around the origin in 3 axises. The rotation matrix is in fact a combination of 3 separate rotation matrices multiplied by each others, one per axis.
 
+To understand how it works, let's see how to rotate an object around a single axis. The object in the example is going to be a point represented by a 3D vector and the axis will be the red X axis. The purple arrow was added to help visualize the motion.
+
+![](Media/Recordings/Matrix%2003%20Rotation-Point.gif)
+
+The first thing to notive is that the X coordinate isn't affected by a rotation on the X axis, this is similar for the rotation on Y and Z axies and gives us a hit about the matrix we need to do this rotation: some part of the matrix will have the property of the identity matrix so that when the position is multiplied by the matrix, it's X axis is unchanged.
+
+Let's write again our position vector $v$ multiplied by an identity matrix while highlighting which values we know are already correct:
+
+$$\begin{bmatrix} v_x & v_y & v_z & v_w \end{bmatrix}
+*
+\begin{bmatrix}
+\colorbox{green}1 & 0 & 0 & \colorbox{green}0 \\
+\colorbox{green}0 & 1 & 0 & \colorbox{green}0 \\
+\colorbox{green}0 & 0 & 1 & \colorbox{green}0 \\
+\colorbox{green}0 & \colorbox{green}0 & \colorbox{green}0 & \colorbox{green}1
+\end{bmatrix}$$
+
+We know that the column on the left is good because its the value of $v_x$, the bottom row is also correct because it's multiplied by $v_w$ which we don't care in the result as our vector has only 3 components, and the column on the right is also multiplied by $v_w$. Though if we leave the vector like so, a value from $v_w$ could seep into the result and make it incorrect, that's why we always set the 4th component of the vector to 0 when rotating a position.
+
+All that's left to do is rotating the $Y$ and $Z$ coordinates of the position, this can simply be done using trigonometric function sin() and cos()
+
+
+![](Media/Recordings/Matrix%2002%20Rotation.gif)
 
 
 ## Scale
@@ -98,6 +121,11 @@ Let's start by describing what kind of rotation our matrix will perform. The rot
 ### NDC Space
 
 ### Screen Space
+
+## Matrix alternatives
+
+TODO: talk a bit about:
+https://enkimute.github.io/LookMaNoMatrices/
 
 ## References
 
