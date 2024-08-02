@@ -39,6 +39,8 @@
 - Transparency
 - Participating Media (Fog)
 - Emissive
+- Color spaces & Perception
+- Color grading in post process
 
 ## Maybe
 
