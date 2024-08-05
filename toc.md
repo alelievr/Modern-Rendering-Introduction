@@ -16,16 +16,17 @@
 - Meshes
 - Mesh Shaders
 - Rasterization
+- Mesh intersection
 - Bindless
 - Material
 - Texturing
 - Aliasing and Filtering
-- Integral
+- Integrals in Rendering
 - The Rendering Equation
+- Environment Lights
 - Directional Lights
 - Punctual Lights
-- Environment Lights
-- Roughness 
+- Roughness
 - BRDF / BSDF
 - Furnace Test
 - Mapping PBR Textures

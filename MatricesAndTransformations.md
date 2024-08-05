@@ -13,7 +13,7 @@ To visualise the difference, you can imagine a list of numbers representing all 
 
 $$[a_0, a_1, a_2, a_3, a_4, a_5, a_6, a_7, a_8]$$
 
-To construct a matrix with the column major, we take every number in the array from left to right and start putting them in the matrix from the top left corner, filling each column of the matrix from top to bottom and then switching to the folloing column.
+To construct a matrix with the column major, we take every number in the array from left to right and start putting them in the matrix from the top left corner, filling each column of the matrix from top to bottom and then switching to the following column.
 
 $$\begin{bmatrix}
 a_0 & a_3 & a_6\\
@@ -96,19 +96,102 @@ $$\begin{bmatrix} v_x & v_y & v_z & v_w \end{bmatrix}
 
 We know that the column on the left is good because its the value of $v_x$, the bottom row is also correct because it's multiplied by $v_w$ which we don't care in the result as our vector has only 3 components, and the column on the right is also multiplied by $v_w$. Though if we leave the vector like so, a value from $v_w$ could seep into the result and make it incorrect, that's why we always set the 4th component of the vector to 0 when rotating a position.
 
-All that's left to do is rotating the $Y$ and $Z$ coordinates of the position, this can simply be done using trigonometric function sin() and cos()
+All that's left to do is rotating the $Y$ and $Z$ coordinates of the position, this can simply be done using trigonometric function sin and cos. Rotating a position around an axis is the same as calculating it's new coordinate after moving the point of x degrees on a circle, see how the green point orbits around the X axis forming a circle, the new position of this point on the circle is what we're looking for. We can easily solve this problem in 2D as we already know that the value of the $x$ coordinate.
 
+A 2D rotation is described by these formulas:
+
+$$rotated_x = x * \cos(\theta) - y * \sin(\theta)$$
+$$rotated_y = x * \sin(\theta) + y * \cos(\theta)$$
+
+As you can see there are some similarities with matrix multiplication in this formula, in fact these formulas can be written as a single matrix that gets multiplied by a 2D vector:
+
+$$
+{\begin{bmatrix}
+\cos \theta & -\sin \theta \\
+\sin \theta &\cos \theta \\
+\end{bmatrix}}
+$$
+
+ This means that it's easy for us to take integrate this matrix into our existing identity matrix to rotate Y and Z components:
+
+$$
+\begin{bmatrix}
+1 & 0 & 0 & 0 \\
+0 & \cos \theta & -\sin \theta & 0 \\
+0 & \sin \theta & \cos \theta & 0 \\
+0 & 0 & 0 & 1
+\end{bmatrix}
+$$
+
+And this is the final form of the rotation matrix on the $X$ axis, if we apply the same logic to the $Y$ and $Z$ axises, we end up with 3 matrices describing the rotation of any angle on the 3 axises of the standard basis. In 3D we often multiply these 3 matrices together to be able to rotate a position in any direction.
 
 ![](Media/Recordings/Matrix%2002%20Rotation.gif)
 
+> Note that to rotate a direction, we usually convert the matrix to a 3x3 by removing the bottom row and right column. This is because 4x4 matrices usually encodes multiple transformation at the same time (rotation, translation, scale) and we don't want any translation when rotating a direction (remember a direction is a vector that always start from the origin).
+
+If you've payed close attention to the values inside the rotation matrix, you may have noticed that in every axis specific rotation matrices, there is always a row with a value equal to one of the basis vector:
+
+$$
+\begin{bmatrix}
+\colorbox{red}1 & \colorbox{red}0 & \colorbox{red}0 \\
+0 &\cos \theta & -\sin \theta \\
+0 & \sin \theta & \cos \theta \\
+\end{bmatrix}
+
+\begin{bmatrix}
+\cos \theta & 0 & \sin \theta \\
+\colorbox{green}0 & \colorbox{green}1 & \colorbox{green}0 \\
+-\sin \theta & 0 & \cos \theta \\
+\end{bmatrix}
+
+\begin{bmatrix}
+\cos \theta & -\sin \theta & 0 \\
+\sin \theta & \cos \theta & 0 \\
+\colorbox{blue}0 & \colorbox{blue}0 & \colorbox{blue}1 \\
+\end{bmatrix}
+$$
+
+This is an interesting property that allows you to retrieve the basis of an object from it's rotation matrix, all you have to do is to create vectors from these rows. This is commonly referred to the right, up, and forward directions of the object.
 
 ## Scale
 
-## Camera Matrices
+The scale matrix is a lot simpler than the two previous ones, starting again from the identity matrix, we only need to find the matrix that can multiply a vector by a number. But remember, multiplying by the identity matrix is similar to multiply by 1. So we just need to multiply our identity matrix by a number to get our scaling matrix:
+
+$$
+\begin{bmatrix}
+s & 0 & 0 & 0 \\
+0 & s & 0 & 0 \\
+0 & 0 & s & 0 \\
+0 & 0 & 0 & 1
+\end{bmatrix}
+$$
+
+![](Media/Recordings/Matrix%2003%20Scale.gif)
+
+This is called uniform scaling, because the scaling of the object doesn't affect it's overall shape. There is also non-uniform scaling that allows stretching more in certain axises than others:
+
+$$
+\begin{bmatrix}
+s_x & 0 & 0 & 0 \\
+0 & s_y & 0 & 0 \\
+0 & 0 & s_z & 0 \\
+0 & 0 & 0 & 1
+\end{bmatrix}
+$$
+
+![](Media/Recordings/Matrix%2003%20Non%20Uniform%20Scale.gif)
+
+## Projection Matrices
+
+TODO
 
 ## Matrix Inverse
 
+The matrix inverse is a really nice operation, you can see this operation as the equivalent of the [reciprocal](https://en.wikipedia.org/wiki/Multiplicative_inverse) operation. In 3D it is heavily used to calculate the reverse of a transformation or undo a transformation. You'll see it uses in the transformation pipeline, this is basically what allows us to go back in the transformation chain.
+
 ## Transformation Pipeline
+
+The transformation pipeline in 3D is a series of transformation, usually applied by matrix multiplications that has the purpose to transform a 3D object into 2D surface on a screen.
 
 ### Object Space
 
@@ -140,3 +223,7 @@ https://www.scratchapixel.com/lessons/mathematics-physics-for-computer-graphics/
 https://en.wikipedia.org/wiki/Transpose
 
 https://en.wikipedia.org/wiki/Rotation_matrix
+
+https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/projection-matrix-introduction.html
+
+https://en.wikipedia.org/wiki/Multiplicative_inverse
