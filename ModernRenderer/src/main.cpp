@@ -1,5 +1,5 @@
 #define LITEFX_DEFINE_GLOBAL_EXPORTS
-#include "sample.h"
+#include "ModernRenderer.h"
 
 // CLI11 parses optional values as double by default, which yields an implicit-cast warning.
 #pragma warning(disable: 4244)
@@ -63,7 +63,7 @@ bool loadRenderDocApi()
 int main(const int argc, const char** argv)
 {
 	// Parse the command line parameters.
-	const String appName = SampleApp::Name();
+	const String appName = ModernRenderer::Name();
 
 	CLI::App app{ "Demonstrates compute shaders, dedicated queue usage and post-processing techniques.", appName };
 
@@ -127,7 +127,7 @@ int main(const int argc, const char** argv)
 	// Create the app.
 	try
 	{
-		UniquePtr<App> app = App::build<SampleApp>(std::move(window), adapterId)
+		UniquePtr<App> app = App::build<ModernRenderer>(std::move(window), adapterId)
 			.logTo<ConsoleSink>(LogLevel::Trace)
 			.logTo<RollingFileSink>("sample.log", LogLevel::Debug)
 //#ifdef LITEFX_BUILD_VULKAN_BACKEND

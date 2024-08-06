@@ -21,6 +21,7 @@
 
 extern RENDERDOC_API_1_5_0* renderDoc;
 #endif
+#include "ShaderCache.h"
 
 using namespace LiteFX;
 using namespace LiteFX::Rendering;
@@ -34,7 +35,7 @@ struct GlfwWindowDeleter {
 
 typedef UniquePtr<GLFWwindow, GlfwWindowDeleter> GlfwWindowPtr;
 
-class SampleApp : public LiteFX::App {
+class ModernRenderer : public LiteFX::App {
 public:
 	static String Name() noexcept { return "LiteFX Sample: Compute"; }
 	String name() const noexcept override { return Name(); }
@@ -78,14 +79,16 @@ private:
 	/// </summary>
 	UInt64 m_transferFence = 0;
 
+	ShaderCache m_ShaderCache;
+
 public:
-	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) :
+	ModernRenderer(GlfwWindowPtr&& window, Optional<UInt32> adapterId) :
 		App(), m_window(std::move(window)), m_adapterId(adapterId), m_device(nullptr)
 	{
-		this->initializing += std::bind(&SampleApp::onInit, this);
-		this->startup += std::bind(&SampleApp::onStartup, this);
-		this->resized += std::bind(&SampleApp::onResize, this, std::placeholders::_1, std::placeholders::_2);
-		this->shutdown += std::bind(&SampleApp::onShutdown, this);
+		this->initializing += std::bind(&ModernRenderer::onInit, this);
+		this->startup += std::bind(&ModernRenderer::onStartup, this);
+		this->resized += std::bind(&ModernRenderer::onResize, this, std::placeholders::_1, std::placeholders::_2);
+		this->shutdown += std::bind(&ModernRenderer::onShutdown, this);
 	}
 
 private:
@@ -99,6 +102,10 @@ private:
 	/// Updates the camera buffer. This needs to be done whenever the frame buffer changes, since we need to pass changes in the aspect ratio to the view/projection matrix.
 	/// </summary>
 	void updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const;
+
+	template<typename TRenderBackend> requires
+		meta::implements<TRenderBackend, IRenderBackend>
+		void InitRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputAssemblerState);
 
 private:
 	void onInit();

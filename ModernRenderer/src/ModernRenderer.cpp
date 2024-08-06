@@ -1,4 +1,4 @@
-#include "sample.h"
+#include "ModernRenderer.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 enum DescriptorSets : UInt32
@@ -40,7 +40,7 @@ const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
 
 template<typename TRenderBackend> requires
 meta::implements<TRenderBackend, IRenderBackend>
-void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputAssemblerState)
+void ModernRenderer::InitRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputAssemblerState)
 {
     using RenderPass = TRenderBackend::render_pass_type;
     using RenderPipeline = TRenderBackend::render_pipeline_type;
@@ -99,7 +99,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
     // Create the post-processing shader program.
     SharedPtr<ShaderProgram> postProgram = device->buildShaderProgram()
-        .withComputeShaderModule("shaders/compute_lum_cs." + FileExtensions<TRenderBackend>::SHADER); // RGB -> Luminosity
+        .withComputeShaderModule(m_ShaderCache.GetShader("shaders/compute_lum_cs.hlsl", "main", ShaderCache::ShaderType::Compute));
 
     // Create a compute pipeline.
     UniquePtr<ComputePipeline> postPipeline = device->buildComputePipeline("Post")
@@ -113,18 +113,18 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     std::ranges::for_each(frameBuffers, [device](auto& frameBuffer) { device->state().add(std::move(frameBuffer)); });
 }
 
-void SampleApp::initBuffers(IRenderBackend* backend)
+void ModernRenderer::initBuffers(IRenderBackend* backend)
 {
     // Get a command buffer
     auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 
     // Create the vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, vertices.size());
-    commandBuffer->transfer(vertices.data(), vertices.size() * sizeof(::Vertex), *vertexBuffer, 0, vertices.size());
+    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, (uint32_t)vertices.size());
+    commandBuffer->transfer(vertices.data(), vertices.size() * sizeof(::Vertex), *vertexBuffer, 0, (uint32_t)vertices.size());
 
     // Create the index buffer and transfer the staging buffer into it.
-    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, indices.size());
-    commandBuffer->transfer(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout()->elementSize(), *indexBuffer, 0, indices.size());
+    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, (uint32_t)indices.size());
+    commandBuffer->transfer(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout()->elementSize(), *indexBuffer, 0, (uint32_t)indices.size());
 
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
@@ -167,7 +167,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(std::format("Transform Bindings {0}", i++), std::move(binding)); });
 }
 
-void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
+void ModernRenderer::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
 {
     // Calculate the camera view/projection matrix.
     auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
@@ -179,7 +179,7 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffe
     commandBuffer.transfer(reinterpret_cast<const void*>(&camera), sizeof(camera), buffer);
 }
 
-void SampleApp::onStartup()
+void ModernRenderer::onStartup()
 {
     // Run application loop until the window is closed.
     while (!::glfwWindowShouldClose(m_window.get()))
@@ -190,24 +190,24 @@ void SampleApp::onStartup()
     }
 }
 
-void SampleApp::onShutdown()
+void ModernRenderer::onShutdown()
 {
     // Destroy the window.
     ::glfwDestroyWindow(m_window.get());
     ::glfwTerminate();
 }
 
-void SampleApp::onInit()
+void ModernRenderer::onInit()
 {
     ::glfwSetWindowUserPointer(m_window.get(), this);
 
     ::glfwSetFramebufferSizeCallback(m_window.get(), [](GLFWwindow* window, int width, int height) {
-        auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
+        auto app = reinterpret_cast<ModernRenderer*>(::glfwGetWindowUserPointer(window));
         app->resize(width, height);
         });
 
     ::glfwSetKeyCallback(m_window.get(), [](GLFWwindow* window, int key, int scancode, int action, int mods) {
-        auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
+        auto app = reinterpret_cast<ModernRenderer*>(::glfwGetWindowUserPointer(window));
         app->keyDown(key, scancode, action, mods);
         });
 
@@ -235,7 +235,7 @@ void SampleApp::onInit()
         m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3, false);
 
         // Initialize resources.
-        ::initRenderGraph(backend, m_inputAssembler);
+        this->InitRenderGraph(backend, m_inputAssembler);
         this->initBuffers(backend);
 
         return true;
@@ -261,7 +261,7 @@ void SampleApp::onInit()
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 }
 
-void SampleApp::onResize(const void* sender, ResizeEventArgs e)
+void ModernRenderer::onResize(const void* sender, ResizeEventArgs e)
 {
     // In order to re-create the swap chain, we need to wait for all frames in flight to finish.
     m_device->wait();
@@ -293,7 +293,7 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     m_transferFence = commandBuffer->submit();
 }
 
-void SampleApp::keyDown(int key, int scancode, int action, int mods)
+void ModernRenderer::keyDown(int key, int scancode, int action, int mods)
 {
 #ifdef LITEFX_BUILD_VULKAN_BACKEND
     if (key == GLFW_KEY_F9 && action == GLFW_PRESS)
@@ -374,7 +374,7 @@ void SampleApp::keyDown(int key, int scancode, int action, int mods)
     }
 }
 
-void SampleApp::updateWindowTitle()
+void ModernRenderer::updateWindowTitle()
 {
     static auto lastTime = std::chrono::high_resolution_clock::now();
     auto frameTime = std::chrono::duration<float, std::chrono::milliseconds::period>(std::chrono::high_resolution_clock::now() - lastTime).count();
@@ -386,12 +386,12 @@ void SampleApp::updateWindowTitle()
     lastTime = std::chrono::high_resolution_clock::now();
 }
 
-void SampleApp::handleEvents()
+void ModernRenderer::handleEvents()
 {
     ::glfwPollEvents();
 }
 
-void SampleApp::drawFrame()
+void ModernRenderer::drawFrame()
 {
     // Store the initial time this method has been called first.
     static auto start = std::chrono::high_resolution_clock::now();
