@@ -33,7 +33,7 @@ You've probably noticed that the numbers on the diagonal (top left corner to bot
 
 ![](Media/Recordings/Matrix%2000%20Transpose.gif)
 
-In this course, we'll be using row major matrices which widely used in HLSL and DirectX which means that we'll be using the pre-multiplication order where the value to transform is planed on the left side of the operand.
+In this course, we'll be using row major matrices which is the default in DirectX. This means that we'll be using the pre-multiplication order where the value to transform is placed on the left side of the operand.
 
 $$result = vector * matrix$$
 
@@ -183,7 +183,19 @@ $$
 
 ## Projection Matrices
 
-TODO
+Projection matrix allows to perform a [3D Projection](https://en.wikipedia.org/wiki/3D_projection) transforming how the scene is viewed. There are numerous types of projections but in realtime rendering we mainly use perspective and orthographic projections so let's see those two:
+
+### Perspective
+
+Like the name implies, this projection gives perspective to the scene, this is the most familiar type of projection because we're used to see the world with perspective, that's what allows us to evaluate distances.
+
+The perspective projection depends on the field of view, near and far plane, exactly like our simple camera from the previous chapiter. The wider the field of view, the more objects you can see, but at the cost of deformation, it's a bit like looking at a curved mirror, it can allow you to view more than a flat mirror but with a distorted image. These 3 parameters form a frustum shape, if a point is within this space then it's visible.
+
+To build the perspective matrix, it's actually important to know what we want as a result after multiplying our positions with this matrix so let's talk a bit about HCLIP space first.
+
+Homogeneous Clip space is represented by a 4 component vector where the $x$, $y$ and $z$ component values represent a position in this space and $w$ is the clipping value. This is called clip space because everything below $-w$ or above $+w$ is outside of the frustum and thus not visible by the camera.
+
+This means that the projection matrix actually transforms a position so that if it's outiside a boundary, then it's outiside of the field of view, because this boundary is defined by a single value $w$, it's actually a box. So the projection matrix actually transforms the frustum shape into a box with $2*w$ as edge size.
 
 ## Matrix Inverse
 
