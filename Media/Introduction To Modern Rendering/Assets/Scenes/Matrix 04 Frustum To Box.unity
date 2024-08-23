@@ -540,6 +540,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   orthographic: 0
   output: {fileID: 0}
+  lineWidth: 0.1
+  time: 4
   fov: 45
   near: 0.2
   far: 2
