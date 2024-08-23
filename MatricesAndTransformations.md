@@ -193,9 +193,71 @@ The perspective projection depends on the field of view, near and far plane, exa
 
 To build the perspective matrix, it's actually important to know what we want as a result after multiplying our positions with this matrix so let's talk a bit about HCLIP space first.
 
-Homogeneous Clip space is represented by a 4 component vector where the $x$, $y$ and $z$ component values represent a position in this space and $w$ is the clipping value. This is called clip space because everything below $-w$ or above $+w$ is outside of the frustum and thus not visible by the camera.
+Homogeneous Clip space (or HCLIP for short) is represented by a 4 component vector where the $x$, $y$ and $z$ component values represent a position in this space and $w$ is the clipping value. This is called clip space because every coordinate outside the $[-w, +w]$ range is outside of the frustum and thus not visible by the camera.
 
-This means that the projection matrix actually transforms a position so that if it's outiside a boundary, then it's outiside of the field of view, because this boundary is defined by a single value $w$, it's actually a box. So the projection matrix actually transforms the frustum shape into a box with $2*w$ as edge size.
+Having the CLip space boundary defined by a single value means that it can be represented as a cube centered on the origin. In fact the projection matrix actually transforms the frustum shape into a box with $2*w$ as edge size.
+
+// TODO: insert frustum to box gif
+
+Unlike the translation, rotation or scaling matrix, this transformation actually warps space itself so everything that was in the frustum shape will end-up inside the box. This is the cause of the deformation caused by the perspective (objects appear smaller as they get farther and skewed when they get close to the border of the frustum).
+
+// TODO: insert gif about perspective deformations
+
+So how do we calculate this $w$ value? Let's think about the simplest case where the frustum view have a FoV of 1 radiant and the aspect ratio is squared (vertical FoV = horizontal FoV). To transform this shape into a box what we can do is set the value of $w$ to be equal to the value of $z$. when the $x$ and $y$ coordinates gets divided by $z$ is "flattens" the frustum into a box. Obviously this only works when the FoV is exactly 1 (or 90 degree: TODO check that), so we still need a add something to take the FoV into account.
+
+// TODO: insert gif about the transformation of x, y when divided by z. Obviously, z / z = 1.
+
+Before we talk about FoV tough, you might have noticed a small issue with the calculation above: the z coordinate always end up being 1 (z / z = 1), so we're actually loosing the depth information. Which means that right now we're transforming the frustum into a plane and not a box. We need to keep this z value "intact" for further calculation.
+
+To do that, we can remap the $z$ value between 0 and $+w$ so that when $z$ is equal to the near plane, $z / w = 0$ and when $z$ is equal to the far plane, $z / w = 1$. We can do that by using the near and far plane values with this formula where $z$ is the input coordinate of the point, $f$ is the far plane and $n$ is the near plane.
+
+$$z' = \frac{z * f - f * n}{f - n}$$
+
+Which we can decompose into two parts:
+
+$$z' = z*\frac{f}{f - n} - \frac{f * n}{f - n}$$
+
+And then we can introduce these two parts into the projection matrix in the column where $z$ is computed:
+
+$$
+\begin{bmatrix}
+1 & 0 & 0 & 0 \\
+0 & 1 & 0 & 0 \\
+0 & 0 & \frac{f}{f - n} & 1 \\
+0 & 0 & -\frac{f * n}{f - n} & 0
+\end{bmatrix}
+$$
+
+> Notice the 1 in the column used to compute the $w$ component of the vector, it indicates that we set the value of the to the component $z$ of the input vector.
+
+Now that we have a working matrix for a fixed angle, we need to make it work with any FoV between $]0, 180[$ degrees. There is actually a very simple way to handle that, we already know that the z coordinate is not affected by perspective, only the X and Y are, so the two cells of the matrix that we'll change are the two $1$ in the diagonal of the matrix. If  you remember the previous chapiter, these numbers are analog to the scale matrix, in fact this scaling the space on the X and Y axises is the simplest solution to handle an arbitrary FoV. With no scale (a value of 1), the FoV is 90 degrees. The smaller the FoV is, the lower the scaling value needs to be to stretch the space accordingly, and vice versa. at FoV 180 degree, the scaling value reaches infinity, that's why this value is excluded from the range of possible FoVs, similarly at 0 FoV, nothing is visible so it's excluded as well.
+
+// TODO: 2D gif of space scaling and correlation to FoV
+
+We can calculate the scaling factor needed with trigonometry rules by forming a square triangle between the camera origin and the far plane.
+
+// TODO: image for the square triangle
+
+> Note that if the camera screen is not square (which is often the case), there are two different field of views: one vertical and one horizontal. In this course when field of view is mentioned, we are talking about the vertical field of view.
+
+What we want to know is the length of the side of the triangle, we already know the two points and the angle, so we can easily get this with $arctan(fov / 2 * pi / 180)$
+
+which gives us this final projection matrix:
+
+$$
+\begin{bmatrix}
+\arctan(\frac{fov}{2}*\frac{\pi}{180}) * a & 0 & 0 & 0 \\
+0 & \arctan(\frac{fov}{2}*\frac{\pi}{180}) & 0 & 0 \\
+0 & 0 & \frac{f}{f - n} & 1 \\
+0 & 0 & -\frac{f * n}{f - n} & 0
+\end{bmatrix}
+$$
+
+Where $a$ is the aspect ratio of the screen (width divided by the height) and $fov$ is the field of view in degrees
+
+### Orthographic
+
+TODO
 
 ## Matrix Inverse
 
@@ -239,3 +301,5 @@ https://en.wikipedia.org/wiki/Rotation_matrix
 https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/projection-matrix-introduction.html
 
 https://en.wikipedia.org/wiki/Multiplicative_inverse
+
+https://learn.microsoft.com/en-us/windows/win32/dxtecharts/the-direct3d-transformation-pipeline
