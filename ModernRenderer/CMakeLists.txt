@@ -9,7 +9,7 @@ include(CMakeDependentOption)
 option(VULKAN_SUPPORT "Vulkan support" OFF)
 cmake_dependent_option(DIRECTX_SUPPORT "DirectX 12 support" ON "WIN32" OFF)
 cmake_dependent_option(METAL_SUPPORT "Metal support" ON "APPLE" OFF)
-add_compile_definitions(DIRECTX_SUPPORT=1) # Force D3D12 support for indirect command buffers support
+add_compile_definitions(DIRECTX_SUPPORT=1) # Force D3D12 support for indirect commands support
 option(BUILD_SAMPLES "Build samples" OFF)
 option(BUILD_TESTING "Build unit tests" OFF)
 

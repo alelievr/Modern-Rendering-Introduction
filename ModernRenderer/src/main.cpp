@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
     app.SetGpuName(adapter->GetName());
     std::shared_ptr<Device> device = adapter->CreateDevice();
     std::shared_ptr<CommandQueue> command_queue = device->GetCommandQueue(CommandListType::kGraphics);
-    constexpr uint32_t frame_count = 3;
+    constexpr uint32_t frame_count = 2;
     std::shared_ptr<Swapchain> swapchain = device->CreateSwapchain(app.GetNativeWindow(), app_size.width(),
                                                                    app_size.height(), frame_count, settings.vsync);
     uint64_t fence_value = 0;
@@ -24,6 +24,13 @@ int main(int argc, char* argv[])
         device->CreateBuffer(BindFlag::kIndexBuffer | BindFlag::kCopyDest, sizeof(uint32_t) * index_data.size());
     index_buffer->CommitMemory(MemoryType::kUpload);
     index_buffer->UpdateUploadBuffer(0, index_data.data(), sizeof(index_data.front()) * index_data.size());
+
+    std::shared_ptr<Resource> outputTexture = device->CreateTexture(TextureType::k2D, BindFlag::kRenderTarget | BindFlag::kUnorderedAccess, gli::FORMAT_RGBA16_SFLOAT_PACK16, 1, app_size.width(), app_size.height(), 1 , 0);
+    outputTexture->CommitMemory(MemoryType::kDefault);
+    ViewDesc outputTextureViewDesc = {};
+    outputTextureViewDesc.view_type = ViewType::kRWTexture;
+    outputTextureViewDesc.dimension = ViewDimension::kTexture2D;
+    std::shared_ptr<View> outputTextureView = device->CreateView(outputTexture, outputTextureViewDesc);
 
     std::vector<glm::vec3> vertex_data = {
         glm::vec3(-0.5, -0.5, 0.0),
@@ -42,10 +49,14 @@ int main(int argc, char* argv[])
     constant_buffer->UpdateUploadBuffer(0, &constant_data, sizeof(constant_data));
 
     std::shared_ptr<Shader> vertex_shader = device->CompileShader(
-        { MODERN_RENDERER_ASSETS_PATH "shaders/VertexShader.hlsl", "main", ShaderType::kVertex, "6_0" });
+        { MODERN_RENDERER_ASSETS_PATH "shaders/VertexShader.hlsl", "main", ShaderType::kVertex, "6_5" });
     std::shared_ptr<Shader> pixel_shader = device->CompileShader(
-        { MODERN_RENDERER_ASSETS_PATH "shaders/PixelShader.hlsl", "main", ShaderType::kPixel, "6_0" });
+        { MODERN_RENDERER_ASSETS_PATH "shaders/PixelShader.hlsl", "main", ShaderType::kPixel, "6_5" });
     std::shared_ptr<Program> program = device->CreateProgram({ vertex_shader, pixel_shader });
+
+    std::shared_ptr<Shader> compute_test = device->CompileShader(
+        { MODERN_RENDERER_ASSETS_PATH "shaders/Compute.hlsl", "main", ShaderType::kCompute, "6_5" });
+    std::shared_ptr<Program> compute_program = device->CreateProgram({ compute_test });
 
     ViewDesc constant_view_desc = {};
     constant_view_desc.view_type = ViewType::kConstantBuffer;
@@ -55,6 +66,10 @@ int main(int argc, char* argv[])
     std::shared_ptr<BindingSetLayout> layout = device->CreateBindingSetLayout({ settings_key });
     std::shared_ptr<BindingSet> binding_set = device->CreateBindingSet(layout);
     binding_set->WriteBindings({ { settings_key, constant_view } });
+
+    BindKey compute_settings_key = { ShaderType::kCompute, ViewType::kRWTexture, 0, 0, 1 };
+    std::shared_ptr<BindingSetLayout> compute_layout = device->CreateBindingSetLayout({ compute_settings_key });
+    std::shared_ptr<BindingSet> compute_binding_set = device->CreateBindingSet(compute_layout);
 
     RenderPassDesc render_pass_desc = {
         { { swapchain->GetFormat(), RenderPassLoadOp::kClear, RenderPassStoreOp::kStore } },
@@ -68,6 +83,15 @@ int main(int argc, char* argv[])
         render_pass,
     };
     std::shared_ptr<Pipeline> pipeline = device->CreateGraphicsPipeline(pipeline_desc);
+
+    ComputePipelineDesc compute_desc = {
+        compute_program,
+        compute_layout,
+    };
+    std::shared_ptr<Pipeline> compute_pipeline = device->CreateComputePipeline(compute_desc);
+
+    // Create GFX Buffer
+    
 
     std::array<uint64_t, frame_count> fence_values = {};
     std::vector<std::shared_ptr<CommandList>> command_lists;
@@ -87,6 +111,14 @@ int main(int argc, char* argv[])
             framebuffers.emplace_back(device->CreateFramebuffer(framebuffer_desc));
         std::shared_ptr<CommandList> command_list =
             command_lists.emplace_back(device->CreateCommandList(CommandListType::kGraphics));
+
+        compute_binding_set->WriteBindings({ { compute_settings_key, outputTextureView } });
+
+        // Dispatch compute to clear RT
+        command_list->BindPipeline(compute_pipeline);
+        command_list->BindBindingSet(compute_binding_set);
+        command_list->Dispatch(app_size.width() / 8, app_size.height() / 8, 1);
+
         command_list->BindPipeline(pipeline);
         command_list->BindBindingSet(binding_set);
         command_list->SetViewport(0, 0, app_size.width(), app_size.height());
@@ -97,6 +129,7 @@ int main(int argc, char* argv[])
         command_list->BeginRenderPass(render_pass, framebuffer, clear_desc);
         command_list->DrawIndexed(3, 1, 0, 0, 0);
         command_list->EndRenderPass();
+
         command_list->ResourceBarrier({ { back_buffer, ResourceState::kRenderTarget, ResourceState::kPresent } });
         command_list->Close();
     }
@@ -105,6 +138,7 @@ int main(int argc, char* argv[])
         uint32_t frame_index = swapchain->NextImage(fence, ++fence_value);
         command_queue->Wait(fence, fence_value);
         fence->Wait(fence_values[frame_index]);
+        //RenderFrame(command_queue);
         command_queue->ExecuteCommandLists({ command_lists[frame_index] });
         command_queue->Signal(fence, fence_values[frame_index] = ++fence_value);
         swapchain->Present(fence, fence_values[frame_index]);

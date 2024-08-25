@@ -87,3 +87,5 @@ ModernRenderer/cmake_install.cmake
 ModernRenderer/glfw
 ModernRenderer/gen
 ModernRenderer/lib
+ModernRenderer/src/CMakeFiles
+ModernRenderer/src/ModernRenderer.dir

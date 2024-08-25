@@ -1,6 +1,8 @@
 # Chapiters
 
 - Introduction
+- Renderer Design
+- Programming Environment
 - The meaning of PBR
 - The 3D Euclidean space
 - Vectors
@@ -53,3 +55,5 @@
 - Chromatic Aberration
 - White Balance
 - Film grain
+- Render Graph
+- GPU Performances (several optimization techniques)
