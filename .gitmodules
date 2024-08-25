@@ -1,6 +1,6 @@
-[submodule "ModernRenderer/deps/litefx"]
-	path = ModernRenderer/deps/litefx
-	url = https://github.com/crud89/litefx
-[submodule "ModernRenderer/deps/vcpkg"]
-	path = ModernRenderer/deps/vcpkg
-	url = https://github.com/microsoft/vcpkg.git
+[submodule "ModernRenderer/3rdparty/imgui"]
+	path = ModernRenderer/3rdparty/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "ModernRenderer/3rdparty/FlyCube"]
+	path = ModernRenderer/3rdparty/FlyCube
+	url = https://github.com/andrejnau/FlyCube

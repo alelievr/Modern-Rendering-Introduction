@@ -68,6 +68,7 @@ crashlytics-build.properties
 [Aa]ssets/[Ss]treamingAssets/aa.meta
 [Aa]ssets/[Ss]treamingAssets/aa/*
 .vscode/settings.json
+
 Media/Introduction To Modern Rendering/Build_PS4
 Media/Introduction To Modern Rendering/Build_PS4_BackUpThisFolder_ButDontShipItWithYourGame
 Media/Introduction To Modern Rendering/Build_PS4_SymbolFiles
@@ -78,3 +79,11 @@ Media/Introduction To Modern Rendering/ProjectSettings/PS5Settings.json
 Media/Introduction To Modern Rendering/.idea
 ModernRenderer/CMakeFiles
 ModernRenderer/CMakeCache.txt
+ModernRenderer/bin
+ModernRenderer/INSTALL.vcxproj.filters
+*.vcxproj
+*.filters
+ModernRenderer/cmake_install.cmake
+ModernRenderer/glfw
+ModernRenderer/gen
+ModernRenderer/lib
