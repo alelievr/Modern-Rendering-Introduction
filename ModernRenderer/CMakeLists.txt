@@ -28,7 +28,9 @@ add_subdirectory(3rdparty/FlyCube/src/Modules/AppBox)
 add_subdirectory(3rdparty/FlyCube/src/Modules/AppSettings)
 add_subdirectory(3rdparty/FlyCube/src/Modules/AppLoop)
 
-add_executable(ModernRenderer WIN32 src/main.cpp)
+add_executable(ModernRenderer WIN32 src/main.cpp \
+    src/CameraData.cpp \
+    src/MatrixUtils.cpp)
 
 if (WIN32)
     set_target_properties(ModernRenderer PROPERTIES

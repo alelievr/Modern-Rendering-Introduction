@@ -240,14 +240,14 @@ We can calculate the scaling factor needed with trigonometry rules by forming a 
 
 > Note that if the camera screen is not square (which is often the case), there are two different field of views: one vertical and one horizontal. In this course when field of view is mentioned, we are talking about the vertical field of view.
 
-What we want to know is the length of the side of the triangle, we already know the two points and the angle, so we can easily get this with $arctan(fov / 2 * pi / 180)$
+What we want to know is the length of the side of the triangle, we already know the two points and the angle, so we can easily get this with $arctan(fov / 2)$, note that the fov needs to be converted in radians for the arctan which can be done by multiplying by $\frac{pi}{180}$.
 
 which gives us this final projection matrix:
 
 $$
 \begin{bmatrix}
-\arctan(\frac{fov}{2}*\frac{\pi}{180}) * a & 0 & 0 & 0 \\
-0 & \arctan(\frac{fov}{2}*\frac{\pi}{180}) & 0 & 0 \\
+\arctan(\frac{fov}{2}) * a & 0 & 0 & 0 \\
+0 & \arctan(\frac{fov}{2}) & 0 & 0 \\
 0 & 0 & \frac{f}{f - n} & 1 \\
 0 & 0 & -\frac{f * n}{f - n} & 0
 \end{bmatrix}
