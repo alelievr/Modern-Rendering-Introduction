@@ -22,7 +22,7 @@ include(compiler_settings)
 
 add_subdirectory(3rdparty/FlyCube)
 include(3rdparty/imgui)
-# include(3rdparty/glfw)
+include(3rdparty/assimp)
 
 add_subdirectory(3rdparty/FlyCube/src/Modules/AppBox)
 add_subdirectory(3rdparty/FlyCube/src/Modules/AppSettings)

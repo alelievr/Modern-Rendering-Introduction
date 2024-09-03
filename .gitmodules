@@ -4,3 +4,6 @@
 [submodule "ModernRenderer/3rdparty/FlyCube"]
 	path = ModernRenderer/3rdparty/FlyCube
 	url = https://github.com/andrejnau/FlyCube
+[submodule "ModernRenderer/3rdparty/assimp"]
+	path = ModernRenderer/3rdparty/assimp
+	url = https://github.com/assimp/assimp

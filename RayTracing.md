@@ -24,9 +24,9 @@ Here we are already starting to approximate by assuming that the light can be re
 
 Some path tracers are trying to do a closer match to reality by tracing multiple rays per photon, each ray representing a single wavelength of light (usually we do at least 3 ray for the wavelength corresponding to red, green and blue), this is called spectral path tracing. It allows to accurately model diffraction in prisms, iridescence, fluorescence, etc. We're also going to assume that these are not needed for our course because as you can imagine this is pretty expensive to compute and we'd need to adjust not only all the lighting equations to work with wavelength but also all our materials.
 
-## Bevy Implementation
+## Implementation
 
-For bevy, we're going to add a new plugin that will handle the rendering of our path tracer. We'll start by simple code that traces an unlit sphere:
+TODO
 
 ## References
 

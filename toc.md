@@ -1,22 +1,23 @@
 # Chapiters
 
-- Introduction
-- Renderer Design
-- Programming Environment
-- The meaning of PBR
-- The 3D Euclidean space
-- Vectors
-- Simple Camera
-- GPU Architecture
-- Compute Shaders
-- Ray Tracing
-- Plane intersection
-- Sphere intersection
+- Introduction [complete]
+- Renderer Design [started]
+- Realtime Computer Graphics [complete]
+- The meaning of PBR [complete]
+- Programming Environment [started]
+- The 3D Euclidean space [complete]
+- Vectors [complete]
+- Simple Camera [complete]
+- GPU Architecture [incomplete]
+- Compute Shaders [complete]
+- Ray Tracing [incomplete]
+- Plane intersection [complete]
+- Sphere intersection [kinda complete]
 - Box / AABB intersection
-- Triangle intersection
-- Matrices + transformations
-- Meshes
-- Mesh Shaders
+- Triangle intersection [complete]
+- Matrices + transformations [started]
+- Meshes [complete]
+- Mesh Shaders [started]
 - Rasterization
 - Mesh intersection
 - Bindless

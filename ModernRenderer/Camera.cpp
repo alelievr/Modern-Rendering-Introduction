@@ -24,31 +24,40 @@ Camera::Camera(std::shared_ptr<Device> device, AppBox & app)
 	cameraDataDescCompute = { cameraDataKeyCompute, cameraDataView };
 
     app.SubscribeEvents((InputEvents*)&cameraControls, nullptr);
+
+	forward = glm::vec3(0, 0, -1);
 }
 
 void Camera::UpdateCamera(const AppSize& size)
 {
-    // Free camera controls
-    position += cameraControls.movement;
-    rotation += cameraControls.rotation;
+	rotation += cameraControls.rotation;
 
-    // Build view matrix
+	// Build view matrix
 	// Note: we don't need to put the camera position in the view matrix, because we're doing camera relative rendering
-	glm::mat4x4 view = MatrixUtils::RotateY(rotation.x);
-    view = MatrixUtils::Mul(view, MatrixUtils::RotateX(rotation.y));
+	glm::mat4x4 view(1);
+	view *= MatrixUtils::RotateY(rotation.x);
+	view *= MatrixUtils::RotateX(rotation.y);
 
-    right = glm::vec3(view[0]);
-    up = glm::vec3(view[1]);
-    forward = glm::vec3(view[2]);
+	view = glm::lookAt(position, position + forward, glm::vec3(0, 1, 0));
 
-    // Transpose all matrices for GPU (we used glm column matrices)
+	// For now we try that
+	//view = MatrixUtils::RotateY(rotation.x);
+
+	right = glm::vec3(view[0]);
+	up = glm::vec3(view[1]);
+	forward = -glm::vec3(view[2]);
+
+    // Free camera controls
+    position += right * cameraControls.movement.x + up * cameraControls.movement.y + forward * cameraControls.movement.z;
+	//position += cameraControls.movement;
+
 	float aspect = size.width() / (float)size.height();
 	glm::mat4x4 projection = MatrixUtils::Perspective(90.0f, aspect, 0.1f, 100.0f);
-    gpuData.viewMatrix = view;
+    gpuData.viewMatrix = (view);
 	gpuData.inverseViewMatrix = inverse(gpuData.viewMatrix);
-	gpuData.projectionMatrix = projection;
+	gpuData.projectionMatrix = (projection);
 	gpuData.inverseProjectionMatrix = inverse(gpuData.projectionMatrix);
-	gpuData.viewProjectionMatrix = MatrixUtils::Mul(view, projection);
+	gpuData.viewProjectionMatrix = transpose(view * projection);
 	gpuData.inverseViewProjectionMatrix = inverse(gpuData.viewProjectionMatrix);
 	gpuData.cameraPosition = glm::vec4(position, 0);
 
