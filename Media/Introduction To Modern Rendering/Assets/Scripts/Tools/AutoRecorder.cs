@@ -8,9 +8,18 @@ using UnityEditor.Recorder.Input;
 using System.IO;
 using UnityEngine.SceneManagement;
 using System.Linq;
+using System;
 
 public class AutoRecorder : MonoBehaviour
 {
+    [Serializable]
+    public struct OverrideResolution
+    {
+        public bool enabled;
+        public int width;
+        public int height;
+    }
+
     public enum Mode
     {
         Picture,
@@ -21,6 +30,7 @@ public class AutoRecorder : MonoBehaviour
     public float recordingTimeInSeconds = 5.0f;
     public float frameRate = 30.0f;
     public uint gifQuality = 40;
+    public OverrideResolution overrideResolution;
 
     RecorderController m_RecorderController;
 
@@ -63,8 +73,8 @@ public class AutoRecorder : MonoBehaviour
 
                 i.imageInputSettings = new GameViewInputSettings
                 {
-                    OutputWidth = 1920,
-                    OutputHeight = 1080
+                    OutputWidth = overrideResolution.enabled ? overrideResolution.width : 1920,
+                    OutputHeight = overrideResolution.enabled ? overrideResolution.height : 1080
                 };
 
                 // Simple file name (no wildcards) so that FileInfo constructor works in OutputFile getter.
