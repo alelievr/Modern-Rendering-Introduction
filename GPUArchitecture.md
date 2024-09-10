@@ -8,9 +8,49 @@ In a GPU, there are some part of the execution that are directly mapped to physi
 
 More recently GPU added support for hardware ray-tracing, it means that there is dedicated hardware especially designed to make ray-triangle intersection and ray-traversal operations faster. This dedicated hardware need to have a certain specific memory layout to be used, so hardware specific functions often comes with a new set of types and [intrinsics](https://en.wikipedia.org/wiki/Intrinsic_function) to manipulate them.
 
+### GPU specific code
+
+It's expected that because the GPU have a unique architecture, the code is designed around that and take advantages of this design to improve performance. To achieve good performances, it's important to know how the hardware works. While it's true that every GPU is different, there are a lot of things in common, so optimizing an algorithm for a certain GPU will (most of the time) translate to other GPUs.
+
+If you're interested into the inner workings of the GPU, AMD publishes a lot of documentation on the subject that present architecture, instruction sets and features in great detail. You can check it at [GPU Open Presentations](https://gpuopen.com/learn/presentations/).
+
+I'm going to talk about the most important parts that you need to know for programming on the GPU, this is not a comprehensive list as the GPU is comprised of a lot of different parts though. Also I'm going to use the terminology of AMD GPUs, mostly because they publish more documentation and they are more "Open" than others but similar concepts exists on NVIDIA/Intel just with different names.
+
+### Wave
+
+A wave is a group of threads running in parallel [SIMD](https://fr.wikipedia.org/wiki/Single_instruction_multiple_data) fashion, most of the GPUs can run either 32 or 64 threads in parallel. This is the smallest unit of execution that exists on a GPU, which means that dispatching less than 32 threads will result in unused hardware and thus reduce the performance.
+
+Let's take a look at a simple example: rendering a cube will cause 8 vertices (one per corner) to be processed by a shader, which translate to 8 threads. If we assume that the GPU have a wave size of 64, then only 1/8th of the wave is used to process the vertices (only 12.5% of the wave is used). We could add 7 other cubes (as long as they are in the same draw call) and it would take the same amount of time to process.
+
+When a large number of threads is dispatched to the GPU, these threads are grouped in waves. Multiple waves can be executed in parallel as long as they are running the same shader code. For example, the current generation of AMD card can have up to 20 waves running in parallel. It's worth noting that every wave running in parallel are sharing the same resources ([ALU](https://en.wikipedia.org/wiki/Arithmetic_logic_unit), Register allocation, [Branch](https://en.wikipedia.org/wiki/Branch_(computer_science)) Processor, etc.)
+
+### Registers
+
+Like on a CPU, registers are used to store states and data throughout the execution of a shader. The GPU however have two different types of register that have specific usages.
+
+Scalar Registers (or SGPR), this is a register that stores a value shared across all the threads of a wave. They are very convenient because we only need to store a single value and it can be used by all threads of the wave. Usually when we read data from shader constants, this is the type of register that is used, because the GPU knows that a constant will have the same value for all threads.
+
+Vector Registers (or VGPR), this is the most common type of register in a shader, it stores a unique value per thread. Which means that in a wave of 64 threads, there are 64 VGPRs holding potentially different values. It is the most common type of vector because it propagates during the execution of the shader as an operation with a VGPR and a SGPR can only result in a new VGPR.
+
+### Occupancy
+
+This is probably the most important concept to grasp when writing shaders. Occupancy defines how many waves can run in parallel when the GPU executes your shader. We say that occupancy is at 100% when the maximum of wave is running in parallel, if we take the example from the chapter above that would be 20 waves.
+
+Occupancy is limited by 3 main factors:
+
+- VGPR count
+- SGPR count
+- LDS size
+
+For more information, you can read this document: https://gpuopen.com/learn/occupancy-explained/
+
 ## Command Buffers
 
-The current rendering API are command based, which means that they use a pattern where the CPU is recording all the operation that the GPU needs to execute consecutively and then this command is passed to the GPU for execution. This command list is called a Command Buffer. Due to this command buffer pattern, the execution of shaders on the GPU is mostly serial (following the command buffer order) with little overlap between the different shaders executed. (note that this overlap is not necessarily wanted as running a lot of different shader programs on the GPU means that the GPU needs to switch context a lot and if there is not enough work dispatched per shader, it will result in most of the GPU doing nothing as a single SIMD block can only execute a single shader at a time. TODO: check this information).
+The current rendering API are command based, which means that they use a pattern where the CPU is recording all the operation that the GPU needs to execute consecutively and then this command is passed to the GPU for execution. This command list is called a Command Buffer. Due to this command buffer pattern, the execution of shaders on the GPU is mostly serial (following the command buffer order) with little overlap between the different shaders executed. The overlap between commands is limited due to the number of "Contexts" that stores information about a particular program, to give you an idea, your GPU probably between 7 and 20 contexts. So it can only run that amount of different tasks/shaders at the same time, this is where you see the big difference with the CPU that easily handles thousands of different tasks.
+
+Command buffers can be dispatched to different "queues" on the GPU, each queue have a specification and allow to optimize the GPU usage. In this course we'll mostly use the "Graphics" or "Direct" queue as it allows to do everything.
+
+The other queues are specialized for asynchronous computation and memory copy operations. If you're interested in learning more about these command queues, check out the [DirectX 12 documentation](https://learn.microsoft.com/en-us/windows/win32/direct3d12/executing-and-synchronizing-command-lists).
 
 ## APIs
 
@@ -18,7 +58,7 @@ The API to use the GPU is still evolving fast a new features are becoming unlock
 
 For example one of the most limiting things on the GPU right now is that it's impossible to run a GPU program from the GPU. It's always the CPU that triggers work on the GPU, but recently a new API is being designed to allow dispatching work from the GPU: the [Work Graphs](https://devblogs.microsoft.com/directx/d3d12-work-graphs/).
 
-It's still very new and not much implementation exists yet so I'm not going to use it in this course. What we'll try to do is to maximize the use of the GPU for every part of the renderer so when the Work Graph API becomes more widely implemented, we can transition to it pretty easily.
+It's still very new and not much implementation exists yet so I'm not going to use it in this course. What we'll try to do is to maximize the use of the GPU for every part of the renderer so when the Work Graph API becomes more widely implemented, we can transition to it easily.
 
 ## Resources
 
@@ -39,3 +79,7 @@ https://gpuopen.com/wp-content/uploads/2021/01/AMD_Graphics_pipeline_GIC2020.pdf
 https://devblogs.microsoft.com/directx/d3d12-work-graphs/
 
 https://devblogs.microsoft.com/directx/dev-preview-of-new-directx-12-features/
+
+https://gpuopen.com/learn/occupancy-explained/
+
+https://gpuopen.com/learn/understanding-gpu-context-rolls/

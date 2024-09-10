@@ -33,4 +33,3 @@ Throughout this course, you will explore **one** approach to creating a renderin
 Moreover, the end-users of your renderer are also important, the skill level of the users must be considered when parameterizing algorithms. While a more complex parameterization may offer greater power and flexibility, it also requires a deeper understanding of how the algorithm operates.
 
 In each module of this course, we will provide external resources and references to help you deepen your understanding of specific topics. While our primary focus will be on simpler and foundational approaches that are easy to grasp, these concepts will equip you with the knowledge and skills needed to learn and implement more complex techniques in the future.
-

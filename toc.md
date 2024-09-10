@@ -1,7 +1,7 @@
 # chapters
 
 - Introduction [complete]
-- Renderer Design [started]
+- Renderer Design [complete]
 - Realtime Computer Graphics [complete]
 - The meaning of PBR [complete]
 - Programming Environment [started]

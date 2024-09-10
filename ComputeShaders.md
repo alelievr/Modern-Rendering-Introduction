@@ -59,6 +59,24 @@ To know all the special values that are supported in parameter of a compute shad
 
 To learn more about the syntax of compute shader in HLSL, you can consult the reference documentation: https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-reference.
 
+## Fullscreen Compute
+
+One very useful application of the Compute Shader is to do a fullscreen pass, this means applying an algorithm to every pixel of a texture. This kind of pass can be used to do post processing effect, apply kernels to an image, apply filtering, etc.
+
+```c
+RWTexture2D<float4> _ColorTexture;
+
+[numthreads(8, 8, 1)]
+void main(uint3 id : SV_GroupThreadID)
+{
+    float4 color = _ColorTexture[index.xy];
+
+    _ColorTexture[index.xy] = color;
+}
+```
+
+Note that in a compute shader we can read and write to the same coordinate in the texture, but it's not recommended to write to different locations because of the many threads running in parallel. If some threads write to the same coordinate, then the result will be random due to the race condition, there is no synchronization happening on the main memory where the texture is stored (this is why it's fast). So to be able to read from other pixels and write to different places, we just use two buffers: one input and one output
+
 ## References
 
 https://fr.wikipedia.org/wiki/General-purpose_processing_on_graphics_processing_units
