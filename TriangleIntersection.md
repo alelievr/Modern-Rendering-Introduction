@@ -6,7 +6,7 @@ To achieve this, we're going to use the [Möller–Trumbore intersection algorit
 
 ## Naive Solution
 
-The simplest solution that arise from the question how to calculate the intersection point between a triangle and a line is to first compute the intersection on an infinite plane (formed by the 3 vertices of the triangle) and the line. We already know how to calculate this from the previous chapiter and the next step is equally straightforward and consist into check that the intersection point found on the plane lies inside the triangle.
+The simplest solution that arise from the question how to calculate the intersection point between a triangle and a line is to first compute the intersection on an infinite plane (formed by the 3 vertices of the triangle) and the line. We already know how to calculate this from the previous chapter and the next step is equally straightforward and consist into checking that the intersection point found on the plane lies inside the triangle.
 
 While this solution is the most logical, it's also not very performant. When doing path tracing, we're going to compute millions of line-triangle intersection per frame so we need to tackle optimization for this algorithm from the start.
 
@@ -16,7 +16,7 @@ If you're interested in seeing how this solution is implemented in great detail,
 
 ## Barycentric Coordinates
 
-In this chapiter we're particularly interested in the specific case of barycentric coordinates inside a triangle. These coordinates are composed of 3 values (or a single 3 component vector) often called $u$, $v$ and $w$, these values represent the position of a point inside the triangle.
+In this chapter we're particularly interested in the specific case of barycentric coordinates inside a triangle. These coordinates are composed of 3 values (or a single 3 component vector) often called $u$, $v$ and $w$, these values represent the position of a point inside the triangle.
 
 To visualize what it means, let's add a point $P$ on the same plane than the triangle ABC, we'll also make sure that the position of P is within the triangle. Then we draw a segment from each vertex of the triangle towards the point $P$.
 
@@ -42,7 +42,7 @@ $$u + v + w = 1$$
 
 Which means that we can determine the value of a single variable if we know the two others: $w = 1 - u - v$, etc.
 
-The fact that the barycentric coordinates are always normalized is very important when doing interpolation inside a triangle, more specifically it ensures that all the interpolated values stays within the bounds of the inputs. In other extrapolation is not permitted as long as the barycentric coordinates represent a point inside the triangle (we'll see that it's not always the case in the chapiter about rasterization, which can lead to funny problems). 
+The fact that the barycentric coordinates are always normalized is very important when doing interpolation inside a triangle, more specifically it ensures that all the interpolated values stays within the bounds of the inputs. In other word, extrapolation is not permitted as long as the barycentric coordinates represent a point inside the triangle (we'll see that it's not always the case in the chapter about rasterization, which can lead to funny problems).
 
 ![](Media/Recordings/TriangleIntersection%2001.gif)
 
@@ -52,13 +52,13 @@ $$P = A * u + B * v + C * w$$
 
 ## Fast Intersection Algorithm
 
-We already know tha barycentric coordinates are very important for interpolation of values on the surface of a triangle, so it's a given that we'll need to calculate them in addition to the intersection position.
+We already know that barycentric coordinates are very important for interpolation of values on the surface of a triangle, so it's a given that we'll need to calculate them in addition to the intersection position.
 
 This algorithm proposes to formulate the intersection of the triangle in a different manner by directly solving for the barycentric coordinates of the point inside the triangle and then checks if the barycentric coordinates are inside the triangle.
 
 <!-- ### Checking if the line is parallel to the triangle plane
 
-Starting form our triangle, the first step is to formulate the plane passing through all the vertices of our triangle, for this, we'll use a different formula compared to what we used in the [Plane Intersection](PlaneIntersection.md) chapiter: our plane will be defined by two coplanar vectors in space created by linking the vertices of our triangle (i.e. subtracting the vertices position will create a vector representing the length and direction needed to move from one point to another in the triangle). -->
+Starting form our triangle, the first step is to formulate the plane passing through all the vertices of our triangle, for this, we'll use a different formula compared to what we used in the [Plane Intersection](PlaneIntersection.md) chapter: our plane will be defined by two coplanar vectors in space created by linking the vertices of our triangle (i.e. subtracting the vertices position will create a vector representing the length and direction needed to move from one point to another in the triangle). -->
 
 Let's consider a triangle ABC and a line called $l$ cross it, the line origin is denoted by a point called $P$, the line direction is called $\vec{L}$ and it's length is 1.
 
@@ -135,11 +135,11 @@ $$u = pb \cdot (lineDirection \times pc)$$
 $$v = pc \cdot (lineDirection \times pa)$$
 $$w = pa \cdot (lineDirection \times pb)$$
 
-In the second line, we can change the order of the operands to perform the cross product between the line direction and pc, exactly the in the first line which allows us to share the calculation.
+In the second line, we can change the order of the operands to perform the cross product between the line direction and pc, exactly the first line which allows us to share the calculation.
 
 $$pb \cdot (lineDirection \times pa) = - pa \cdot (lineDirection \times pc)$$
 
-We can the rewrite the core loop of the algorithm like so:
+We can rewrite the core loop of the algorithm like so:
 
 ```c
 float3 m = cross(lineDirection, pc);
@@ -177,7 +177,7 @@ w = ScalarTriple(lineDirection, pb, pa);
 if (!SameSign(u, w)) return false;
 ```
 
-In this 3D scene you can see the front and back faces of the triangle, the green represent the front face and red the back face. Notice how the twi triangles on the right pop in and out as they rotate, this is because the shader applied to them was configured to cull or discard one of the faces. The effect is also interesting on a sphere where we see the inside of the sphere when the front face are culled. In this scene the white cylinder crosses both sphere at the exact same locations.
+In this 3D scene you can see the front and back faces of the triangle, the green represent the front face and red the back face. Notice how the two triangles on the right pop in and out as they rotate, this is because the shader applied to them was configured to cull or discard one of the faces. The effect is also interesting on a sphere where we see the inside of the sphere when front faces are culled. In this scene the white cylinder crosses both sphere at the exact same locations.
 
 ![](Media/Recordings/TriangleIntersection%2004%20Face%20Culling.gif)
 

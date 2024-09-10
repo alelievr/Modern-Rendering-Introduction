@@ -6,11 +6,13 @@ The most intuitive information we can put in a vector is position, we simply wri
 
 $$a=(2, 4, -3), b=(-1, 0, 4),...$$
 
+// TODO: reduce point count and add the same color as the one in the image below
+
 ![](Media/Recordings/Vectors%2000.png)
 
 Another way of thinking about these coordinates is how they represent an arrow in space starting from the origin (0, 0, 0) and going towards the point, in this view the tip of the arrows ends exactly on the coordinate of the vector. This representation of vectors is useful to help visualize what happens when we transform a vector (for example adding two vectors).
 
-This arrow based representation of vectors especially make sense when we represent directions using vectors. A direction is a normalized vector which means that it's length is always 1, this property makes some calculation a lot easier as we'll see in the next chapiters. Another way of thinking about direction vectors is that the tip of the arrow is always on the surface of a sphere (or a circle in 2D).
+This arrow based representation of vectors especially make sense when we represent directions using vectors. A direction is a normalized vector which means that it's length is always 1, this property makes some calculation a lot easier as we'll see in the next chapters. Another way of thinking about direction vectors is that the tip of the arrow is always on the surface of a sphere (or a circle in 2D).
 
 ![](Media/Recordings/Vectors%2001.gif)
 
@@ -36,9 +38,5 @@ There is also a very complete book about mathematics in computer graphics: [Math
 The [Essence of linear algebra](https://www.youtube.com/watch?v=fNk_zzaMoSs&list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab).
 
 https://www.3blue1brown.com/topics/linear-algebra
-
-[Mathematics for
-3D Game Programming
-and Computer Graphics 3rd edition]().
 
 https://immersivemath.com/ila/index.html

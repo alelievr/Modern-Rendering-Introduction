@@ -4,7 +4,7 @@ In 3D, a camera is a virtual object that transform a 3D scene into a 2D image, e
 
 ## Let's build a camera
 
-We need a set of properties to define the characteristics of our camera, for that we'll use the vectors we've seen in the previous chapiters.
+We need a set of properties to define the characteristics of our camera, for that we'll use the vectors we've seen in the previous chapters.
 
 The camera is an object in 3D, so it have a position vector of 3 component storing it's location in space. The camera also need a direction to where it's pointing to, this will represent the direction we want to film, so we need another vector to represent the direction.
 

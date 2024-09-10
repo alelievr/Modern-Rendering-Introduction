@@ -8,7 +8,7 @@ Real-time graphics leverage the power of hardware acceleration, particularly thr
 The essence of computer graphics lies in the creation of visual content that ultimately appears on a screen and is perceived by a human viewer (hopefully it's still the case). This element of human perception sets computer graphics apart from other fields of computer science. What ultimately matters is how the viewer perceives the rendered image or scene and not the "correctness" of the algorithms used to create the image.
 
 Human vision is susceptible to illusions and perceptual tricks, which influences the design of graphical algorithms. In many instances, algorithms prioritize perceptual appeal over mathematical accuracy. For example, perceptual parameterization or visually pleasing distributions, such as blue noise rather than quasirandom sequences, are often preferred.
-It also influences heavily how artistic controls over a certain alogrithm are exposed, for example when moving the knobs of a color picker, it's expected that the changes happen in a linear fashion as you move the slider. The problem is that our eyes doens't percieve colors linearly, so what we call linear is in fact non-linear for our code. You'll learn more about that in the chapiter about color spaces and perception.
+It also influences heavily how artistic controls over a certain alogrithm are exposed, for example when moving the knobs of a color picker, it's expected that the changes happen in a linear fashion as you move the slider. The problem is that our eyes doens't percieve colors linearly, so what we call linear is in fact non-linear for our code. You'll learn more about that in the chapter about color spaces and perception.
 
 ## The Subjectivity of Correctness
 

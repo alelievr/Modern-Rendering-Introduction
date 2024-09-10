@@ -30,6 +30,8 @@ The GPU also support several kinds of buffers, this is the same an array on the 
 
 We'll see in more details the kind of resources we'll use when starting to actually render some images.
 
+## Conclusion
+
 ## References
 
 https://gpuopen.com/wp-content/uploads/2021/01/AMD_Graphics_pipeline_GIC2020.pdf

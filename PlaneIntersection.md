@@ -8,7 +8,7 @@ By definition a plane encompasses all the points ${\mathbf{\color{aquamarine}p}}
 
 If the plane crosses the origin, the equation can be simplified by removing the ${\color{orange}\mathbf{p_0}}$ term, this simplification is often done in calculation because we can easily subtract the origin of our plane to the arbitrary point we're evaluating.
 
-One interesting thing to notice is that when solving the plane equation with an arbitrary point, the result is a single value representing the distance between the plane and the point. In itself this equation can be called a Signed Distance Field function because it gives us the distance to the line for any point in space. We'll probably see that in a future chapiter.
+One interesting thing to notice is that when solving the plane equation with an arbitrary point, the result is a single value representing the distance between the plane and the point. In itself this equation can be called a Signed Distance Field function because it gives us the distance to the line for any point in space. We'll probably see that in a future chapter.
 
 ## Line / Vector Definition
 
@@ -20,7 +20,7 @@ Note that this is both the formula for a line and a vector, in our case we're in
 
 ![](Media/Recordings/Plane%2001.png)
 
-This is equivalent to say that we'll discard any solution where the $\mathbf{d}$ variable is negative (going in the inverse direction compared to the vector $\mathbf{l}$)
+This is equivalent to say that we'll discard any solution where the $\mathbf{d}$ variable is negative (going in the inverse direction compared to the vector $\mathbf{a}$)
 
 ## Solving the equation
 
@@ -28,7 +28,7 @@ First, we need to make the vector-plane equation, this is pretty easy since we a
 
 $${\mathbf{ (({l_{0}} + {l} \ d) - {\color{orange}p_{0}} )\cdot {\color{lime}n} = 0}}$$
 
-We're interested in finding $\mathbf{d}$ which is the distance between the start of the vector $l_{0}$ and the intersection point.
+We're interested in finding $\mathbf{d}$ which is the distance between the start of the vector $\mathbf{l_{0}}$ and the intersection point.
 
 To do this, we can expand the formula:
 

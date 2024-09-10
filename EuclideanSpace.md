@@ -13,7 +13,7 @@ In this course we'll exclusively look at 2D and 3D Euclidean spaces. The 3D spac
   </tr>
 </table>
 
-It's worth noting that the we'll be using the Cartesian coordinate system, it establishes an origin point (0, 0, 0) where three axes, X, Y, and Z, intersect at right angles (same in 2D but without the Z axis). These axes become the foundation for specifying the location of every object in our virtual world as every point in space can be reached by combining these 3 axises. This coordinate system is called the  if you want to learn more.
+It's worth noting that the we'll be using the Cartesian coordinate system, it establishes an origin point (0, 0, 0) where three axes, X, Y, and Z, intersect at right angles (same in 2D but without the Z axis). These axes become the foundation for specifying the location of every object in our virtual world as every point in space can be reached by combining these 3 axises. 
 
 ![](Media/Recordings/Euclidean%20Space%2002.gif)
 

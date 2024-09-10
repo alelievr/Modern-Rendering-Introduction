@@ -4,13 +4,11 @@ A shader is a very lightweight program that runs on the GPU, it is designed to b
 
 ## Different types of shaders
 
-The GPU supports multiple kind of shaders, each of them have access to different hardware features and are integrated the different pipelines. In this chapiter, we're interested in the compute pipeline, it is the simplest of all pipelines because it has only a single step.
+The GPU supports multiple kind of shaders, each of them have access to different hardware features and are integrated the different pipelines. In this chapter, we're interested in the compute pipeline, it is the simplest of all pipelines because it has only a single step.
 
 ### Compute Pipeline
 
 The compute pipeline on the GPU only allows one type of shader to be executed: the compute shader.This is the simplest type of shader, it's multi-purpose and doesn't have access to any fixed hardware function, it's very good to do general purpose computation on the GPU ([GPGPU](https://fr.wikipedia.org/wiki/General-purpose_processing_on_graphics_processing_units)). Compute shaders are dispatched directly using a number of threads, it is the equivalent of having a job system handling all the boilerplate of starting jobs and distributing work between the workers.
-
-[![](Media/Images/compute-pipeline.png)](https://learn.microsoft.com/en-us/windows/win32/direct3d12/pipelines-and-shaders-with-directx-12)
 
 ## Languages
 
@@ -18,9 +16,9 @@ There are several languages that you can use to write GPU programs, the most pop
 
 ## Syntax
 
-The HLSL syntax is very similar to C with the the twist that there are no pointers, you can overload function parameters as well as a few other extra functionality that makes common operations easier an GPU specific.
+The HLSL syntax is very similar to C with the the twist that there are no pointers, you can overload function parameters as well as a few other extra functionality that makes common operations easier on GPU.
 
-This simple example describes a function that clears an 4 channel image to 0. The entry point of the compute shader (main in this case) is called a [kernel](https://en.wikipedia.org/wiki/Compute_kernel).
+This simple example describes a function that clears a 4 channel image to 0. The entry point of the compute shader (main in this case) is called a [kernel](https://en.wikipedia.org/wiki/Compute_kernel).
 
 ```c
 RWTexture2D<float4> _Output;

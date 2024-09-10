@@ -132,6 +132,8 @@ One of the simplest 3D model format is the [obj](https://en.wikipedia.org/wiki/W
 
 Lately, more complex formats emerged from the need to share more information between different DCC softwares. A good example of this is the [USD](https://openusd.org/release/index.html) file format which can store a complete 3D scene with lights, animations, 3D models, textures, materials, etc.
 
+## Conclusion
+
 ## References
 
 https://en.wikipedia.org/wiki/UV_mapping

@@ -1,4 +1,4 @@
-# Chapiters
+# chapters
 
 - Introduction [complete]
 - Renderer Design [started]

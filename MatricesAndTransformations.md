@@ -1,8 +1,8 @@
 # Matrices and Transformations
 
-In computer graphics, matrices are a very useful tool, they are represented by a table of values or a vector of vector. I recommend reading [Matrix Multiplication from 3Blue1Brown](https://www.3blue1brown.com/lessons/matrix-multiplication) before tackling this chapiter to understand well the effect of combining matrices together and performing several transformation at the same time. They are extensively used to facilitate the computation of objects position, rotation and scale in the 3D world.
+In computer graphics, matrices are a very useful tool, they are represented by a table of values or a vector of vector. I recommend reading [Matrix Multiplication from 3Blue1Brown](https://www.3blue1brown.com/lessons/matrix-multiplication) before tackling this chapter to understand well the effect of combining matrices together and performing several transformation at the same time. They are extensively used to facilitate the computation of objects position, rotation and scale in the 3D world.
 
-We'll mostly use 2x2, 3x3 and 4x4 square matrices in this chapiter, they are the most used type of matrices in computer graphics.
+We'll mostly use 2x2, 3x3 and 4x4 square matrices in this chapter, they are the most used type of matrices in computer graphics.
 
 > Note that sometimes we also use non-square matrices but it's often an optimization to avoid storing all the components.
 
@@ -189,7 +189,7 @@ Projection matrix allows to perform a [3D Projection](https://en.wikipedia.org/w
 
 Like the name implies, this projection gives perspective to the scene, this is the most familiar type of projection because we're used to see the world with perspective, that's what allows us to evaluate distances.
 
-The perspective projection depends on the field of view, near and far plane, exactly like our simple camera from the previous chapiter. The wider the field of view, the more objects you can see, but at the cost of deformation, it's a bit like looking at a curved mirror, it can allow you to view more than a flat mirror but with a distorted image. These 3 parameters form a frustum shape, if a point is within this space then it's visible.
+The perspective projection depends on the field of view, near and far plane, exactly like our simple camera from the previous chapter. The wider the field of view, the more objects you can see, but at the cost of deformation, it's a bit like looking at a curved mirror, it can allow you to view more than a flat mirror but with a distorted image. These 3 parameters form a frustum shape, if a point is within this space then it's visible.
 
 To build the perspective matrix, it's actually important to know what we want as a result after multiplying our positions with this matrix so let's talk a bit about HCLIP space first.
 
@@ -230,7 +230,7 @@ $$
 
 > Notice the 1 in the column used to compute the $w$ component of the vector, it indicates that we set the value of the to the component $z$ of the input vector.
 
-Now that we have a working matrix for a fixed angle, we need to make it work with any FoV between $]0, 180[$ degrees. There is actually a very simple way to handle that, we already know that the z coordinate is not affected by perspective, only the X and Y are, so the two cells of the matrix that we'll change are the two $1$ in the diagonal of the matrix. If  you remember the previous chapiter, these numbers are analog to the scale matrix, in fact this scaling the space on the X and Y axises is the simplest solution to handle an arbitrary FoV. With no scale (a value of 1), the FoV is 90 degrees. The smaller the FoV is, the lower the scaling value needs to be to stretch the space accordingly, and vice versa. at FoV 180 degree, the scaling value reaches infinity, that's why this value is excluded from the range of possible FoVs, similarly at 0 FoV, nothing is visible so it's excluded as well.
+Now that we have a working matrix for a fixed angle, we need to make it work with any FoV between $]0, 180[$ degrees. There is actually a very simple way to handle that, we already know that the z coordinate is not affected by perspective, only the X and Y are, so the two cells of the matrix that we'll change are the two $1$ in the diagonal of the matrix. If  you remember the previous chapter, these numbers are analog to the scale matrix, in fact this scaling the space on the X and Y axises is the simplest solution to handle an arbitrary FoV. With no scale (a value of 1), the FoV is 90 degrees. The smaller the FoV is, the lower the scaling value needs to be to stretch the space accordingly, and vice versa. at FoV 180 degree, the scaling value reaches infinity, that's why this value is excluded from the range of possible FoVs, similarly at 0 FoV, nothing is visible so it's excluded as well.
 
 // TODO: 2D gif of space scaling and correlation to FoV
 
