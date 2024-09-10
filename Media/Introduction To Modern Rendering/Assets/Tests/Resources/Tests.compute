@@ -1,0 +1,20 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> _Output;
+float4x4 inverseViewMatrix;
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float2 outputSize;
+    _Output.GetDimensions(outputSize.x, outputSize.y);
+    
+    float2 clipPosition = (id.xy / outputSize) * 2 - 1;
+    float4 viewDirWS = mul(inverseViewMatrix, float4(clipPosition, 1, 1));
+    float3 viewDir = normalize(viewDirWS.xyz / viewDirWS.w);
+    _Output[id.xy] = float4(viewDir * 0.5 + 0.5, 1);
+    // _Output[id.xy] = float4(clipPosition * 0.5 + 0.5, 0, 1);
+}

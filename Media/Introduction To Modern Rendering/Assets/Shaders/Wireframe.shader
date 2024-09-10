@@ -26,6 +26,7 @@ Shader "Unlit/Wireframe"
 			#pragma vertex vert
 			#pragma geometry geom
 			#pragma fragment frag
+            #pragma enable_d3d11_debug_symbols
 
 			#include "UnityCG.cginc"
 

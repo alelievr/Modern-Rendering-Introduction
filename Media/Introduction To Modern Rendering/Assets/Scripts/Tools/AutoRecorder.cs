@@ -30,6 +30,7 @@ public class AutoRecorder : MonoBehaviour
     public float recordingTimeInSeconds = 5.0f;
     public float frameRate = 30.0f;
     public uint gifQuality = 40;
+    public float waitBeforeRecording = 0.0f;
     public OverrideResolution overrideResolution;
 
     RecorderController m_RecorderController;
@@ -38,6 +39,7 @@ public class AutoRecorder : MonoBehaviour
 
     void OnEnable()
     {
+        startTime = 1e20f;
         var controllerSettings = ScriptableObject.CreateInstance<RecorderControllerSettings>();
         m_RecorderController = new RecorderController(controllerSettings);
 
@@ -46,8 +48,16 @@ public class AutoRecorder : MonoBehaviour
         controllerSettings.SetRecordModeToManual();
         controllerSettings.FrameRate = frameRate;
 
+        StartCoroutine(StartRecording(controllerSettings));
+    }
+
+    IEnumerator StartRecording(RecorderControllerSettings controllerSettings)
+    {
+        yield return new WaitForSeconds(waitBeforeRecording);
+
         RecorderOptions.VerboseMode = false;
         m_RecorderController.PrepareRecording();
+
         if (recordOnPlay)
         {
             m_RecorderController.StartRecording();
