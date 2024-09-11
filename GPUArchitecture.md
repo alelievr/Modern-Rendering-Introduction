@@ -40,7 +40,13 @@ Occupancy is limited by 3 main factors:
 
 - VGPR count
 - SGPR count
-- LDS size
+- Local Data Share (LDS) size
+
+To understand why the number of registers used in your shader limits how many of them can run in parallel you need to know that all the states of executions of your shader are stored in registers. This is a very big difference compared to CPU programming where most of the state is stored into the stack. In fact there is no stack at all on the GPU, so every operation that need to store intermediate data will consume a register. Of course registers are reused a lot between computation throughout the shader but there is always a part of your program that uses more registers than others. During compilation, the compiler encodes the max number of registers needed to execute the entirety of the program. This is this number that limits the occupancy, because there is a fixed number of VGPRs and SGPRs that need to be shared between many waves. We refer to this number as the "VGPR pressure". The same limits applies for the SGPRs.
+
+Similarly, the LDS also have a limited size, when you declare more LDS in a compute shader, it'll take more space and ultimately the GPU will have to reduce the number of wave in parallel because there is not enough LDS to run them all.
+
+Note that LDS, VGPRs and SGPRs are all allocated before the shader starts it's execution, which means that from start to finish, the maximum amount of registers and LDS is allocated. This is the case even if some part of your shader have a lower register usage than others. Apple's [M3 GPUs](https://developer.apple.com/videos/play/tech-talks/111375/) have a different approach that allows dynamic register allocation which improves the parallelism of complex shaders, but this design is still new and haven't been used on any other GPU yet. Still, it's a proof that GPU design changes and with that the rules on how to optimize, maybe sometimes in the future we'll not be talking about occupancy anymore :).
 
 For more information, you can read this document: https://gpuopen.com/learn/occupancy-explained/
 
@@ -54,9 +60,13 @@ The other queues are specialized for asynchronous computation and memory copy op
 
 ## APIs
 
-The API to use the GPU is still evolving fast a new features are becoming unlocked as new hardware and drivers are released, a lot of the design choices on the rendering architecture come from these limitations.
+The APIs to access the GPU are evolving fast and new features are added as new hardware and drivers are released (mesh shaders, hardware ray-tracing, work graphs, etc.). A lot of the design choices on the rendering architecture come from working with the limitations of current APIs. It's even more true when working with multiple graphics APIs which is often needed for multi-platform support, most of the time, the design that works everywhere is chosen by aligning on the lowest common denominator.
 
-For example one of the most limiting things on the GPU right now is that it's impossible to run a GPU program from the GPU. It's always the CPU that triggers work on the GPU, but recently a new API is being designed to allow dispatching work from the GPU: the [Work Graphs](https://devblogs.microsoft.com/directx/d3d12-work-graphs/).
+In this course we'll not talk about a particular graphics API in details but the we'll be following the conventions of DirectX12 which is the most advanced graphics API in term of feature set to this day. Similar concept also exists on Vulkan and Metal, they just often use different names.
+
+If you want to learn low-level APIs like Vulkan or DirectX12 in details, you can follow dedicated tutorials like [Vulkan Tutorial](https://vulkan-tutorial.com/) or [Learning DirectX12](https://www.3dgep.com/learning-directx-12-1/).
+
+One of the most limiting things on the GPU right now is that it's impossible to run a GPU program from the GPU. It's always the CPU that triggers work on the GPU, but recently a new API is being designed to allow dispatching work from the GPU: the [Work Graphs](https://devblogs.microsoft.com/directx/d3d12-work-graphs/).
 
 It's still very new and not much implementation exists yet so I'm not going to use it in this course. What we'll try to do is to maximize the use of the GPU for every part of the renderer so when the Work Graph API becomes more widely implemented, we can transition to it easily.
 
@@ -71,6 +81,10 @@ The GPU also support several kinds of buffers, this is the same an array on the 
 We'll see in more details the kind of resources we'll use when starting to actually render some images.
 
 ## Conclusion
+
+In summary, understanding GPU architecture is important to achieve good rendering performances. GPUs, with their massively parallel design, need to be fed with massive workloads that can be distributed across thousands of threads. This makes it essential to structure your algorithms in a way that maximize the GPU usage to avoid leaving hardware underutilized. Understanding concepts such as waves, registers, and occupancy are important to optimize your shaders.
+
+As we’ve discussed, the GPU’s fixed-function hardware, such as rasterizers and ray-tracing units, accelerates specific tasks and shapes the way we approach GPU programming. Knowing how to leverage these capabilities, allows us to design systems that fully exploit the GPU’s strengths.
 
 ## References
 

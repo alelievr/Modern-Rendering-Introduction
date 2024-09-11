@@ -8,7 +8,7 @@
 - The 3D Euclidean space [complete]
 - Vectors [complete]
 - Simple Camera [complete]
-- GPU Architecture [incomplete]
+- GPU Architecture [complete]
 - Compute Shaders [complete]
 - Ray Tracing [incomplete]
 - Plane intersection [complete]
