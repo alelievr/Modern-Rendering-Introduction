@@ -20,17 +20,20 @@ list(PREPEND CMAKE_MODULE_PATH "${project_root}/3rdparty/cmake")
 include(cmake_settings)
 include(compiler_settings)
 
-add_subdirectory(3rdparty/FlyCube)
 include(3rdparty/imgui)
-include(3rdparty/assimp)
 
+add_subdirectory(3rdparty/FlyCube)
 add_subdirectory(3rdparty/FlyCube/src/Modules/AppBox)
 add_subdirectory(3rdparty/FlyCube/src/Modules/AppSettings)
 add_subdirectory(3rdparty/FlyCube/src/Modules/AppLoop)
+add_subdirectory(3rdparty/assimp)
 
-add_executable(ModernRenderer WIN32 src/main.cpp \
-    src/CameraData.cpp \
-    src/MatrixUtils.cpp)
+add_executable(ModernRenderer WIN32 src/main.cpp 
+    src/Camera.cpp 
+    src/MatrixUtils.cpp
+    src/Renderer.cpp
+    src/Scene.cpp
+)
 
 if (WIN32)
     set_target_properties(ModernRenderer PROPERTIES
@@ -47,11 +50,17 @@ target_link_libraries(ModernRenderer
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set_target_properties(FlyCube PROPERTIES FOLDER 3rdparty)
+set_target_properties(assimp uninstall unit UpdateAssimpLibsDebugSymbolsAndDLLs zlibstatic PROPERTIES FOLDER 3rdparty)
 
 file(GLOB SHADER_FILES "${project_root}/assets/shaders/*.hlsl")
 target_sources(ModernRenderer PRIVATE ${SHADER_FILES})
 source_group("Shaders" FILES ${SHADER_FILES})
 set_property(SOURCE ${SHADER_FILES} PROPERTY VS_SETTINGS "ExcludedFromBuild=true")
+
+file(GLOB INCLUDE_FILES "${project_root}/src/*.hpp")
+target_sources(ModernRenderer PRIVATE ${INCLUDE_FILES})
+source_group("Includes" FILES ${INCLUDE_FILES})
+# set_property(SOURCE ${INCLUDE_FILES} PROPERTY VS_SETTINGS "ExcludedFromBuild=true")
 
 add_compile_definitions(MODERN_RENDERER_ASSETS_PATH="${project_root}/assets/")
 
