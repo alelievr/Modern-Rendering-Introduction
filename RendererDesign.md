@@ -24,7 +24,7 @@ This is a very simplified view of a frame but basically we have the CPU handling
 
 ## Double Buffering and Triple Buffering
 
-To have a more complete picture of what happens, let's add the screen in our diagram. The GPU stores the image visible on screen in it's memory and the screen refresh rate controls how often this image is accessed to be displayed. This particular memory is called a **Front Buffer**, we have to be particularly careful when writing directly to this front buffer because the screen is actively reading it, which can cause [tearing issues](https://en.wikipedia.org/wiki/Screen_tearing) if you start writing to this buffer before the screen finishes to read it. Fortunately for us, there is a very simple solution to this problem: instead of writing directly to this buffer, we write to another one which we call the **Back Buffer** and when it's ready we just tell the screen to read from this buffer instead of the front one. The operation of swapping those two buffers is extremely fast compared to writing a whole image of a few Megabytes which allows to avoid tearing (provided that you don't swap it when the screen is in the middle of reading the buffer). After the swap, our **Back Buffer** becomes the **Front Buffer** and vice versa.
+To have a more complete picture of what happens, let's add the screen in our diagram. The GPU stores the image visible on screen in it's memory and the screen refresh rate controls how often this image is accessed to be displayed. This particular memory is called a **Front Buffer**, we have to be particularly careful when writing directly to this front buffer because the screen is actively reading it, which can cause [tearing issues](https://en.wikipedia.org/wiki/Screen_tearing) if you start writing to this buffer before the screen finishes to read it. Fortunately for us, there is a very simple solution to this problem: instead of writing directly to this buffer, we write to another one which we call the **Back Buffer** and when it's ready we just tell the screen to read from this buffer instead of the front one. The operation of swapping those two buffers is extremely fast compared to writing a whole image of a few Megabytes which allows to avoid tearing (provided that you don't swap it when the screen is in the middle of reading the buffer). After the swap, our **Back Buffer** becomes the **Front Buffer** and vice versa. This operation is commonly called a **Flip**.
 
 ![](Media/Recordings/RendererDesign%2000.gif)
 
@@ -50,8 +50,36 @@ In other words, the idea is to transform every resources uploaded by the CPU int
 
 Similarly, the last block "Draw Command" is also a kind of buffer with specific usage, so we can apply double buffering here too, meaning that we can move the GPU wait to the end of the following frame, if the GPU already has finished the previous frame, then there is no wait.
 
+## Frame Pacing
+
+Frame pacing refers to the consistency and timing of frames rendered by an application. When the time it takes to compute a frame is inconsistent, some frames may not be updated during the display refresh (simply because there was no new image pushed to the swapchain), leading to a laggy visual experience even if the FPS count is high.
+
+To maintain proper frame pacing, one simple approach is to limit the frame rate to a value lower than the application's maximum FPS. This allows more time for processing slower frames. However, the best solution is to optimize your application to ensure that heavy computations are minimized before rendering. Alternatively, you can offload some of the processing to a separate thread to improve performance and consistency.
+
+These concepts are important when designing a game engine as there are many other systems that need to run before rendering and can impact frame pacing. If you're interested in this topic, check out the excellent book [Game Engine Architecture](https://www.gameenginebook.com/index.html).
+
+## Input latency
+
+In real-time rendering, it's important to respond quickly to user or player inputs, such as camera movements or object interactions. Input latency refers to the time it takes for an application to process these inputs and display the results on screen. For instance, in shooting games, input latency is often measured by the duration between the moment you pull the trigger and when the muzzle flash first appears on your screen. To accurately calculate input latency, it's important to consider all the steps involved, including:
+
+- Time between your input and the game update loop
+- Time for the application to process the changes regarding the inputs
+- Time for the application to issue draw commands to the GPU
+- Time for the GPU to render the frame
+- Time between the end of the rendering by GPU and the next flip.
+
+there are also external factors like the polling rate of the mouse/keyboard and the latency of the screen but we often exclude them from calculation as it depends from the setup.
+
+Some applications require extreme care on handling of input latency like competitive games that must ensure consistent and low latency. That's why it's important to make the application runs as fast as possible using all the tools we have at disposition like multi-threading and async GPU utilization.
+
 ## Conclusion
 
 Understanding the architecture of a renderer is essential for building efficient and performant systems, particularly when aiming for real-time rendering. The interaction between the CPU and GPU must be carefully orchestrated to ensure that both components are working optimally without unnecessary idling. Techniques such as double buffering and resource management strategies help mitigate latency and maximize throughput, allowing the renderer to generate frames at high refresh rates smoothly.
 
 As we have seen, by utilizing concepts like swapchains, double buffering, and offloading tasks across CPU and GPU, we can maintain a steady pipeline that keeps the hardware busy while avoiding issues like tearing or excessive latency. This architecture serves as the foundation upon which more advanced rendering techniques and optimizations can be built, which will be explored in the following sections of this course.
+
+## References
+
+https://en.wikipedia.org/wiki/Multiple_buffering
+
+https://unity.com/blog/engine-platform/fixing-time-deltatime-in-unity-2020-2-for-smoother-gameplay
