@@ -46,7 +46,7 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     std::shared_ptr<Program> program = device->CreateProgram({ vertex_shader, pixel_shader });
 
     std::shared_ptr<Shader> compute_test = device->CompileShader(
-        { MODERN_RENDERER_ASSETS_PATH "shaders/Compute.hlsl", "main", ShaderType::kCompute, "6_5" });
+        { MODERN_RENDERER_ASSETS_PATH "shaders/PathTracer.hlsl", "main", ShaderType::kCompute, "6_5" });
     std::shared_ptr<Program> compute_program = device->CreateProgram({ compute_test });
 
     ViewDesc constant_view_desc = {};
@@ -65,13 +65,17 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
         { { gli::FORMAT_RGBA8_UNORM_PACK8, RenderPassLoadOp::kLoad, RenderPassStoreOp::kStore } },
     };
     loadStoreColorRenderPass = device->CreateRenderPass(render_pass_desc);
+    render_pass_desc = {
+    { { gli::FORMAT_RGBA8_UNORM_PACK8, RenderPassLoadOp::kClear, RenderPassStoreOp::kStore } },
+    };
+    clearColorRenderPass = device->CreateRenderPass(render_pass_desc);
 
     ClearDesc clear_desc = { { { 0.0, 0.2, 0.4, 1.0 } } };
     GraphicsPipelineDesc pipeline_desc = {
         program,
         layout,
         { { 0, "POSITION", gli::FORMAT_RGB32_SFLOAT_PACK32, sizeof(vertex_data.front()) } },
-        loadStoreColorRenderPass,
+        clearColorRenderPass,
     };
     pipeline_desc.rasterizer_desc = { FillMode::kSolid, CullMode::kNone, 0 };
     objectPipeline = device->CreateGraphicsPipeline(pipeline_desc);
@@ -139,11 +143,6 @@ void Renderer::RenderRasterization(std::shared_ptr<CommandList> commandList, std
 {
     // TODO: clear render pass
 
-    // Dispatch compute to clear RT
-    commandList->BindPipeline(pathTracerPipeline);
-    commandList->BindBindingSet(pathTracerBindingSet);
-    commandList->Dispatch(appSize.width() / 8, appSize.height() / 8, 1);
-
     ClearDesc clear_desc = { { { 0.0, 0.2, 0.4, 1.0 } } }; // Clear Color
     commandList->BindPipeline(objectPipeline);
     commandList->BindBindingSet(objectBindingSet);
@@ -152,7 +151,7 @@ void Renderer::RenderRasterization(std::shared_ptr<CommandList> commandList, std
     commandList->IASetIndexBuffer(index_buffer, gli::format::FORMAT_R32_UINT_PACK32);
     commandList->IASetVertexBuffer(0, vertex_buffer);
     commandList->ResourceBarrier({ { mainColorTexture, ResourceState::kCommon, ResourceState::kRenderTarget } });
-    commandList->BeginRenderPass(loadStoreColorRenderPass, mainColorFrameBuffer, clear_desc);
+    commandList->BeginRenderPass(clearColorRenderPass, mainColorFrameBuffer, clear_desc);
     commandList->DrawIndexed(3, 1, 0, 0, 0);
     commandList->EndRenderPass();
     commandList->ResourceBarrier({ { mainColorTexture, ResourceState::kRenderTarget, ResourceState::kCommon } });
@@ -160,4 +159,8 @@ void Renderer::RenderRasterization(std::shared_ptr<CommandList> commandList, std
 
 void Renderer::RenderPathTracing(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, Camera camera, Scene)
 {
+    // Dispatch compute to clear RT
+    commandList->BindPipeline(pathTracerPipeline);
+    commandList->BindBindingSet(pathTracerBindingSet);
+    commandList->Dispatch(appSize.width() / 8, appSize.height() / 8, 1);
 }

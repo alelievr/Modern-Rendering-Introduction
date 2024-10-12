@@ -36,9 +36,10 @@ private:
     };
 
     std::shared_ptr<Device> device;
-    CameraControls cameraControls;
 
 public:
+    CameraControls cameraControls;
+    
     glm::vec3 position;
     glm::vec2 rotation;
     glm::vec3 forward;

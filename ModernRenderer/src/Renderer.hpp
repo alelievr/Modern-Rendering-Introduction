@@ -28,7 +28,6 @@ private:
         RendererMode GetRendererMode() { return rendererMode;}
     };
 
-    Controls controls;
     AppSize appSize = { 0, 0 };
     std::shared_ptr<Device> device;
 
@@ -38,6 +37,7 @@ private:
 
     // Render passes
     std::shared_ptr<RenderPass> loadStoreColorRenderPass;
+    std::shared_ptr<RenderPass> clearColorRenderPass;
 
     // Textures
     std::shared_ptr<Resource> mainColorTexture; // Store the color of the scene
@@ -61,6 +61,8 @@ private:
     void RenderPathTracing(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, Camera camera, Scene scene);
 
 public:
+    Controls controls;
+
 	Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera);
 	~Renderer();
 	void UpdateCommandList(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, Camera camera, Scene);

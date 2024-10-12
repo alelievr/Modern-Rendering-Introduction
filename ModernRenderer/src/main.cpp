@@ -4,6 +4,7 @@
 #include "Camera.hpp"
 #include "Scene.hpp"
 #include "Renderer.hpp"
+#include "InputController.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -34,6 +35,12 @@ int main(int argc, char* argv[])
     { { swapchain->GetFormat(), RenderPassLoadOp::kLoad, RenderPassStoreOp::kStore } },
     };
     std::shared_ptr<RenderPass> render_pass = device->CreateRenderPass(render_pass_desc);
+
+    InputController inputController;
+    app.SubscribeEvents((InputEvents*)&inputController, nullptr);
+
+    inputController.registeredEvents.push_back((InputEvents*)&camera.cameraControls);
+    inputController.registeredEvents.push_back((InputEvents*)&renderer.controls);
 
     // Create GFX Buffer
     std::array<uint64_t, swapchainTextureCount> fence_values = {};
