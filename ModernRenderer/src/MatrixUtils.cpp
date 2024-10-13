@@ -86,12 +86,12 @@ glm::mat4x4 MatrixUtils::Perspective(float fov, float aspect, float near, float 
 
 	result[0][0] = 1.0f / (aspect * halfTanFov);
 	result[1][1] = 1.0f / halfTanFov;
-	result[2][2] = far / (near - far);
-	result[2][3] = 1.0f;
-	result[3][2] = -(far * near) / (near - far);
+	result[2][2] = far / (far - near);
+	result[2][3] = -1.0f;
+	result[3][2] = -(far * near) / (far - near);
 	result[3][3] = 0.0f;
 
-	return result;
+	return glm::transpose(result);
 }
 
 glm::mat4x4 MatrixUtils::Mul(const glm::mat4x4& left, const glm::mat4x4& right)

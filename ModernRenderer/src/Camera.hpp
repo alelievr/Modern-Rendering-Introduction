@@ -22,6 +22,7 @@ private:
     {
     private:
         glm::vec2 lastCursorPos;
+        bool sprint = false;
 
     public:
         glm::vec3 movement;

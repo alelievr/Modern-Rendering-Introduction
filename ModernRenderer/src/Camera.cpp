@@ -1,9 +1,13 @@
+#define GLM_FORCE_LEFT_HANDED  // For DirectX compatibility
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE  // DirectX depth range is [0,1]
+#include <glm/glm.hpp>
+
 #include "Camera.hpp"
 #include <glm/gtx/rotate_vector.hpp> 
 
 Camera::Camera(std::shared_ptr<Device> device, AppBox & app)
 {
-	position = glm::vec3(0, 0, -1);
+	position = glm::vec3(0, 0, -5);
 	rotation = glm::vec2(0, 0);
 
     cameraDataBuffer = device->CreateBuffer(BindFlag::kConstantBuffer | BindFlag::kCopyDest, sizeof(GPUCameraData));
@@ -35,29 +39,30 @@ void Camera::UpdateCamera(const AppSize& size)
 	// Build view matrix
 	// Note: we don't need to put the camera position in the view matrix, because we're doing camera relative rendering
 	glm::mat4x4 view(1);
-	view *= MatrixUtils::RotateY(rotation.x);
-	view *= MatrixUtils::RotateX(rotation.y);
+	view *= MatrixUtils::RotateX(rotation.y) * MatrixUtils::RotateY(rotation.x);
 
-	view = glm::lookAt(position, position + forward, glm::vec3(0, 1, 0));
+	//view = glm::lookAt(position, position + forward, glm::vec3(0, 1, 0));
 
 	// For now we try that
 	//view = MatrixUtils::RotateY(rotation.x);
 
-	right = glm::vec3(view[0]);
-	up = glm::vec3(view[1]);
-	forward = -glm::vec3(view[2]);
+	auto tranposedView = glm::transpose(view);
+	right = glm::vec3(tranposedView[0]);
+	up = glm::vec3(tranposedView[1]);
+	forward = glm::vec3(tranposedView[2]);
 
     // Free camera controls
     position += right * cameraControls.movement.x + up * cameraControls.movement.y + forward * cameraControls.movement.z;
-	//position += cameraControls.movement;
 
 	float aspect = size.width() / (float)size.height();
-	glm::mat4x4 projection = MatrixUtils::Perspective(90.0f, aspect, 0.1f, 100.0f);
+	// glm::mat4x4 projection = MatrixUtils::Perspective(90.0f, aspect, 0.1f, 100.0f);
+	//glm::mat4x4 projection = MatrixUtils::Perspective(90.0f, aspect, 0.1f, 100.0f);
+	glm::mat4x4 projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
     gpuData.viewMatrix = (view);
 	gpuData.inverseViewMatrix = inverse(gpuData.viewMatrix);
-	gpuData.projectionMatrix = (projection);
+	gpuData.projectionMatrix = transpose(projection);
 	gpuData.inverseProjectionMatrix = inverse(gpuData.projectionMatrix);
-	gpuData.viewProjectionMatrix = transpose(view * projection);
+	gpuData.viewProjectionMatrix = transpose(projection * view);
 	gpuData.inverseViewProjectionMatrix = inverse(gpuData.viewProjectionMatrix);
 	gpuData.cameraPosition = glm::vec4(position, 0);
 
@@ -69,6 +74,9 @@ void Camera::UpdateCamera(const AppSize& size)
 void Camera::CameraControls::OnKey(int key, int action)
 {
 	float speed = 1.0f / 60.0f;
+
+	if (sprint)
+		speed *= 5;
 
     if (key == GLFW_KEY_W)
 	{
@@ -97,6 +105,13 @@ void Camera::CameraControls::OnKey(int key, int action)
 			movement.x = speed;
 		else if (action == GLFW_RELEASE)
 			movement.x = 0;
+	}
+	if (key == GLFW_KEY_LEFT_SHIFT)
+	{
+		if (action == GLFW_PRESS)
+			sprint = true;
+		else if (action == GLFW_RELEASE)
+			sprint = false;
 	}
 }
 

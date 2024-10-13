@@ -53,3 +53,18 @@ float4 TransformWViewToHClip(float3 positionVS)
 {
     return mul(float4(positionVS, 1.0), projectionMatrix);
 }
+
+float3 GetCameraForward()
+{
+    return -viewMatrix[2].xyz;
+}
+
+float3 GetCameraRight()
+{
+    return viewMatrix[0].xyz;
+}
+
+float3 GetCameraUp()
+{
+    return -viewMatrix[1].xyz;
+}
