@@ -18,17 +18,30 @@ struct GPUCameraData
 class Camera
 {
 private:
+    enum CameraKey
+    {
+        Forwad = 1 << 0,
+        Backward = 1 << 1,
+        Right = 1 << 2,
+        Left = 1 << 3,
+        Up = 1 << 4,
+        Down = 1 << 5,
+        Sprint = 1 << 6
+    };
+
     class CameraControls : InputEvents
     {
     private:
         glm::vec2 lastCursorPos;
-        bool sprint = false;
+        unsigned activeKeyMask;
+
+        void CheckKeyMask(unsigned& mask, CameraKey c, int expectedKey, int key, int action);
 
     public:
         glm::vec3 movement;
         glm::vec2 rotation;
 
-        CameraControls() : movement(0), rotation(0), lastCursorPos(0) {}
+        CameraControls() : movement(0), rotation(0), lastCursorPos(0), activeKeyMask(0) {}
 
         void OnKey(int key, int action) override;
         void OnMouse(bool first, double xpos, double ypos) override;

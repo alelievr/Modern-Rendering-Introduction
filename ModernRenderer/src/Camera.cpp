@@ -55,9 +55,7 @@ void Camera::UpdateCamera(const AppSize& size)
     position += right * cameraControls.movement.x + up * cameraControls.movement.y + forward * cameraControls.movement.z;
 
 	float aspect = size.width() / (float)size.height();
-	// glm::mat4x4 projection = MatrixUtils::Perspective(90.0f, aspect, 0.1f, 100.0f);
-	//glm::mat4x4 projection = MatrixUtils::Perspective(90.0f, aspect, 0.1f, 100.0f);
-	glm::mat4x4 projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
+	glm::mat4x4 projection = MatrixUtils::Perspective(45.0f, aspect, 0.1f, 100.0f);
     gpuData.viewMatrix = (view);
 	gpuData.inverseViewMatrix = inverse(gpuData.viewMatrix);
 	gpuData.projectionMatrix = transpose(projection);
@@ -71,53 +69,49 @@ void Camera::UpdateCamera(const AppSize& size)
 	cameraControls.Reset();
 }
 
+void Camera::CameraControls::CheckKeyMask(unsigned& mask, CameraKey c, int expectedKey, int key, int action)
+{
+	if (key == expectedKey)
+	{
+		if (action == GLFW_PRESS)
+			mask |= c;
+		else if (action == GLFW_RELEASE)
+			mask &= ~c;
+	}
+}
+
 void Camera::CameraControls::OnKey(int key, int action)
 {
-	float speed = 1.0f / 60.0f;
+	CheckKeyMask(activeKeyMask, Up, GLFW_KEY_E, key, action);
+	CheckKeyMask(activeKeyMask, Down, GLFW_KEY_Q, key, action);
+	CheckKeyMask(activeKeyMask, Forwad, GLFW_KEY_W, key, action);
+	CheckKeyMask(activeKeyMask, Backward, GLFW_KEY_S, key, action);
+	CheckKeyMask(activeKeyMask, Left, GLFW_KEY_A, key, action);
+	CheckKeyMask(activeKeyMask, Right, GLFW_KEY_D, key, action);
+	CheckKeyMask(activeKeyMask, Sprint, GLFW_KEY_LEFT_SHIFT, key, action);
 
-	if (sprint)
+	float speed = 1.0f / 60.0f;
+	if ((activeKeyMask & Sprint) != 0)
 		speed *= 5;
 
-    if (key == GLFW_KEY_W)
-	{
-		if (action == GLFW_PRESS)
-			movement.z = speed;
-		else if (action == GLFW_RELEASE)
-			movement.z = 0;
-	}
-	if (key == GLFW_KEY_S)
-	{
-		if (action == GLFW_PRESS)
-			movement.z = -speed;
-		else if (action == GLFW_RELEASE)
-			movement.z = 0;
-	}
-	if (key == GLFW_KEY_A)
-	{
-		if (action == GLFW_PRESS)
-			movement.x = -speed;
-		else if (action == GLFW_RELEASE)
-			movement.x = 0;
-	}
-	if (key == GLFW_KEY_D)
-	{
-		if (action == GLFW_PRESS)
-			movement.x = speed;
-		else if (action == GLFW_RELEASE)
-			movement.x = 0;
-	}
-	if (key == GLFW_KEY_LEFT_SHIFT)
-	{
-		if (action == GLFW_PRESS)
-			sprint = true;
-		else if (action == GLFW_RELEASE)
-			sprint = false;
-	}
+	movement = glm::vec3(0);
+	if (activeKeyMask & Forwad)
+		movement.z += speed;
+	if (activeKeyMask & Backward)
+		movement.z -= speed;
+	if (activeKeyMask & Right)
+		movement.x += speed;
+	if (activeKeyMask & Left)
+		movement.x -= speed;
+	if (activeKeyMask & Up)
+		movement.y += speed;
+	if (activeKeyMask & Down)
+		movement.y -= speed;
 }
 
 void Camera::CameraControls::OnMouse(bool first, double xpos, double ypos)
 {
-	float rotationSpeed = 2.0f / 60.0f;
+	float rotationSpeed = 1.0f / 60.0f;
 
 	if (first)
 	{
