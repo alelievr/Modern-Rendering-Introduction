@@ -7,3 +7,6 @@
 [submodule "ModernRenderer/3rdparty/assimp"]
 	path = ModernRenderer/3rdparty/assimp
 	url = https://github.com/assimp/assimp
+[submodule "3rdparty/stb"]
+	path = ModernRenderer/3rdparty/stb
+	url = https://github.com/nothings/stb
