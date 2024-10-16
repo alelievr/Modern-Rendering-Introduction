@@ -31,6 +31,8 @@ int main(int argc, char* argv[])
     // Load scene
     Scene scene;
 
+    scene.LoadHardcodedScene(device);
+
     RenderPassDesc render_pass_desc = {
     { { swapchain->GetFormat(), RenderPassLoadOp::kLoad, RenderPassStoreOp::kStore } },
     };

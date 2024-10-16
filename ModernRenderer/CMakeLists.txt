@@ -19,7 +19,6 @@ set(project_root "${CMAKE_CURRENT_SOURCE_DIR}")
 list(PREPEND CMAKE_MODULE_PATH "${project_root}/3rdparty/cmake")
 include(cmake_settings)
 include(compiler_settings)
-
 include(3rdparty/imgui)
 
 add_subdirectory(3rdparty/FlyCube)
@@ -28,11 +27,26 @@ add_subdirectory(3rdparty/FlyCube/src/Modules/AppSettings)
 add_subdirectory(3rdparty/FlyCube/src/Modules/AppLoop)
 add_subdirectory(3rdparty/assimp)
 
-add_executable(ModernRenderer WIN32 src/main.cpp 
+include_directories(
+    ${project_root}/3rdparty/assimp/include
+    ${project_root}/3rdparty/stb
+)
+
+link_libraries(
+    assimp
+)
+
+add_executable(ModernRenderer WIN32
+    src/main.cpp 
     src/Camera.cpp 
     src/MatrixUtils.cpp
     src/Renderer.cpp
     src/Scene.cpp
+    src/ModelImporter.cpp
+    src/Model.cpp
+    src/Material.cpp
+    src/Mesh.cpp
+    src/Texture.cpp
 )
 
 if (WIN32)

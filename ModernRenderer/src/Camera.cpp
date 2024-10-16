@@ -41,11 +41,6 @@ void Camera::UpdateCamera(const AppSize& size)
 	glm::mat4x4 view(1);
 	view *= MatrixUtils::RotateX(rotation.y) * MatrixUtils::RotateY(rotation.x);
 
-	//view = glm::lookAt(position, position + forward, glm::vec3(0, 1, 0));
-
-	// For now we try that
-	//view = MatrixUtils::RotateY(rotation.x);
-
 	auto tranposedView = glm::transpose(view);
 	right = glm::vec3(tranposedView[0]);
 	up = glm::vec3(tranposedView[1]);

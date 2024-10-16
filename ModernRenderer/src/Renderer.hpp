@@ -31,10 +31,6 @@ private:
     AppSize appSize = { 0, 0 };
     std::shared_ptr<Device> device;
 
-    // TODO: move object to scene
-    std::shared_ptr<Resource> index_buffer;
-    std::shared_ptr<Resource> vertex_buffer;
-
     // Render passes
     std::shared_ptr<RenderPass> loadStoreColorRenderPass;
     std::shared_ptr<RenderPass> clearColorRenderPass;

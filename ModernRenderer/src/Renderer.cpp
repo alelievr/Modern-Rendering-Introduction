@@ -9,11 +9,6 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
 
     // TODO: split this big block of commands
 
-	std::vector<uint32_t> index_data = { 0, 1, 2 };
-	index_buffer = device->CreateBuffer(BindFlag::kIndexBuffer | BindFlag::kCopyDest, sizeof(uint32_t) * index_data.size());
-	index_buffer->CommitMemory(MemoryType::kUpload);
-	index_buffer->UpdateUploadBuffer(0, index_data.data(), sizeof(index_data.front()) * index_data.size());
-
     mainColorTexture = device->CreateTexture(TextureType::k2D, BindFlag::kRenderTarget | BindFlag::kUnorderedAccess | BindFlag::kShaderResource | BindFlag::kCopySource, gli::format::FORMAT_RGBA8_UNORM_PACK8, 1, appSize.width(), appSize.height(), 1, 1);
     mainColorTexture->CommitMemory(MemoryType::kDefault);
     mainColorTexture->SetName("ColorTexture");
@@ -21,16 +16,6 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     outputTextureViewDesc.view_type = ViewType::kRWTexture;
     outputTextureViewDesc.dimension = ViewDimension::kTexture2D;
     std::shared_ptr<View> outputTextureView = device->CreateView(mainColorTexture, outputTextureViewDesc);
-
-    std::vector<glm::vec3> vertex_data = {
-        glm::vec3(-0.5, -0.5, 0.0),
-        glm::vec3(0.0, 0.5, 0.0),
-        glm::vec3(0.5, -0.5, 0.0),
-    };
-    vertex_buffer = device->CreateBuffer(BindFlag::kVertexBuffer | BindFlag::kCopyDest,
-        sizeof(vertex_data.front()) * vertex_data.size());
-    vertex_buffer->CommitMemory(MemoryType::kUpload);
-    vertex_buffer->UpdateUploadBuffer(0, vertex_data.data(), sizeof(vertex_data.front()) * vertex_data.size());
 
     // Object CBuffer
     glm::vec4 constant_data = glm::vec4(1, 0, 0, 1);
@@ -70,15 +55,14 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     };
     clearColorRenderPass = device->CreateRenderPass(render_pass_desc);
 
-    ClearDesc clear_desc = { { { 0.0, 0.2, 0.4, 1.0 } } };
-    GraphicsPipelineDesc pipeline_desc = {
+    GraphicsPipelineDesc pipelineDesc = {
         program,
         layout,
-        { { 0, "POSITION", gli::FORMAT_RGB32_SFLOAT_PACK32, sizeof(vertex_data.front()) } },
+        { Mesh::GetInputAssemblerLayout() },
         clearColorRenderPass,
     };
-    pipeline_desc.rasterizer_desc = { FillMode::kSolid, CullMode::kNone, 0 };
-    objectPipeline = device->CreateGraphicsPipeline(pipeline_desc);
+    pipelineDesc.rasterizer_desc = { FillMode::kSolid, CullMode::kNone, 0 };
+    objectPipeline = device->CreateGraphicsPipeline(pipelineDesc);
 
     ComputePipelineDesc compute_desc = {
         compute_program,
@@ -139,6 +123,23 @@ void Renderer::UpdateCommandList(std::shared_ptr<CommandList> commandList, std::
     commandList->Close();
 }
 
+void DrawScene(std::shared_ptr<CommandList> commandList, Scene scene)
+{
+    for (auto& instance : scene.instances)
+    {
+        for (auto& r : instance.model.parts)
+		{
+            // TODO: bind material properties (shader, binding set, etc.)
+			
+            // Bind vertex buffer
+            r.mesh.BindBuffers(commandList);
+
+			// Draw mesh
+			commandList->DrawIndexed(r.mesh.indices.size(), 1, 0, 0, 0);
+		}
+    }
+}
+
 void Renderer::RenderRasterization(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, Camera camera, Scene scene)
 {
     // TODO: clear render pass
@@ -148,11 +149,11 @@ void Renderer::RenderRasterization(std::shared_ptr<CommandList> commandList, std
     commandList->BindBindingSet(objectBindingSet);
     commandList->SetViewport(0, 0, appSize.width(), appSize.height());
     commandList->SetScissorRect(0, 0, appSize.width(), appSize.height());
-    commandList->IASetIndexBuffer(index_buffer, gli::format::FORMAT_R32_UINT_PACK32);
-    commandList->IASetVertexBuffer(0, vertex_buffer);
     commandList->ResourceBarrier({ { mainColorTexture, ResourceState::kCommon, ResourceState::kRenderTarget } });
     commandList->BeginRenderPass(clearColorRenderPass, mainColorFrameBuffer, clear_desc);
-    commandList->DrawIndexed(3, 1, 0, 0, 0);
+
+    DrawScene(commandList, scene);
+
     commandList->EndRenderPass();
     commandList->ResourceBarrier({ { mainColorTexture, ResourceState::kRenderTarget, ResourceState::kCommon } });
 }
