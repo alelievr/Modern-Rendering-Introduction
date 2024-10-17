@@ -5,12 +5,16 @@
 #include "Scene.hpp"
 #include "Renderer.hpp"
 #include "InputController.hpp"
+#include "RenderDoc.hpp"
 
 int main(int argc, char* argv[])
 {
     Settings settings = ParseArgs(argc, argv);
     AppBox app("ModernRenderer", settings);
     AppSize appSize = app.GetAppSize();
+
+    // Load RenderDoc for debug after the scene is loaded to avoid crash
+    RenderDoc::LoadRenderDoc();
 
     glfwSetInputMode(app.GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -75,6 +79,8 @@ int main(int argc, char* argv[])
         command_queue->Wait(fence, fence_value);
         fence->Wait(fence_values[frame_index]);
         
+        RenderDoc::StartFrameCapture();
+
         // Update camera controls and GPU buffer
         camera.UpdateCamera(appSize);
 
@@ -85,6 +91,8 @@ int main(int argc, char* argv[])
 
         command_queue->Signal(fence, fence_values[frame_index] = ++fence_value);
         swapchain->Present(fence, fence_values[frame_index]);
+
+        RenderDoc::EndFrameCapture();
     }
     command_queue->Signal(fence, ++fence_value);
     fence->Wait(fence_value);

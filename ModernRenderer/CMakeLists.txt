@@ -38,7 +38,8 @@ link_libraries(
 
 add_executable(ModernRenderer WIN32
     src/main.cpp 
-    src/Camera.cpp 
+    src/Camera.cpp
+    src/RenderDoc.cpp
     src/MatrixUtils.cpp
     src/Renderer.cpp
     src/Scene.cpp
@@ -71,7 +72,7 @@ target_sources(ModernRenderer PRIVATE ${SHADER_FILES})
 source_group("Shaders" FILES ${SHADER_FILES})
 set_property(SOURCE ${SHADER_FILES} PROPERTY VS_SETTINGS "ExcludedFromBuild=true")
 
-file(GLOB INCLUDE_FILES "${project_root}/src/*.hpp")
+file(GLOB INCLUDE_FILES "${project_root}/src/*.hpp" "${project_root}/src/*.h")
 target_sources(ModernRenderer PRIVATE ${INCLUDE_FILES})
 source_group("Includes" FILES ${INCLUDE_FILES})
 # set_property(SOURCE ${INCLUDE_FILES} PROPERTY VS_SETTINGS "ExcludedFromBuild=true")
@@ -79,3 +80,17 @@ source_group("Includes" FILES ${INCLUDE_FILES})
 add_compile_definitions(MODERN_RENDERER_ASSETS_PATH="${project_root}/assets/")
 
 install(TARGETS ModernRenderer)
+
+# Define the path to the DLL file
+set(DLL_PATH "${project_root}/renderdoc.dll")
+
+# Specify the folder to copy the DLL to, based on the configuration (e.g., Debug/Release)
+set(DLL_OUTPUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR}")
+
+# Add a custom command to copy the DLL after building the target
+add_custom_command(TARGET ModernRenderer POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${DLL_PATH}"  # Source DLL file
+    "${DLL_OUTPUT_DIR}"  # Destination folder (e.g., Debug/Release directory)
+    COMMENT "Copying DLL to output directory (${CMAKE_CFG_INTDIR})"
+)

@@ -11,20 +11,6 @@ std::shared_ptr<Resource> AllocateVertexBufer(std::shared_ptr<Device> device, co
 
 void Mesh::UploadMeshData(std::shared_ptr<Device> device)
 {
-    // Create a vertex buffer
-    std::vector<Vertex> vertexData;
-
-    // Interleave vertex data for simplicity
-    for (size_t i = 0; i < positions.size(); i++)
-	{
-		Vertex vertex;
-		vertex.position = positions[i];
-		vertex.normal = normals[i];
-		vertex.texcoord = texcoords[i];
-		vertex.tangent = tangents[i];
-		vertexData.push_back(vertex);
-	}
-
 	// Allocate memory for the vertex buffer
 	vertexPositionBuffer = AllocateVertexBufer<glm::vec3>(device, positions);
 	vertexNormalBuffer = AllocateVertexBufer<glm::vec3>(device, normals);

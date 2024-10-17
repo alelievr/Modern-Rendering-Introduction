@@ -16,16 +16,13 @@ private:
 
     class Controls : InputEvents
     {
-    private:
+    public:
 		RendererMode rendererMode = RendererMode::Rasterization;
 
-    public:
         Controls() {}
 
         void OnKey(int key, int action) override;
         void OnMouse(bool first, double xpos, double ypos) override {}
-
-        RendererMode GetRendererMode() { return rendererMode;}
     };
 
     AppSize appSize = { 0, 0 };

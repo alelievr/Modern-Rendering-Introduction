@@ -1,4 +1,5 @@
 #include "Renderer.hpp"
+#include "RenderDoc.hpp"
 
 Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
 {
@@ -96,13 +97,20 @@ void Renderer::Controls::OnKey(int key, int action)
 		if (action == GLFW_PRESS)
 			rendererMode = (RendererMode)!(bool)rendererMode;
 	}
+
+    if (key == GLFW_KEY_F12)
+    {
+        if (action == GLFW_PRESS)
+            RenderDoc::EnqueueCaptureNextFrame();
+    }
 }
 
 void Renderer::UpdateCommandList(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, Camera camera, Scene scene)
 {
     commandList->Reset();
     commandList->BeginEvent("RenderFrame");
-	if (controls.GetRendererMode() == RendererMode::Rasterization)
+
+	if (controls.rendererMode == RendererMode::Rasterization)
 	{
 		RenderRasterization(commandList, backBuffer, camera, scene);
 	}

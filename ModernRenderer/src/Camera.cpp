@@ -50,7 +50,7 @@ void Camera::UpdateCamera(const AppSize& size)
     position += right * cameraControls.movement.x + up * cameraControls.movement.y + forward * cameraControls.movement.z;
 
 	float aspect = size.width() / (float)size.height();
-	glm::mat4x4 projection = MatrixUtils::Perspective(45.0f, aspect, 0.1f, 100.0f);
+	glm::mat4x4 projection = MatrixUtils::Perspective(45.0f, aspect, 0.1f, 1000.0f);
     gpuData.viewMatrix = (view);
 	gpuData.inverseViewMatrix = inverse(gpuData.viewMatrix);
 	gpuData.projectionMatrix = transpose(projection);
