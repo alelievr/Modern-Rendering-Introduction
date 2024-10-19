@@ -106,7 +106,7 @@ void Camera::CameraControls::OnKey(int key, int action)
 
 void Camera::CameraControls::OnMouse(bool first, double xpos, double ypos)
 {
-	float rotationSpeed = 1.0f / 60.0f;
+	float rotationSpeed = 0.5f / 60.0f;
 
 	if (first)
 	{

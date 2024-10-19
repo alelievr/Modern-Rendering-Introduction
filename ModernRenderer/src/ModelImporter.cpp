@@ -13,6 +13,7 @@ ModelImporter::ModelImporter(const std::string& path, int flags)
     : path(path)
     , directory(SplitFilename(path))
 {
+    m_import.SetPropertyBool(AI_CONFIG_FBX_CONVERT_TO_M, true);
     LoadModel(flags);
 }
 
@@ -25,8 +26,15 @@ void ModelImporter::LoadModel(int flags)
 {
     const aiScene* scene = m_import.ReadFile(
         path, flags & (aiProcess_FlipUVs | aiProcess_FlipWindingOrder | aiProcess_Triangulate |
-            aiProcess_GenSmoothNormals | aiProcess_OptimizeMeshes | aiProcess_CalcTangentSpace));
+            aiProcess_GenSmoothNormals | aiProcess_OptimizeMeshes | aiProcess_CalcTangentSpace | aiProcess_ValidateDataStructure));
     assert(scene && scene->mFlags != AI_SCENE_FLAGS_INCOMPLETE && scene->mRootNode);
+
+    if (path.ends_with(".fbx"))
+    {
+        //scene->mMetaData->Add("UnitScaleFactor", 0.01f);
+        scene->mMetaData->Set("UnitScaleFactor", 0.01f);
+    }
+
     ProcessNode(scene->mRootNode, scene);
 }
 
@@ -66,6 +74,9 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene)
     if (SkipMesh(mesh, scene))
         return;
 
+    float scale;
+    scene->mMetaData->Get("UnitScaleFactor", scale);
+
     Mesh currentMesh = {};
     Material currentMaterial;
     // Walk through each of the mesh's vertices
@@ -79,9 +90,9 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene)
         } vertex;
 
         if (mesh->HasPositions()) {
-            vertex.position.x = mesh->mVertices[i].x;
-            vertex.position.y = mesh->mVertices[i].y;
-            vertex.position.z = mesh->mVertices[i].z;
+            vertex.position.x = mesh->mVertices[i].x * scale;
+            vertex.position.y = mesh->mVertices[i].y * scale;
+            vertex.position.z = mesh->mVertices[i].z * scale;
         }
 
         if (mesh->HasNormals()) {
