@@ -9,6 +9,7 @@ public class Camera00 : MonoBehaviour
     public float orthographic;
     public RenderTexture output;
     public TextMeshProUGUI text;
+    public TextMeshProUGUI farPlaneSize;
 
     public float fov;
     public float near;
@@ -74,5 +75,8 @@ public class Camera00 : MonoBehaviour
 
         if (text != null)
             text.text = $"Field Of View: {fov:0.0}";
+
+        if (farPlaneSize != null)
+            farPlaneSize.text = $"Far Plane Size: {farCorners[0].x - farCorners[2].x:0.00}";
     }
 }

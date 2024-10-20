@@ -197,17 +197,17 @@ Homogeneous Clip space (or HCLIP for short) is represented by a 4 component vect
 
 Having the CLip space boundary defined by a single value means that it can be represented as a cube centered on the origin. In fact the projection matrix actually transforms the frustum shape into a box with $2*w$ as edge size.
 
-// TODO: insert frustum to box gif
+![](Media/Recordings/Matrix%2004%20Frustum%20To%20Box.gif)
 
 Unlike the translation, rotation or scaling matrix, this transformation actually warps space itself so everything that was in the frustum shape will end-up inside the box. This is the cause of the deformation caused by the perspective (objects appear smaller as they get farther and skewed when they get close to the border of the frustum).
 
-// TODO: insert gif about perspective deformations
+You can see this in action with this animation. Look at how the objects are morphing while following the deformation of the perspective transform. In the bottom left corner, is a view filmed with a camera without perspective, it allows to get a better look at the deformation occurring here.
 
-So how do we calculate this $w$ value? Let's think about the simplest case where the frustum view have a FoV of 1 radiant and the aspect ratio is squared (vertical FoV = horizontal FoV). To transform this shape into a box what we can do is set the value of $w$ to be equal to the value of $z$. when the $x$ and $y$ coordinates gets divided by $z$ is "flattens" the frustum into a box. Obviously this only works when the FoV is exactly 1 (or 90 degree: TODO check that), so we still need a add something to take the FoV into account.
+![](Media/Recordings/Matrix%2005%20Perspective%20Deformation.gif)
 
-// TODO: insert gif about the transformation of x, y when divided by z. Obviously, z / z = 1.
+So how do we calculate this $w$ value? Let's think about the simplest case where the frustum view have a FoV of 90 degrees and the aspect ratio is squared (vertical FoV = horizontal FoV). To transform this shape into a box what we can do is set the value of $w$ to be equal to the value of $z$. when the $x$ and $y$ coordinates gets divided by $z$ it "flattens" the frustum into a box.
 
-Before we talk about FoV tough, you might have noticed a small issue with the calculation above: the z coordinate always end up being 1 (z / z = 1), so we're actually loosing the depth information. Which means that right now we're transforming the frustum into a plane and not a box. We need to keep this z value "intact" for further calculation.
+You might have noticed a small issue with the calculation above: the z coordinate always end up being 1 (z / z = 1), so we're actually loosing the depth information. Which means that right now we're transforming the frustum into a plane and not a box. We need to keep this z value "intact" for further calculation.
 
 To do that, we can remap the $z$ value between 0 and $+w$ so that when $z$ is equal to the near plane, $z / w = 0$ and when $z$ is equal to the far plane, $z / w = 1$. We can do that by using the near and far plane values with this formula where $z$ is the input coordinate of the point, $f$ is the far plane and $n$ is the near plane.
 
@@ -232,15 +232,13 @@ $$
 
 Now that we have a working matrix for a fixed angle, we need to make it work with any FoV between $]0, 180[$ degrees. There is actually a very simple way to handle that, we already know that the z coordinate is not affected by perspective, only the X and Y are, so the two cells of the matrix that we'll change are the two $1$ in the diagonal of the matrix. If  you remember the previous chapter, these numbers are analog to the scale matrix, in fact this scaling the space on the X and Y axises is the simplest solution to handle an arbitrary FoV. With no scale (a value of 1), the FoV is 90 degrees. The smaller the FoV is, the lower the scaling value needs to be to stretch the space accordingly, and vice versa. at FoV 180 degree, the scaling value reaches infinity, that's why this value is excluded from the range of possible FoVs, similarly at 0 FoV, nothing is visible so it's excluded as well.
 
-// TODO: 2D gif of space scaling and correlation to FoV
+![](Media/Recordings/Matrix%2006%20FoV.gif)
 
 We can calculate the scaling factor needed with trigonometry rules by forming a square triangle between the camera origin and the far plane.
 
-// TODO: image for the square triangle
+What we want to know is the length of the side of the triangle, we already know the two points and the angle, so we can easily get this with $arctan(fov / 2)$, note that the fov needs to be converted in radians for the arctan which can be done by multiplying by $\frac{pi}{180}$.
 
 > Note that if the camera screen is not square (which is often the case), there are two different field of views: one vertical and one horizontal. In this course when field of view is mentioned, we are talking about the vertical field of view.
-
-What we want to know is the length of the side of the triangle, we already know the two points and the angle, so we can easily get this with $arctan(fov / 2)$, note that the fov needs to be converted in radians for the arctan which can be done by multiplying by $\frac{pi}{180}$.
 
 which gives us this final projection matrix:
 
@@ -257,7 +255,13 @@ Where $a$ is the aspect ratio of the screen (width divided by the height) and $f
 
 ### Orthographic
 
-TODO
+An orthographic projection doesn't have any perspective which makes it less intuitive than the perspective projection. In this projection, all the objects you see on screen keep the same size regardless of the distance. It can be useful to have this kind of projection to get a sense of the scale of certain objects or simply to create a different art style.
+
+The orthographic camera is simpler to control, the field of view is replaced by a single size that controls how much the camera sees or how zoomed in the view is. We still need to keep the aspect ratio to match the output resolution and there is the same near and far plane as the perspective camera with a slight difference: both near and far plane can have negative values without breaking the camera.
+
+// TODO: ortho camera gif
+
+
 
 ## Matrix Inverse
 
@@ -269,7 +273,11 @@ The transformation pipeline in 3D is a series of transformation, usually applied
 
 ### Object Space
 
+This is the space in which the model was created in, it's origin is often at the center of the mesh.
+
 ### World Space
+
+To move from object space to world space, we apply the model matrix, it contains translation, rotation and scale information. This matrix simply describes at which position, rotation and scale the object is relative to the origin of the world.
 
 ### View Space
 
@@ -279,10 +287,37 @@ The transformation pipeline in 3D is a series of transformation, usually applied
 
 ### Screen Space
 
+## Camera Relative Rendering
+
+Another important concept to be aware of is what camera relative rendering is as we'll be using this throughout all the course. Dealing with large worlds where the coordinates of objects becomes big values causes precision issues due to the nature of the floating point. These issues can visually cause objects to jitter, camera to be unstable or shaking, etc. To get rid of these issues, instead of having a fixed world space origin at (0, 0, 0) in the world, we say that the origin is the camera. Because the camera is never very far away from what it sees, it's safe to assume that there will be no precision issue in the computations of the shader.
+
+This has 3 main implications:
+- The position of the camera is always 0.
+- For each vertex on the GPU we need to subtract the world position of the camera before doing any calculation.
+- To get the world space position, we need to add the world position of the camera.
+
+To clarify in which space we are, we call these two **Camera Relative World Space** and **Absolute World Space**.
+
 ## Matrix alternatives
 
-TODO: talk a bit about:
-https://enkimute.github.io/LookMaNoMatrices/
+There are alternative solutions to matrices for performing transforms, amongst the most common ones, we find quaternions, dual quaternions, and Geometric Algebra.
+
+### Quaternions & Dual Quaternions
+
+Quaternions are use exclusively to describe a rotation, they are a bit harder to visualize than euler angles mostly because of the 4 components but they are extremely efficient at storing rotation values, performing interpolation on rotation and avoiding gimbal lock issues.
+
+Dual quaternions adds the translation on top of the rotation part, they are often used in animated meshes to improve the quality of the animation.
+
+If you want to learn more on this topic, check out [Math in Game Development Summit: A Visual Guide to Quaternions and Dual Quaternions
+](https://www.youtube.com/watch?v=en2QcehKJd8).
+
+### Geometric Algebra
+
+Geometric Algebra offer a complete alternative to matrix transformations. The goal of this frameworks is to provide a more intuitive approach to representing geometric entities like points, lines, planes, and rotations, which results in cleaner and more compact mathematical expressions. Unlike matrices, which can obscure the underlying geometric meaning, GA and PGA allow direct manipulation of objects and transformations within a unified algebraic system, enabling more straightforward handling of rotations, translations, scales, etc.
+
+However, the vast majority of realtime applications are still using matrices. Historically matrices were first to provide an unified transformation framework, now the number of tutorial and resources available to learn matrices is huge and easy to access. Similarly almost every 3D application and library only exposes matrices as API which forces developers to use them by default. Matrices are also baked into shading languages providing native support for matrix operations and specific optimizations which makes them easier to use. GA and PGA tend to have a steeper learning curve for developers because of those reasons.
+
+For more information about, you can check out [LookMaNoMatrices](https://enkimute.github.io/LookMaNoMatrices/).
 
 ## References
 
@@ -303,3 +338,5 @@ https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthogr
 https://en.wikipedia.org/wiki/Multiplicative_inverse
 
 https://learn.microsoft.com/en-us/windows/win32/dxtecharts/the-direct3d-transformation-pipeline
+
+https://learn.microsoft.com/en-us/windows/win32/direct3d9/viewports-and-clipping

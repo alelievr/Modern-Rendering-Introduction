@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.VisualScripting;
 using TMPro;
+using UnityEngine.Animations;
 
 public class Matrix04FrustumToBox : MonoBehaviour
 {
@@ -10,6 +11,8 @@ public class Matrix04FrustumToBox : MonoBehaviour
     public RenderTexture output;
     public float lineWidth = 0.1f;
     public float time = 4;
+    public bool animate = false;
+    public float animatedTime = 0;
     // public TextMeshProUGUI text;
 
     public float fov;
@@ -18,17 +21,18 @@ public class Matrix04FrustumToBox : MonoBehaviour
 
     Line[] lines = new Line[12];
 
-    Camera cam;
-
-    Matrix4x4 projectionMatrix;
-    Vector3[] nearCorners = new Vector3[4];
-    Vector3[] farCorners = new Vector3[4];
+    internal Camera cam;
+    internal float t;
+    internal Matrix4x4 projectionMatrix;
+    internal Vector3[] nearCorners = new Vector3[4];
+    internal Vector3[] farCorners = new Vector3[4];
 
     Vector3[] nearHCLIPCorners = new Vector3[4];
     Vector3[] farHCLIPCorners = new Vector3[4];
 
-    // Lerp two matrices:
-    
+    internal Vector3[] intermediateNearCorners;
+    internal Vector3[] intermediateFarCorners;
+
     void Start()
     {
         for (int i = 0; i < lines.Length; i++)
@@ -49,7 +53,6 @@ public class Matrix04FrustumToBox : MonoBehaviour
         cam.targetTexture = output;
         cam.enabled = false;
         projectionMatrix = Matrix4x4.Perspective(fov, 1, near, far);
-        Debug.Log(projectionMatrix);
         cam.projectionMatrix = projectionMatrix;
 
         // OpenGL...
@@ -68,23 +71,24 @@ public class Matrix04FrustumToBox : MonoBehaviour
             farHCLIPCorners[i] = projectionMatrix.MultiplyPoint(farCorners[i]);
         }
 
+        // DirectX clips every depth < 0
         for (int i = 0; i < 4; i++)
-        {
-            var t = projectionMatrix.inverse.MultiplyPoint(nearCorners[i]);
-            Debug.Log(t);
-        }
-        
+            nearHCLIPCorners[i] = new Vector3(nearHCLIPCorners[i].x, nearHCLIPCorners[i].y, Mathf.Max(nearHCLIPCorners[i].z, 0));
+
         Update();
     }
 
     void Update()
     {
 
-        Vector3[] intermediateNearCorners = new Vector3[4];
-        Vector3[] intermediateFarCorners = new Vector3[4];
+        intermediateNearCorners = new Vector3[4];
+        intermediateFarCorners = new Vector3[4];
 
+        if (animate)
+            t = animatedTime;
+        else
+            t = Mathf.PingPong(Time.time / time, 1);
         // Interpolate between projection and HCLIP corners for animation:
-        float t = Time.time / time;
         for (int i = 0; i < 4; i++)
         {
             intermediateNearCorners[i] = Vector3.Lerp(nearCorners[i], nearHCLIPCorners[i], t);
@@ -104,8 +108,5 @@ public class Matrix04FrustumToBox : MonoBehaviour
         lines[9].UpdateLine(intermediateNearCorners[1], intermediateFarCorners[1]);
         lines[10].UpdateLine(intermediateNearCorners[2], intermediateFarCorners[2]);
         lines[11].UpdateLine(intermediateNearCorners[3], intermediateFarCorners[3]);
-
-        // if (text != null)
-        //     text.text = $"Field Of View: {fov:0.0}";
     }
 }

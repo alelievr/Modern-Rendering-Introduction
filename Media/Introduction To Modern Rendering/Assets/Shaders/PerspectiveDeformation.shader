@@ -1,4 +1,4 @@
-Shader "Custom/ProjectionViewer"
+Shader "Custom/PerspectiveDeformation"
 {
     Properties
     {
@@ -36,8 +36,6 @@ Shader "Custom/ProjectionViewer"
  
         void vert(inout appdata_full v)
         {
-            // float4 projectedPosition = mul(_ViewProjectionMatrix, v.vertex);
-            // v.vertex.xyz = lerp(v.vertex, projectedPosition, _ProjectionViewSlider).xyz;
             // Transform vertex position to world space
             float4 worldPos = mul(unity_ObjectToWorld, v.vertex);
 
@@ -46,14 +44,18 @@ Shader "Custom/ProjectionViewer"
 
             // Perspective divide
             clipPos.xyz /= clipPos.w;
+            // clipPos.z /= -clipPos.w;
 
             // positions in HCLIP are between -1 and 1, we need to adjust that so it matches the near and far planes of the camera for the visualization
             clipPos.w = 1;
-            clipPos.z = -_NearPlane - 0.000001; // offset to avoid z clip
+            // Remap clip pos between 0 and 1
+            clipPos.z = (clipPos.z * 0.5 - 0.5) * 2;
             clipPos.xy *= abs(_NearPlaneSize / 2);
 
             // Now that the objects are transformed in HCLIP space of the camera, we transform them back to world space
             clipPos = mul(_InverseViewMatrix, clipPos);
+
+            clipPos.xy /= abs(_NearPlaneSize);
 
             // Lerp between the original clip position and the projected clip position
             clipPos = lerp(worldPos, clipPos, _ProjectionViewSlider);
