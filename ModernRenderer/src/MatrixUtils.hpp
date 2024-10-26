@@ -16,6 +16,7 @@ public:
 	static glm::mat4x4 Scale(const glm::vec3& scale);
 	
 	static glm::mat4x4 Perspective(float fov, float aspect, float near, float far);
+	static glm::mat4x4 Orthographic(const glm::vec2& size, float aspect, float near, float far);
 
 	static glm::mat4x4 Mul(const glm::mat4x4& left, const glm::mat4x4& right);
 };

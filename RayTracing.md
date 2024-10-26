@@ -26,7 +26,7 @@ Some path tracers are trying to do a closer match to reality by tracing multiple
 
 ## Implementation
 
-TODO
+Let's start by shooting rays from our simple camera, 
 
 ## References
 

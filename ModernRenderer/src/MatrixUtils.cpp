@@ -94,6 +94,19 @@ glm::mat4x4 MatrixUtils::Perspective(float fov, float aspect, float near, float 
 	return result;
 }
 
+glm::mat4x4 MatrixUtils::Orthographic(const glm::vec2& size, float aspect, float near, float far)
+{
+	glm::mat4x4 result(1.0f); // Identity matrix
+
+	result[0][0] = 2.0f / (size.x * aspect);
+	result[1][1] = 2.0f / size.y;
+	result[2][2] = 1.0f / (far - near);
+	result[3][2] = near / (near - far);
+	result[3][3] = 1.0f;
+
+	return result;
+}
+
 glm::mat4x4 MatrixUtils::Mul(const glm::mat4x4& left, const glm::mat4x4& right)
 {
 	glm::mat4x4 result(1.0f); // Identity matrix

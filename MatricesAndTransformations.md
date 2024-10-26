@@ -257,11 +257,20 @@ Where $a$ is the aspect ratio of the screen (width divided by the height) and $f
 
 An orthographic projection doesn't have any perspective which makes it less intuitive than the perspective projection. In this projection, all the objects you see on screen keep the same size regardless of the distance. It can be useful to have this kind of projection to get a sense of the scale of certain objects or simply to create a different art style.
 
-The orthographic camera is simpler to control, the field of view is replaced by a single size that controls how much the camera sees or how zoomed in the view is. We still need to keep the aspect ratio to match the output resolution and there is the same near and far plane as the perspective camera with a slight difference: both near and far plane can have negative values without breaking the camera.
+The orthographic camera is simpler to control, the field of view is replaced by a single size value that controls how large the view is or how zoomed in the view is. We still need to keep the aspect ratio to match the output resolution and there is the same near and far plane as the perspective camera with a slight difference: both near and far plane can have negative values without breaking the camera.
 
-// TODO: ortho camera gif
+Multiplying a position by this matrix should output a value in HCLIP space, except that this time the we only need to scale the coordinates by a certain factor per axis, because all the objects are already in a box compared to a frustum for the perspective.
 
+Here's the orthographic matrix:
 
+$$
+\begin{bmatrix}
+\frac{2}{sizeX * a} & 0 & 0 & 0 \\
+0 & \frac{2}{sizeY} & 0 & 0 \\
+0 & 0 & \frac{-2}{f - n} & 0 \\
+0 & 0 & -\frac{f + n}{f - n} & 0
+\end{bmatrix}
+$$
 
 ## Matrix Inverse
 
@@ -281,11 +290,21 @@ To move from object space to world space, we apply the model matrix, it contains
 
 ### View Space
 
-### HCLIP space
+To move from world space to view space, we apply the camera view matrix, this matrix is very similar to the model matrix of the object except that it doesn't contain a scaling value.
+
+### Homogeneous clip (HCLIP) space
+
+To move from view space to HCLIP, we apply the projection matrix of the camera.
 
 ### NDC Space
 
+To move from HCLIP to NDC, we divide the HCLIP position by the $w$ mentioned in the perspective matrix section. In DirectX NDC space ranges from 0 to 1.
+
 ### Screen Space
+
+To move from NDC to screen space, we apply another matrix called viewport matrix.
+
+We can also move from screen space toward object space by applying the inverse of transformation at each space. This is often performed when we need to know which object is under the mouse cursor for example.
 
 ## Camera Relative Rendering
 

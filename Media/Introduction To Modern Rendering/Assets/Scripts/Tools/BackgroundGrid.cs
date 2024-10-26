@@ -115,8 +115,8 @@ public class BackgroundGrid : MonoBehaviour
         lineRenderer.endWidth = width;
         lineRenderer.positionCount = 2;
         lineRenderer.useWorldSpace = false;
-        lineRenderer.SetPosition(0, start * scale);
-        lineRenderer.SetPosition(1, end * scale);
+        lineRenderer.SetPosition(0, start * scale + transform.position);
+        lineRenderer.SetPosition(1, end * scale + transform.position);
         lineRenderers.Add(lineRenderer);
     }
 }
