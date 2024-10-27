@@ -23,8 +23,6 @@ VertexToFragment main(VertexAttributes input)
     // Assume that position is world space for now
     output.pos = TransformCameraRelativeWorldToHClip(pos);
     output.debug = float4(pos, 1);
-    //output.pos = float4(pos, 1);
-    //output.pos = float4(input.pos, 1);
     
     return output;
 }

@@ -9,6 +9,7 @@ cbuffer CameraData : register(b0, space0)
     float4x4 viewProjectionMatrix;
     float4x4 inverseViewProjectionMatrix;
     float4 cameraPosition;
+    float4 cameraResolution;
 };
 
 float3 GetCameraRelativePosition(float3 position)
@@ -36,15 +37,18 @@ float4 TransformCameraRelativeWorldToHClip(float3 positionRWS)
     return mul(float4(positionRWS, 1.0), viewProjectionMatrix);
 }
 
-float3 TransformHClipToCameraRelativeWorld(float3 positionWS)
+float3 TransformHClipToCameraRelativeWorld(float4 positionHClip)
 {
-    return mul(float4(positionWS, 1.0), inverseViewProjectionMatrix).xyz;
+    float3 positionNDC = float3((positionHClip.xy * cameraResolution.zw) * 2 - 1, positionHClip.z);
+    positionNDC.y = -positionNDC.y;
+    float4 p = mul(float4(positionNDC, 1), inverseViewProjectionMatrix);
+    return p.xyz / p.w;
 }
 
-float3 TransformHClipToWorldDir(float3 positionCS)
+float3 TransformHClipToWorldDir(float4 positionCS)
 {
     // view matrix doens't have translation because we're using camera relative
-    float4 world = mul(float4(positionCS, 1.0), inverseViewProjectionMatrix);
+    float4 world = mul(positionCS, inverseViewProjectionMatrix);
     
     return normalize(world.xyz / world.w);
 }

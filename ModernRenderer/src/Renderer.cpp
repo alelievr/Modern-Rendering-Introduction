@@ -16,7 +16,12 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     ViewDesc outputTextureViewDesc = {};
     outputTextureViewDesc.view_type = ViewType::kRWTexture;
     outputTextureViewDesc.dimension = ViewDimension::kTexture2D;
-    std::shared_ptr<View> outputTextureView = device->CreateView(mainColorTexture, outputTextureViewDesc);
+    std::shared_ptr<View> mainColorTextureView = device->CreateView(mainColorTexture, outputTextureViewDesc);
+
+    mainDepthTexture = device->CreateTexture(TextureType::k2D, BindFlag::kDepthStencil | BindFlag::kShaderResource, gli::format::FORMAT_D32_SFLOAT_S8_UINT_PACK64, 1, appSize.width(), appSize.height(), 1, 1);
+    mainDepthTexture->CommitMemory(MemoryType::kDefault);
+    mainDepthTexture->SetName("DepthTexture");
+    //std::shared_ptr<View> mainDepthTextureView = device->CreateView(mainDepthTexture, outputTextureViewDesc);
 
     // Object CBuffer
     glm::vec4 constant_data = glm::vec4(1, 0, 0, 1);
@@ -40,21 +45,32 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     constant_view_desc.dimension = ViewDimension::kBuffer;
     std::shared_ptr<View> constant_view = device->CreateView(constant_buffer, constant_view_desc);
     BindKey settings_key = { ShaderType::kPixel, ViewType::kConstantBuffer, 1, 0, 1, UINT32_MAX };
-    std::shared_ptr<BindingSetLayout> layout = device->CreateBindingSetLayout({ camera.cameraDataKeyVertex, settings_key });
+    std::shared_ptr<BindingSetLayout> layout = device->CreateBindingSetLayout({ camera.cameraDataKeyVertex, settings_key, camera.cameraDataKeyFragment });
     objectBindingSet = device->CreateBindingSet(layout);
-    objectBindingSet->WriteBindings({ camera.cameraDataDescVertex, { settings_key, constant_view } });
-    BindKey compute_settings_key = { ShaderType::kCompute, ViewType::kRWTexture, 0, 0, 1, UINT32_MAX };
-    std::shared_ptr<BindingSetLayout> compute_layout = device->CreateBindingSetLayout({ camera.cameraDataKeyCompute, compute_settings_key });
+    objectBindingSet->WriteBindings({ camera.cameraDataDescVertex, camera.cameraDataDescFragment, { settings_key, constant_view } });
+    BindKey PathTracerMainColorKey = { ShaderType::kCompute, ViewType::kRWTexture, 0, 0, 1, UINT32_MAX };
+    std::shared_ptr<BindingSetLayout> compute_layout = device->CreateBindingSetLayout({ camera.cameraDataKeyCompute, PathTracerMainColorKey });
     pathTracerBindingSet = device->CreateBindingSet(compute_layout);
 
-    RenderPassDesc render_pass_desc = {
-        { { gli::FORMAT_RGBA8_UNORM_PACK8, RenderPassLoadOp::kLoad, RenderPassStoreOp::kStore } },
+	// Create the load/store render pass setup
+	RenderPassDepthStencilDesc depthStencilDesc = {
+        gli::FORMAT_D32_SFLOAT_S8_UINT_PACK64,
+		RenderPassLoadOp::kClear, RenderPassStoreOp::kStore, // depth load/store
+		RenderPassLoadOp::kClear, RenderPassStoreOp::kStore // stencil load/store
     };
-    loadStoreColorRenderPass = device->CreateRenderPass(render_pass_desc);
-    render_pass_desc = {
-    { { gli::FORMAT_RGBA8_UNORM_PACK8, RenderPassLoadOp::kClear, RenderPassStoreOp::kStore } },
+	RenderPassColorDesc mainColorDesc = { gli::FORMAT_RGBA8_UNORM_PACK8, RenderPassLoadOp::kLoad, RenderPassStoreOp::kStore };
+    RenderPassDesc renderPassDesc = {
+        { mainColorDesc },
+        depthStencilDesc
     };
-    clearColorRenderPass = device->CreateRenderPass(render_pass_desc);
+    loadStoreColorRenderPass = device->CreateRenderPass(renderPassDesc);
+
+    // Create the clear render pass setup
+    for (auto& d : renderPassDesc.colors)
+        d.load_op = RenderPassLoadOp::kClear;
+	renderPassDesc.depth_stencil.depth_load_op = RenderPassLoadOp::kClear;
+	renderPassDesc.depth_stencil.stencil_load_op = RenderPassLoadOp::kClear;
+    clearColorRenderPass = device->CreateRenderPass(renderPassDesc);
 
     GraphicsPipelineDesc pipelineDesc = {
         program,
@@ -65,25 +81,28 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     pipelineDesc.rasterizer_desc = { FillMode::kSolid, CullMode::kNone, 0 };
     objectPipeline = device->CreateGraphicsPipeline(pipelineDesc);
 
-    ComputePipelineDesc compute_desc = {
+    ComputePipelineDesc computeDesc = {
         compute_program,
         compute_layout,
     };
-    pathTracerPipeline = device->CreateComputePipeline(compute_desc);
+    pathTracerPipeline = device->CreateComputePipeline(computeDesc);
 
-    pathTracerBindingSet->WriteBindings({ camera.cameraDataDescCompute, { compute_settings_key, outputTextureView } });
+    pathTracerBindingSet->WriteBindings({ camera.cameraDataDescCompute, { PathTracerMainColorKey, mainColorTextureView } });
 
     ViewDesc renderTarget2DDesc = {};
     renderTarget2DDesc.view_type = ViewType::kRenderTarget;
     renderTarget2DDesc.dimension = ViewDimension::kTexture2D;
+    ViewDesc stencil2DDesc = {};
+    stencil2DDesc.view_type = ViewType::kDepthStencil;
+    stencil2DDesc.dimension = ViewDimension::kTexture2D;
 
     FramebufferDesc desc = {};
     desc.render_pass = loadStoreColorRenderPass;
     desc.width = appSize.width();
     desc.height = appSize.height();
     desc.colors = { device->CreateView(mainColorTexture, renderTarget2DDesc) };
+	desc.depth_stencil = device->CreateView(mainDepthTexture, stencil2DDesc);
     mainColorFrameBuffer = device->CreateFramebuffer(desc);
-
 }
 
 Renderer::~Renderer()

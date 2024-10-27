@@ -50,8 +50,8 @@ void Camera::UpdateCamera(const AppSize& size)
     position += right * cameraControls.movement.x + up * cameraControls.movement.y + forward * cameraControls.movement.z;
 
 	float aspect = size.width() / (float)size.height();
-	//glm::mat4x4 projection = MatrixUtils::Perspective(45.0f, aspect, 0.1f, 1000.0f);
-	glm::mat4x4 projection = MatrixUtils::Orthographic(glm::vec2(5), aspect, 0.1f, 1000.0f);
+	glm::mat4x4 projection = MatrixUtils::Perspective(45.0f, aspect, 0.1f, 1000.0f);
+	//glm::mat4x4 projection = MatrixUtils::Orthographic(glm::vec2(5), aspect, 0.1f, 1000.0f);
     gpuData.viewMatrix = (view);
 	gpuData.inverseViewMatrix = inverse(gpuData.viewMatrix);
 	gpuData.projectionMatrix = transpose(projection);
@@ -59,6 +59,7 @@ void Camera::UpdateCamera(const AppSize& size)
 	gpuData.viewProjectionMatrix = transpose(projection * view);
 	gpuData.inverseViewProjectionMatrix = inverse(gpuData.viewProjectionMatrix);
 	gpuData.cameraPosition = glm::vec4(position, 0);
+	gpuData.cameraResolution = glm::vec4(size.width(), size.height(), 1.0f / size.width(), 1.0f / size.height()); // The camera has the same resoution as the window.
 
 	cameraDataBuffer->UpdateUploadBuffer(0, &gpuData, sizeof(GPUCameraData));
 

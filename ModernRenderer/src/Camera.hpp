@@ -13,6 +13,7 @@ struct GPUCameraData
     glm::mat4 viewProjectionMatrix;
     glm::mat4 inverseViewProjectionMatrix;
     glm::vec4 cameraPosition;
+    glm::vec4 cameraResolution;
 };
 
 class Camera

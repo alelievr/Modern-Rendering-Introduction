@@ -63,6 +63,7 @@ target_link_libraries(ModernRenderer
 )
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_property(TARGET ModernRenderer PROPERTY CXX_STANDARD 20)
 
 set_target_properties(FlyCube PROPERTIES FOLDER 3rdparty)
 set_target_properties(assimp uninstall unit UpdateAssimpLibsDebugSymbolsAndDLLs zlibstatic PROPERTIES FOLDER 3rdparty)
