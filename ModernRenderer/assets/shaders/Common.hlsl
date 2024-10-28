@@ -45,10 +45,10 @@ float3 TransformHClipToCameraRelativeWorld(float4 positionHClip)
     return p.xyz / p.w;
 }
 
-float3 TransformHClipToWorldDir(float4 positionCS)
+float3 TransformNDCToWorldDir(float3 positionNDC)
 {
     // view matrix doens't have translation because we're using camera relative
-    float4 world = mul(positionCS, inverseViewProjectionMatrix);
+    float4 world = mul(float4(positionNDC, 1), inverseViewProjectionMatrix);
     
     return normalize(world.xyz / world.w);
 }

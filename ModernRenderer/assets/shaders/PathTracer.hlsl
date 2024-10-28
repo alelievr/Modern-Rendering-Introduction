@@ -12,7 +12,7 @@ void main(uint3 threadID : SV_DispatchThreadID)
     float4 clipPosition = float4((threadID.xy / outputSize) * 2 - 1, 1, 1);
     clipPosition.y = -clipPosition.y; // TODO: investigate why this is needed
 
-    float3 viewDirWS = TransformHClipToWorldDir(clipPosition);
+    float3 viewDirWS = TransformNDCToWorldDir(clipPosition);
     _Output[threadID.xy] = float4(viewDirWS * 0.5 + 0.5, 1);
 
     float aspect = outputSize.y / outputSize.x;
