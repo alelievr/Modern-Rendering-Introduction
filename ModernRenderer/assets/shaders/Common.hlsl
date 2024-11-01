@@ -50,7 +50,7 @@ float3 TransformNDCToWorldDir(float3 positionNDC)
     // view matrix doens't have translation because we're using camera relative
     float4 world = mul(float4(positionNDC, 1), inverseViewProjectionMatrix);
     
-    return normalize(world.xyz / world.w);
+    return normalize(world.xyz);
 }
 
 float4 TransformWViewToHClip(float3 positionVS)

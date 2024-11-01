@@ -37,7 +37,7 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     std::shared_ptr<Program> program = device->CreateProgram({ vertex_shader, pixel_shader });
 
     std::shared_ptr<Shader> compute_test = device->CompileShader(
-        { MODERN_RENDERER_ASSETS_PATH "shaders/PathTracer.hlsl", "main", ShaderType::kCompute, "6_5" });
+        { MODERN_RENDERER_ASSETS_PATH "shaders/PathTracerScene0.hlsl", "main", ShaderType::kCompute, "6_5" });
     std::shared_ptr<Program> compute_program = device->CreateProgram({ compute_test });
 
     ViewDesc constant_view_desc = {};

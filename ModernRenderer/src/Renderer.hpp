@@ -18,6 +18,7 @@ private:
     {
     public:
 		RendererMode rendererMode = RendererMode::Rasterization;
+        bool screenshotNextFrame = false;
 
         Controls() {}
 

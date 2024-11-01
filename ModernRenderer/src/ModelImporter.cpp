@@ -31,7 +31,6 @@ void ModelImporter::LoadModel(int flags)
 
     if (path.ends_with(".fbx"))
     {
-        //scene->mMetaData->Add("UnitScaleFactor", 0.01f);
         scene->mMetaData->Set("UnitScaleFactor", 0.01f);
     }
 

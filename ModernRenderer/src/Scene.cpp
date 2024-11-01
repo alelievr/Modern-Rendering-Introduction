@@ -1,8 +1,10 @@
 #include "Scene.hpp"
 #include "ModelImporter.hpp"
 
-void Scene::LoadHardcodedScene(std::shared_ptr<Device> device)
+void Scene::LoadHardcodedScene(std::shared_ptr<Device> device, Camera camera)
 {
+	name = L"Hardcoded Scene 00";
+
 	ModelImporter importer("assets/models/sphere.fbx", aiProcessPreset_TargetRealtime_Fast);
 
 	ModelInstance instance;

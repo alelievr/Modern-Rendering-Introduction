@@ -15,7 +15,7 @@
 - Sphere intersection [kinda complete]
 - Box / AABB intersection
 - Triangle intersection [complete]
-- Matrices + transformations [started]
+- Matrices + transformations [complete]
 - Meshes [complete]
 - Mesh Shaders [started]
 - Rasterization

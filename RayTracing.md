@@ -26,7 +26,51 @@ Some path tracers are trying to do a closer match to reality by tracing multiple
 
 ## Implementation
 
-Let's start by shooting rays from our simple camera, 
+Let's start with the minimal compute shader kernel to compute an image:
+
+```c
+RWTexture2D<float4> _Output;
+
+[numthreads(8, 8, 1)]
+void main(uint3 id : SV_GroupThreadID)
+{
+    uint2 positionSS = id.xy;
+    float4 color = 0;
+
+    _Output[positionSS] = color;
+}
+```
+
+In this code we have the screen space pixel position denoted by `positionSS`. To determine the ray direction from this position, I'm going to jump ahead a bit here because we need some transformations to be able to know the exact direction the rays need to go. To cast our rays By taking a look at the transformation pipeline described in [Matrices And Transformations](MatricesAndTransformations.md).
+
+### Calculating the ray direction from the camera
+
+The transformation pipeline tells us exactly what we need to do to move from the **Screen Space** we have right now to the world space where our rays can intersect with other objects of the scene.
+
+So, starting from screen space, we can move to NDC by remapping the position between [-1, +1] and set z to 1, because we want to cast our rays toward the +Z direction. Additionally we can move directly to the HCLIP space if we set w to 1 as well.
+
+```c
+uint2 positionSS = id.xy;
+float2 outputSize;
+_Output.GetDimensions(outputSize.x, outputSize.y); // Get the dimension of the output to remap the screen position.
+float3 positionNDC = float3((positionSS / outputSize) * 2 - 1, 1);
+float4 positionHCLIP = float4(positionNDC, 1);
+```
+
+From the position in homogeneous clip space, we multiply by the inverse view projection matrix to move to world space, and after that normalizing the vector to ensure it's length is 1 which necessary for a direction.
+
+```c
+    float4 world = mul(float4(positionNDC, 1), inverseViewProjectionMatrix);
+    float3 directionWS normalize(world.xyz);
+```
+
+We can put these sequence transformations in dedicated functions with to help us move from one space tro another when necessary, you can take a look at those functions in [Common.hlsl](https://github.com/alelievr/Modern-Rendering-Introduction/blob/master/ModernRenderer/assets/shaders/Common.hlsl).
+
+### Objects intersections
+
+Now that we have the ray direction and it's origin (it's the camera position), we can calculate intersections with other objects in the scene. Using the intersections formulas we saw in previous chapiters, we can test our ray tracer by hardcoding a few objects in hlsl. Each object is assigned a different color and we select the closest hit distance in case of multiple intersections. If nothing is intersected, we just return black color
+
+You can check out the intersection functions in the [GeometryUtils.hlsl](https://github.com/alelievr/Modern-Rendering-Introduction/blob/master/ModernRenderer/assets/shaders/GeometryUtils.hlsl) source file.
 
 ## References
 

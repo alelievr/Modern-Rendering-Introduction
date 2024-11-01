@@ -24,9 +24,10 @@ private:
 
 public:
 	std::vector<ModelInstance> instances;
+	std::wstring name;
 
 	Scene() = default;
 	~Scene() = default;
 
-	void LoadHardcodedScene(std::shared_ptr<Device> device);
+	void LoadHardcodedScene(std::shared_ptr<Device> device, Camera camera);
 };

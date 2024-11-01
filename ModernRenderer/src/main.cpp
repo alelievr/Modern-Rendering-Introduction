@@ -6,6 +6,9 @@
 #include "Renderer.hpp"
 #include "InputController.hpp"
 #include "RenderDoc.hpp"
+#include "ScreenShotController.hpp"
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include "GLFW/glfw3native.h"
 
 int main(int argc, char* argv[])
 {
@@ -35,7 +38,7 @@ int main(int argc, char* argv[])
     // Load scene
     Scene scene;
 
-    scene.LoadHardcodedScene(device);
+    scene.LoadHardcodedScene(device, camera);
 
     RenderPassDesc render_pass_desc = {
     { { swapchain->GetFormat(), RenderPassLoadOp::kLoad, RenderPassStoreOp::kStore } },
@@ -45,8 +48,11 @@ int main(int argc, char* argv[])
     InputController inputController;
     app.SubscribeEvents((InputEvents*)&inputController, nullptr);
 
+    ScreenShotController screenShotController(glfwGetWin32Window(app.GetWindow()), scene);
+
     inputController.registeredEvents.push_back((InputEvents*)&camera.cameraControls);
     inputController.registeredEvents.push_back((InputEvents*)&renderer.controls);
+    inputController.registeredEvents.push_back((InputEvents*)&screenShotController);
 
     // Create GFX Buffer
     std::array<uint64_t, swapchainTextureCount> fence_values = {};
