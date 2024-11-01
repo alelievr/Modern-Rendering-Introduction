@@ -10,7 +10,7 @@
 - Simple Camera [complete]
 - GPU Architecture [complete]
 - Compute Shaders [complete]
-- Ray Tracing [incomplete]
+- Ray Tracing [complete]
 - Plane intersection [complete]
 - Sphere intersection [kinda complete]
 - Box / AABB intersection

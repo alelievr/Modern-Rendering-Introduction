@@ -68,7 +68,11 @@ We can put these sequence transformations in dedicated functions with to help us
 
 ### Objects intersections
 
-Now that we have the ray direction and it's origin (it's the camera position), we can calculate intersections with other objects in the scene. Using the intersections formulas we saw in previous chapiters, we can test our ray tracer by hardcoding a few objects in hlsl. Each object is assigned a different color and we select the closest hit distance in case of multiple intersections. If nothing is intersected, we just return black color
+Now that we have the ray direction and it's origin (it's the camera position), we can calculate intersections with other objects in the scene. Using the intersections formulas we saw in previous chapiters, we can test our ray tracer by hardcoding a few objects in hlsl. Each object is assigned a different color and we select the closest hit distance in case of multiple intersections. If nothing is intersected, we just return black color.
+
+![](Media/Recordings/Hardcoded%20Scene%2000.png)
+
+The result might not be impressive right now but there is no point in doing crazy stuff with primitives as our goal will be to render polygonal meshes with the path tracer in the next chapiters.
 
 You can check out the intersection functions in the [GeometryUtils.hlsl](https://github.com/alelievr/Modern-Rendering-Introduction/blob/master/ModernRenderer/assets/shaders/GeometryUtils.hlsl) source file.
 
