@@ -280,31 +280,7 @@ The matrix inverse is a really nice operation, you can see this operation as the
 
 The transformation pipeline in 3D is a series of transformation, usually applied by matrix multiplications that has the purpose to transform a 3D object into 2D surface on a screen.
 
-### Object Space
-
-This is the space in which the model was created in, it's origin is often at the center of the mesh.
-
-### World Space
-
-To move from object space to world space, we apply the model matrix, it contains translation, rotation and scale information. This matrix simply describes at which position, rotation and scale the object is relative to the origin of the world.
-
-### View Space
-
-To move from world space to view space, we apply the camera view matrix, this matrix is very similar to the model matrix of the object except that it doesn't contain a scaling value.
-
-### Homogeneous clip (HCLIP) space
-
-To move from view space to HCLIP, we apply the projection matrix of the camera.
-
-### NDC Space
-
-To move from HCLIP to NDC, we divide the HCLIP position by the $w$ mentioned in the perspective matrix section. In DirectX NDC space ranges from 0 to 1.
-
-### Screen Space
-
-To move from NDC to screen space, we apply another matrix called viewport matrix.
-
-We can also move from screen space toward object space by applying the inverse of transformation at each space. This is often performed when we need to know which object is under the mouse cursor for example.
+![](Media/Recordings/Matrix%20Transformation%20Pipeline.png)
 
 ## Camera Relative Rendering
 
