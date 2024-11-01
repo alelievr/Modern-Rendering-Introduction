@@ -35,7 +35,7 @@ public:
             BitBlt(image.GetDC(), 0, 0, width, height, hdcClient, 0, 0, SRCCOPY);
             image.ReleaseDC();
 
-            auto path = std::wstring(L"../Media/") + scene.name.c_str() + L".png";
+            auto path = std::wstring(L"../Media/Recordings/") + scene.name.c_str() + L".png";
             image.Save(path.c_str(), Gdiplus::ImageFormatPNG);
         }
     }

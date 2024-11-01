@@ -177,12 +177,14 @@ void Renderer::RenderRasterization(std::shared_ptr<CommandList> commandList, std
     commandList->SetViewport(0, 0, appSize.width(), appSize.height());
     commandList->SetScissorRect(0, 0, appSize.width(), appSize.height());
     commandList->ResourceBarrier({ { mainColorTexture, ResourceState::kCommon, ResourceState::kRenderTarget } });
+    commandList->ResourceBarrier({ { mainDepthTexture, ResourceState::kCommon, ResourceState::kDepthStencilWrite } });
     commandList->BeginRenderPass(clearColorRenderPass, mainColorFrameBuffer, clear_desc);
 
     DrawScene(commandList, scene);
 
     commandList->EndRenderPass();
     commandList->ResourceBarrier({ { mainColorTexture, ResourceState::kRenderTarget, ResourceState::kCommon } });
+    commandList->ResourceBarrier({ { mainDepthTexture, ResourceState::kDepthStencilWrite, ResourceState::kCommon } });
 }
 
 void Renderer::RenderPathTracing(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, Camera camera, Scene)

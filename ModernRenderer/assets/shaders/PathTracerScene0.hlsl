@@ -74,7 +74,7 @@ void IntersectsScene(float3 rayDir, float3 rayOrigin, out float3 color)
     
     // Scene
     Sphere sphere = { float3(-2, 0, 0), 1, float3(0.9, 0.2, 0.2) };
-    Sphere sphere2 = { float3(2, 0, 0), 1, float3(0.5, 0.2, 0.2) };
+    Sphere sphere2 = { float3(2, 2, 0), 1, float3(0.5, 0.2, 0.2) };
     Plane plane = { float3(0, -2, 0), float3(0, 1, 0), float3(0.2, 0.9, 0.2) };
     Triangle tri = { float3(-1, 0, 0), float3(1, 0, 0), float3(0, 1, 0), float3(0.2, 0.2, 0.9) };
     
