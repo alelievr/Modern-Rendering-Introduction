@@ -134,6 +134,8 @@ Lately, more complex formats emerged from the need to share more information bet
 
 ## Conclusion
 
+Meshes are the foundation of 3D modeling and rendering, offering a versatile structure for representing polygonal surfaces, primarily through triangles. By organizing vertices and connectivity information, meshes enable the creation of 3D surfaces that are essential for the rasterizer to function. Various data attributes, such as texture coordinates, normals, tangents, and bitangents, can be stored on a per-vertex basis and are crucial for evaluating light and materials applied to the mesh. The flexibility of mesh formats allows them to store additional data, supporting a wide range of use cases, from static models to complex procedural animations. This adaptability, coupled with advances in file formats like USD, continues to drive mesh technology as an integral part of 3D graphics and real-time rendering.
+
 ## References
 
 https://en.wikipedia.org/wiki/UV_mapping
@@ -149,6 +151,8 @@ https://openusd.org/release/index.html
 https://casual-effects.com/data/
 
 https://en.wikipedia.org/wiki/List_of_common_3D_test_models
+
+https://github.com/KhronosGroup/glTF-Sample-Assets
 
 https://learn.microsoft.com/en-us/windows/win32/direct3d9/texture-coordinates
 

@@ -16,13 +16,13 @@ If you're interested into the inner workings of the GPU, AMD publishes a lot of 
 
 I'm going to talk about the most important parts that you need to know for programming on the GPU, this is not a comprehensive list as the GPU is comprised of a lot of different parts though. Also I'm going to use the terminology of AMD GPUs, mostly because they publish more documentation and they are more "Open" than others but similar concepts exists on NVIDIA/Intel just with different names.
 
-### Wave
+### Wave (AMD) or Warp (NVIDIA)
 
 A wave is a group of threads running in parallel [SIMD](https://fr.wikipedia.org/wiki/Single_instruction_multiple_data) fashion, most of the GPUs can run either 32 or 64 threads in parallel. This is the smallest unit of execution that exists on a GPU, which means that dispatching less than 32 threads will result in unused hardware and thus reduce the performance.
 
-Let's take a look at a simple example: rendering a cube will cause 8 vertices (one per corner) to be processed by a shader, which translate to 8 threads. If we assume that the GPU have a wave size of 64, then only 1/8th of the wave is used to process the vertices (only 12.5% of the wave is used). We could add 7 other cubes (as long as they are in the same draw call) and it would take the same amount of time to process.
+Let's take a look at a simple example: rendering a cube will cause 8 vertices (one per corner) to be processed by a shader, which translate to 8 threads. If we assume that the GPU have a wave size of 64, then only 1/8th of the wave is used to process the vertices (only 12.5% of the wave is used). We could add 7 other cubes (as long as they are in the same draw call) and it would take the same amount of time to process it's vertices.
 
-When a large number of threads is dispatched to the GPU, these threads are grouped in waves. Multiple waves can be executed in parallel as long as they are running the same shader code. For example, the current generation of AMD card can have up to 20 waves running in parallel. It's worth noting that every wave running in parallel are sharing the same resources ([ALU](https://en.wikipedia.org/wiki/Arithmetic_logic_unit), Register allocation, [Branch](https://en.wikipedia.org/wiki/Branch_(computer_science)) Processor, etc.)
+When a large number of threads is dispatched to the GPU, these threads are grouped in waves. Multiple waves can be executed in parallel as long as they are running the same shader code. For example, the current generation of AMD card can have up to 20 waves running in parallel. It's worth noting that every wave running in parallel are sharing the same resources ([ALU](https://en.wikipedia.org/wiki/Arithmetic_logic_unit), Register allocation, [Branch](https://en.wikipedia.org/wiki/Branch_(computer_science)) Processor, etc.). While each wave shares the same shader program, each of them have a separate program counter (PC) so each wave can execute any part of the shader program without needing to be in lockstep with other waves.
 
 ### Registers
 
