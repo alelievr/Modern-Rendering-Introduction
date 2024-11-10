@@ -1,12 +1,12 @@
 [submodule "ModernRenderer/3rdparty/imgui"]
 	path = ModernRenderer/3rdparty/imgui
 	url = https://github.com/ocornut/imgui.git
-[submodule "ModernRenderer/3rdparty/FlyCube"]
-	path = ModernRenderer/3rdparty/FlyCube
-	url = https://github.com/andrejnau/FlyCube
 [submodule "ModernRenderer/3rdparty/assimp"]
 	path = ModernRenderer/3rdparty/assimp
 	url = https://github.com/assimp/assimp
 [submodule "ModernRenderer/3rdparty/stb"]
 	path = ModernRenderer/3rdparty/stb
 	url = https://github.com/nothings/stb
+[submodule "ModernRenderer/3rdparty/FlyCube"]
+	path = ModernRenderer/3rdparty/FlyCube
+	url = https://github.com/alelievr/FlyCube
