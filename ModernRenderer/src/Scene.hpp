@@ -35,6 +35,7 @@ public:
 
 	void LoadSingleSphereScene(std::shared_ptr<Device> device, const Camera& camera);
 	void LoadSponzaScene(std::shared_ptr<Device> device, const Camera& camera);
+	void LoadChessScene(std::shared_ptr<Device> device, const Camera& camera);
 
 	static std::shared_ptr<Scene> LoadHardcodedScene(std::shared_ptr<Device> device, Camera& camera);
 };

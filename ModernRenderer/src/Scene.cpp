@@ -31,13 +31,27 @@ void Scene::LoadSponzaScene(std::shared_ptr<Device> device, const Camera& camera
 	UploadInstancesToGPU(device);
 }
 
+void Scene::LoadChessScene(std::shared_ptr<Device> device, const Camera& camera)
+{
+	name = L"Chess";
+
+	ModelImporter importer("assets/models/ABeautifulGame/glTF/ABeautifulGame.gltf", 0);
+
+	ModelInstance instance;
+	instance.model = importer.GetModel();
+	instance.transform = glm::mat4(0.0f);
+
+	instances.push_back(instance);
+}
+
 std::shared_ptr<Scene> Scene::LoadHardcodedScene(std::shared_ptr<Device> device, Camera& camera)
 {
 	std::shared_ptr<Scene> scene = std::make_shared<Scene>();
 
 	//LoadSingleSphereScene(device, camera);
-	scene->LoadSponzaScene(device, camera);
+	scene->LoadChessScene(device, camera);
 
+	scene->UploadInstancesToGPU(device);
 	Texture::LoadAllTextures(device);
 	Material::AllocateMaterialBuffers(device);
 
