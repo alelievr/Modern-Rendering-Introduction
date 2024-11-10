@@ -91,7 +91,7 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, const glm::m
     scene->mMetaData->Get("UnitScaleFactor", scale);
 
     Mesh currentMesh = {};
-    Material currentMaterial;
+    std::shared_ptr<Material> currentMaterial = Material::CreateMaterial();
     // Walk through each of the mesh's vertices
     for (uint32_t i = 0; i < mesh->mNumVertices; ++i) {
         struct Vertex {
@@ -152,7 +152,7 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, const glm::m
         aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
         aiString name;
         if (mat->Get(AI_MATKEY_NAME, name) == AI_SUCCESS) {
-            currentMaterial.name = name.C_Str();
+            currentMaterial->name = name.C_Str();
         }
 
         std::vector<std::shared_ptr<Texture>> textures;
@@ -167,10 +167,10 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, const glm::m
         // map_d
         //LoadMaterialTextures(mat, aiTextureType_OPACITY, PBRTextureType::kOpacity, textures);
 
-        FindSimilarTextures(currentMaterial.name, textures);
+        FindSimilarTextures(currentMaterial->name, textures);
 
         for (const auto& texture : textures)
-            currentMaterial.AddTextureParameter(texture);
+            currentMaterial->AddTextureParameter(texture);
     }
 
     model.parts.push_back({ currentMesh, currentMaterial } );

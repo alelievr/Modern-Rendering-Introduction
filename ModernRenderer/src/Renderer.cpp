@@ -2,6 +2,11 @@
 #include "RenderDoc.hpp"
 #include <CommandList/DXCommandList.h>
 
+struct DrawRootConstants
+{
+	uint32_t materialIndex;
+};
+
 Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
 {
     this->device = device;
@@ -24,13 +29,6 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     mainDepthTexture->SetName("DepthTexture");
     //std::shared_ptr<View> mainDepthTextureView = device->CreateView(mainDepthTexture, outputTextureViewDesc);
 
-    // Object CBuffer
-    glm::vec4 constant_data = glm::vec4(1, 0, 0, 1);
-    std::shared_ptr<Resource> constant_buffer =
-        device->CreateBuffer(BindFlag::kConstantBuffer | BindFlag::kCopyDest, sizeof(constant_data));
-    constant_buffer->CommitMemory(MemoryType::kUpload);
-    constant_buffer->UpdateUploadBuffer(0, &constant_data, sizeof(constant_data));
-
     std::shared_ptr<Shader> vertex_shader = device->CompileShader(
         { MODERN_RENDERER_ASSETS_PATH "shaders/VertexShader.hlsl", "main", ShaderType::kVertex, "6_5" });
     std::shared_ptr<Shader> pixel_shader = device->CompileShader(
@@ -41,14 +39,11 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
         { MODERN_RENDERER_ASSETS_PATH "shaders/PathTracerScene0.hlsl", "main", ShaderType::kCompute, "6_5" });
     std::shared_ptr<Program> compute_program = device->CreateProgram({ compute_test });
 
-    ViewDesc constant_view_desc = {};
-    constant_view_desc.view_type = ViewType::kConstantBuffer;
-    constant_view_desc.dimension = ViewDimension::kBuffer;
-    std::shared_ptr<View> constant_view = device->CreateView(constant_buffer, constant_view_desc);
-    BindKey settings_key = { ShaderType::kPixel, ViewType::kConstantBuffer, 1, 0, 1, UINT32_MAX };
-    std::shared_ptr<BindingSetLayout> layout = device->CreateBindingSetLayout({ camera.cameraDataKeyVertex, settings_key, camera.cameraDataKeyFragment });
+    // Compute stage allows to bind to every shader stages
+    BindKey drawRootConstant = { ShaderType::kCompute, ViewType::kConstantBuffer, 1, 0, 1, UINT32_MAX, true };
+    std::shared_ptr<BindingSetLayout> layout = device->CreateBindingSetLayout({ camera.cameraDataKeyVertex, drawRootConstant, camera.cameraDataKeyFragment });
     objectBindingSet = device->CreateBindingSet(layout);
-    objectBindingSet->WriteBindings({ camera.cameraDataDescVertex, camera.cameraDataDescFragment, { settings_key, constant_view } });
+    objectBindingSet->WriteBindings({ camera.cameraDataDescVertex, camera.cameraDataDescFragment, { drawRootConstant, nullptr } });
     BindKey PathTracerMainColorKey = { ShaderType::kCompute, ViewType::kRWTexture, 0, 0, 1, UINT32_MAX };
     std::shared_ptr<BindingSetLayout> compute_layout = device->CreateBindingSetLayout({ camera.cameraDataKeyCompute, PathTracerMainColorKey });
     pathTracerBindingSet = device->CreateBindingSet(compute_layout);
@@ -156,8 +151,6 @@ void DrawScene(std::shared_ptr<CommandList> commandList, std::shared_ptr<Scene> 
     // Get the native command list to push constants directly to the commnand buffer.
     // This allows to have a unique index per draw without having to bind a new constant buffer.
     auto dxCommandList = (DXCommandList*)commandList.get();
-    auto nativeCommandList = dxCommandList->GetCommandList();
-
 
     // TODO: batch per materials to avoid pipeline switches & reduce CBuffer updates
     for (auto& instance : scene->instances)
@@ -165,13 +158,13 @@ void DrawScene(std::shared_ptr<CommandList> commandList, std::shared_ptr<Scene> 
         for (auto& r : instance.model.parts)
 		{
             // TODO: mesh index when meshlets are supported
-            int materialIndex = r.material.materialIndex;
+            int materialIndex = r.material->materialIndex;
 			
             // Bind vertex buffer
             r.mesh.BindBuffers(commandList);
 
             // Bind per-draw data, we only need an index, the rest is bindless
-            nativeCommandList->SetGraphicsRoot32BitConstant(1, materialIndex, 0);
+            dxCommandList->SetConstant(0, materialIndex, 0);
 
 			// Draw mesh
 			commandList->DrawIndexed(r.mesh.indices.size(), 1, 0, 0, 0);

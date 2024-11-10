@@ -10,7 +10,7 @@ public:
 	struct MaterialMeshPair
 	{
 		Mesh mesh;
-		Material material;
+		std::shared_ptr<Material> material;
 	};
 
 	std::vector<MaterialMeshPair> parts;

@@ -1,14 +1,15 @@
 #include "Material.hpp"
 
+std::vector<std::shared_ptr<Material>> Material::instances = std::vector<std::shared_ptr<Material>>();
+std::vector<GPUMaterial> Material::materialBuffer = std::vector<GPUMaterial>();
+std::shared_ptr<Resource> Material::materialConstantBuffer = nullptr;
+std::shared_ptr<View> Material::materialConstantBufferView = nullptr;
 
-Material::Material()
+std::shared_ptr<Material> Material::CreateMaterial()
 {
-	instances.push_back(this);
-}
-
-Material::~Material()
-{
-	instances.erase(std::remove(instances.begin(), instances.end(), this), instances.end());
+	auto shared = std::make_shared<Material>();
+	instances.push_back(shared);
+	return shared;
 }
 
 void Material::AddTextureParameter(std::shared_ptr<Texture> texture)
@@ -39,12 +40,16 @@ void Material::AllocateMaterialBuffers(std::shared_ptr<Device> device)
 		materialBuffer.push_back(gpuMaterial);
 	}
 
-	int materialCount = instances.size();
-	materialConstantBuffer = device->CreateBuffer(BindFlag::kShaderResource | BindFlag::kCopyDest, sizeof(GPUMaterial) * materialCount);
-	materialConstantBuffer->CommitMemory(MemoryType::kUpload);
-	materialConstantBuffer->UpdateUploadBuffer(0, &materialBuffer, sizeof(GPUMaterial) * materialCount);
-	ViewDesc viewDesc = {};
-	viewDesc.view_type = ViewType::kBuffer;
-	viewDesc.dimension = ViewDimension::kBuffer;
-	materialConstantBufferView = device->CreateView(materialConstantBuffer, viewDesc);
+	int materialCount = materialBuffer.size();
+
+	if (materialCount == 0)
+		return;
+
+	//materialConstantBuffer = device->CreateBuffer(BindFlag::kShaderResource | BindFlag::kCopyDest, sizeof(GPUMaterial) * materialCount);
+	//materialConstantBuffer->CommitMemory(MemoryType::kUpload);
+	//materialConstantBuffer->UpdateUploadBuffer(0, &materialBuffer, sizeof(GPUMaterial) * materialCount);
+	//ViewDesc viewDesc = {};
+	//viewDesc.view_type = ViewType::kBuffer;
+	//viewDesc.dimension = ViewDimension::kBuffer;
+	//materialConstantBufferView = device->CreateView(materialConstantBuffer, viewDesc);
 }

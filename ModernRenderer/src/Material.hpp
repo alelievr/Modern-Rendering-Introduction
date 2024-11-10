@@ -17,7 +17,6 @@ enum class MaterialParameterType
 struct GPUMaterial
 {
 	int albedoTextureIndex;
-	int padding[3];
 };
 
 struct MaterialParameter
@@ -34,7 +33,7 @@ struct MaterialParameter
 class Material
 {
 public:
-	static std::vector<Material*> instances;
+	static std::vector<std::shared_ptr<Material>> instances;
 	static std::vector<GPUMaterial> materialBuffer;
 	static std::shared_ptr<Resource> materialConstantBuffer;
 	static std::shared_ptr<View> materialConstantBufferView;
@@ -43,9 +42,12 @@ public:
 	std::string name;
 	int materialIndex;
 
-	Material();
-	~Material();
+	Material() = default;
+	Material(const Material&) = delete;
+	Material& operator=(const Material&) = delete;
+	~Material() = default;
 
+	static std::shared_ptr<Material> CreateMaterial();
 	void AddTextureParameter(std::shared_ptr<Texture> texture);
 	static void AllocateMaterialBuffers(std::shared_ptr<Device> device);
 };
