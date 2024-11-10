@@ -9,14 +9,14 @@ class ScreenShotController : InputEvents
 private:
     HWND hwnd;
     HDC hdcClient;
-    Scene scene;
+    std::wstring sceneName;
 
 public:
-    ScreenShotController(HWND h, const Scene& s)
+    ScreenShotController(HWND h, std::wstring name)
     {
         hwnd = h;
         hdcClient = GetDC(hwnd);
-        scene = s;
+        sceneName = name;
     }
 
     void OnKey(int key, int action)
@@ -35,7 +35,7 @@ public:
             BitBlt(image.GetDC(), 0, 0, width, height, hdcClient, 0, 0, SRCCOPY);
             image.ReleaseDC();
 
-            auto path = std::wstring(L"../Media/Recordings/") + scene.name.c_str() + L".png";
+            auto path = std::wstring(L"../Media/Recordings/") + sceneName.c_str() + L".png";
             image.Save(path.c_str(), Gdiplus::ImageFormatPNG);
         }
     }

@@ -22,6 +22,10 @@ class Scene
 private:
 	void UploadInstancesToGPU(std::shared_ptr<Device> device);
 
+	// Disable copies of scene
+	Scene(const Scene&);
+	Scene& operator=(const Scene&);
+
 public:
 	std::vector<ModelInstance> instances;
 	std::wstring name;
@@ -29,5 +33,8 @@ public:
 	Scene() = default;
 	~Scene() = default;
 
-	void LoadHardcodedScene(std::shared_ptr<Device> device, Camera camera);
+	void LoadSingleSphereScene(std::shared_ptr<Device> device, const Camera& camera);
+	void LoadSponzaScene(std::shared_ptr<Device> device, const Camera& camera);
+
+	static std::shared_ptr<Scene> LoadHardcodedScene(std::shared_ptr<Device> device, Camera& camera);
 };

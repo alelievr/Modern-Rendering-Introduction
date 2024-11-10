@@ -23,7 +23,7 @@ void Mesh::UploadMeshData(std::shared_ptr<Device> device)
 	indexBuffer->UpdateUploadBuffer(0, indices.data(), sizeof(indices.front()) * indices.size());
 }
 
-void Mesh::BindBuffers(std::shared_ptr<CommandList> commandList)
+void Mesh::BindBuffers(std::shared_ptr<CommandList> commandList) const
 {
 	commandList->IASetVertexBuffer(0, vertexPositionBuffer);
 	commandList->IASetVertexBuffer(1, vertexNormalBuffer);

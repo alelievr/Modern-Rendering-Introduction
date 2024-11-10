@@ -1,10 +1,9 @@
 // Forked from https://github.com/andrejnau/FlyWrapper/blob/354db8633b210b2a4bc259e8b05aaf6460ca033d/src/Modules/Geometry/ModelLoader.cpp
 
 #include "ModelImporter.hpp"
-#include <glm/glm.hpp>
 #include "Material.hpp"
 
-glm::vec3 aiVector3DToVec3(const aiVector3D& x)
+glm::vec3 AiVector3DToVec3(const aiVector3D& x)
 {
     return glm::vec3(x.x, x.y, x.z);
 }
@@ -34,18 +33,33 @@ void ModelImporter::LoadModel(int flags)
         scene->mMetaData->Set("UnitScaleFactor", 0.01f);
     }
 
-    ProcessNode(scene->mRootNode, scene);
+    ProcessNode(scene->mRootNode, scene, glm::mat4(1.0f));
 }
 
-void ModelImporter::ProcessNode(aiNode* node, const aiScene* scene)
+glm::mat4 AiMatrix4x4ToGlm(const aiMatrix4x4* from)
 {
+    glm::mat4 to;
+
+    to[0][0] = from->a1; to[0][1] = from->b1;  to[0][2] = from->c1; to[0][3] = from->d1;
+    to[1][0] = from->a2; to[1][1] = from->b2;  to[1][2] = from->c2; to[1][3] = from->d2;
+    to[2][0] = from->a3; to[2][1] = from->b3;  to[2][2] = from->c3; to[2][3] = from->d3;
+    to[3][0] = from->a4; to[3][1] = from->b4;  to[3][2] = from->c4; to[3][3] = from->d4;
+
+    return to;
+}
+
+void ModelImporter::ProcessNode(aiNode* node, const aiScene* scene, const glm::mat4 parentTransformation)
+{
+    glm::mat4 transformation = AiMatrix4x4ToGlm(&node->mTransformation);
+    glm::mat4 globalTransformation = transformation * parentTransformation;
+
     for (uint32_t i = 0; i < node->mNumMeshes; ++i) {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        ProcessMesh(mesh, scene);
+        ProcessMesh(mesh, scene, globalTransformation);
     }
 
     for (uint32_t i = 0; i < node->mNumChildren; ++i) {
-        ProcessNode(node->mChildren[i], scene);
+        ProcessNode(node->mChildren[i], scene, globalTransformation);
     }
 }
 
@@ -68,12 +82,12 @@ bool SkipMesh(aiMesh* mesh, const aiScene* scene)
     return q.count(std::string(name.C_Str()));
 }
 
-void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene)
+void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, const glm::mat4 transform)
 {
     if (SkipMesh(mesh, scene))
         return;
 
-    float scale;
+    float scale = 1;
     scene->mMetaData->Get("UnitScaleFactor", scale);
 
     Mesh currentMesh = {};
@@ -92,15 +106,17 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene)
             vertex.position.x = mesh->mVertices[i].x * scale;
             vertex.position.y = mesh->mVertices[i].y * scale;
             vertex.position.z = mesh->mVertices[i].z * scale;
+
+            vertex.position = transform * glm::vec4(vertex.position, 1);
         }
 
         if (mesh->HasNormals()) {
-            vertex.normal = aiVector3DToVec3(mesh->mNormals[i]);
+            vertex.normal = AiVector3DToVec3(mesh->mNormals[i]);
         }
 
         if (mesh->HasTangentsAndBitangents()) {
-            vertex.tangent = aiVector3DToVec3(mesh->mTangents[i]);
-            vertex.bitangent = aiVector3DToVec3(mesh->mBitangents[i]);
+            vertex.tangent = AiVector3DToVec3(mesh->mTangents[i]);
+            vertex.bitangent = AiVector3DToVec3(mesh->mBitangents[i]);
 
             if (glm::dot(glm::cross(vertex.normal, vertex.tangent), vertex.bitangent) < 0.0f) {
                 vertex.tangent *= -1.0f;
@@ -139,7 +155,7 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene)
             currentMaterial.name = name.C_Str();
         }
 
-        std::vector<Texture> textures;
+        std::vector<std::shared_ptr<Texture>> textures;
         // map_Kd
         LoadMaterialTextures(mat, aiTextureType_DIFFUSE, PBRTextureType::Albedo, textures);
         // map_bump
@@ -153,25 +169,14 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 
         FindSimilarTextures(currentMaterial.name, textures);
 
-        auto comparator = [&](const Texture& lhs, const Texture& rhs) {
-            return std::tie(lhs.type, lhs.path) < std::tie(rhs.type, rhs.path);
-            };
-
-        std::set<Texture, decltype(comparator)> unique_textures(comparator);
-
-        for (Texture& texture : textures) {
-            unique_textures.insert(texture);
-        }
-
-        for (const Texture& texture : unique_textures) {
+        for (const auto& texture : textures)
             currentMaterial.AddTextureParameter(texture);
-        }
     }
 
     model.parts.push_back({ currentMesh, currentMaterial } );
 }
 
-void ModelImporter::FindSimilarTextures(const std::string& mat_name, std::vector<Texture>& textures)
+void ModelImporter::FindSimilarTextures(const std::string& mat_name, std::vector<std::shared_ptr<Texture>>& textures)
 {
     static std::pair<std::string, PBRTextureType> texture_types[] = {
         { "albedo", PBRTextureType::Albedo },        { "_albedo", PBRTextureType::Albedo },
@@ -189,26 +194,26 @@ void ModelImporter::FindSimilarTextures(const std::string& mat_name, std::vector
     };
     std::set<PBRTextureType> used;
     for (auto& cur_texture : textures) {
-        used.insert(cur_texture.type);
+        used.insert(cur_texture->type);
     }
 
     if (!used.count(PBRTextureType::Albedo)) {
         for (auto& ext : { ".dds", ".png", ".jpg" }) {
             std::string cur_path = directory + "/textures/" + mat_name + "_albedo" + ext;
             if (std::ifstream(cur_path).good()) {
-                textures.push_back(Texture{ PBRTextureType::Albedo, cur_path });
+                textures.push_back(Texture::GetOrCreate(PBRTextureType::Albedo, cur_path));
             }
             cur_path = directory + "/" + "albedo" + ext;
             if (std::ifstream(cur_path).good()) {
-                textures.push_back({ PBRTextureType::Albedo, cur_path });
+                textures.push_back(Texture::GetOrCreate(PBRTextureType::Albedo, cur_path));
             }
         }
     }
 
-    std::vector<Texture> added_textures;
+    std::vector<std::shared_ptr<Texture>> added_textures;
     for (auto& from_type : texture_types) {
         for (auto& cur_texture : textures) {
-            std::string path = cur_texture.path;
+            std::string path = cur_texture->path;
 
             size_t loc = path.find(from_type.first);
             if (loc == std::string::npos) {
@@ -225,10 +230,7 @@ void ModelImporter::FindSimilarTextures(const std::string& mat_name, std::vector
                     continue;
                 }
 
-                Texture texture;
-                texture.type = to_type.second;
-                texture.path = cur_path;
-                added_textures.push_back(texture);
+                added_textures.push_back(Texture::GetOrCreate(to_type.second, cur_path));
                 used.insert(to_type.second);
             }
         }
@@ -240,7 +242,7 @@ void ModelImporter::FindSimilarTextures(const std::string& mat_name, std::vector
 void ModelImporter::LoadMaterialTextures(aiMaterial* mat,
     aiTextureType aitype,
     PBRTextureType type,
-    std::vector<Texture>& textures)
+    std::vector<std::shared_ptr<Texture>>& textures)
 {
     for (uint32_t i = 0; i < mat->GetTextureCount(aitype); ++i) {
         aiString texture_name;
@@ -254,9 +256,6 @@ void ModelImporter::LoadMaterialTextures(aiMaterial* mat,
             }
         }
 
-        Texture texture;
-        texture.type = type;
-        texture.path = texture_path;
-        textures.push_back(texture);
+        textures.push_back(Texture::GetOrCreate(type, texture_path));
     }
 }

@@ -64,7 +64,12 @@ void RenderDoc::StartFrameCapture()
         if (rdoc_api) rdoc_api->StartFrameCapture(NULL, NULL);
     }
 }
-// Your rendering should happen here
+
+void RenderDoc::StartCaptureImmediately()
+{
+    captureNextFrame = true;
+    StartFrameCapture();
+}
 
 void RenderDoc::EndFrameCapture()
 {

@@ -11,7 +11,7 @@ struct VertexAttributes
 struct VertexToFragment
 {
     float4 pos : SV_POSITION;
-    float4 debug : TEXCOORD0;
+    float2 uv : TEXCOORD0;
 };
 
 VertexToFragment main(VertexAttributes input)
@@ -22,7 +22,8 @@ VertexToFragment main(VertexAttributes input)
     
     // Assume that position is world space for now
     output.pos = TransformCameraRelativeWorldToHClip(pos);
-    output.debug = float4(pos, 1);
+    output.uv = input.uv;
+    // TODO: transform normal to world space
     
     return output;
 }

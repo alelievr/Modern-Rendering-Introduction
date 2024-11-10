@@ -14,5 +14,6 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 {
     float3 positionRWS = TransformHClipToCameraRelativeWorld(input.pos);
     float3 positionWS = GetAbsolutePosition(positionRWS);
-    return float4(positionWS, 1);
+    float distance = length(positionRWS);
+    return float4(distance, distance / 100.0, distance / 100.0, 1);
 }

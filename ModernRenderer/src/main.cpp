@@ -10,14 +10,18 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include "GLFW/glfw3native.h"
 
+//#define LOAD_RENDERDOC
+
 int main(int argc, char* argv[])
 {
     Settings settings = ParseArgs(argc, argv);
     AppBox app("ModernRenderer", settings);
     AppSize appSize = app.GetAppSize();
 
-    // Load RenderDoc for debug after the scene is loaded to avoid crash
+#if defined(LOAD_RENDERDOC)
+    // Loading renderdoc will diisable the validation layer, make sure there is no error before enabling it.
     RenderDoc::LoadRenderDoc();
+#endif
 
     glfwSetInputMode(app.GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -36,9 +40,7 @@ int main(int argc, char* argv[])
     Renderer renderer = Renderer(device, app, camera);
 
     // Load scene
-    Scene scene;
-
-    scene.LoadHardcodedScene(device, camera);
+    auto scene = Scene::LoadHardcodedScene(device, camera);
 
     RenderPassDesc render_pass_desc = {
     { { swapchain->GetFormat(), RenderPassLoadOp::kLoad, RenderPassStoreOp::kStore } },
@@ -48,7 +50,7 @@ int main(int argc, char* argv[])
     InputController inputController;
     app.SubscribeEvents((InputEvents*)&inputController, nullptr);
 
-    ScreenShotController screenShotController(glfwGetWin32Window(app.GetWindow()), scene);
+    ScreenShotController screenShotController(glfwGetWin32Window(app.GetWindow()), scene->name);
 
     inputController.registeredEvents.push_back((InputEvents*)&camera.cameraControls);
     inputController.registeredEvents.push_back((InputEvents*)&renderer.controls);
@@ -90,7 +92,8 @@ int main(int argc, char* argv[])
         // Update camera controls and GPU buffer
         camera.UpdateCamera(appSize);
 
-        renderer.UpdateCommandList(command_lists[frame_index], swapchain->GetBackBuffer(frame_index % swapchainTextureCount), camera, scene);
+        auto currentSwapchain = swapchain->GetBackBuffer(frame_index);
+        renderer.UpdateCommandList(command_lists[frame_index], currentSwapchain, camera, scene);
         
         // Then execute the rendering commands on the GPU.
         command_queue->ExecuteCommandLists({ command_lists[frame_index] });

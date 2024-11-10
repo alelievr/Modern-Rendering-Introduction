@@ -26,7 +26,7 @@ public:
 
     void UploadMeshData(std::shared_ptr<Device> device);
 
-    void BindBuffers(std::shared_ptr<CommandList> commandList);
+    void BindBuffers(std::shared_ptr<CommandList> commandList) const;
 
     static std::vector<InputLayoutDesc> GetInputAssemblerLayout()
     {

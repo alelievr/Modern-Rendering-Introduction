@@ -1,5 +1,6 @@
 #include "Renderer.hpp"
 #include "RenderDoc.hpp"
+#include <CommandList/DXCommandList.h>
 
 Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
 {
@@ -124,7 +125,7 @@ void Renderer::Controls::OnKey(int key, int action)
     }
 }
 
-void Renderer::UpdateCommandList(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, Camera camera, Scene scene)
+void Renderer::UpdateCommandList(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, const Camera& camera, std::shared_ptr<Scene> scene)
 {
     commandList->Reset();
     commandList->BeginEvent("RenderFrame");
@@ -150,16 +151,27 @@ void Renderer::UpdateCommandList(std::shared_ptr<CommandList> commandList, std::
     commandList->Close();
 }
 
-void DrawScene(std::shared_ptr<CommandList> commandList, Scene scene)
+void DrawScene(std::shared_ptr<CommandList> commandList, std::shared_ptr<Scene> scene)
 {
-    for (auto& instance : scene.instances)
+    // Get the native command list to push constants directly to the commnand buffer.
+    // This allows to have a unique index per draw without having to bind a new constant buffer.
+    auto dxCommandList = (DXCommandList*)commandList.get();
+    auto nativeCommandList = dxCommandList->GetCommandList();
+
+
+    // TODO: batch per materials to avoid pipeline switches & reduce CBuffer updates
+    for (auto& instance : scene->instances)
     {
         for (auto& r : instance.model.parts)
 		{
-            // TODO: bind material properties (shader, binding set, etc.)
+            // TODO: mesh index when meshlets are supported
+            int materialIndex = r.material.materialIndex;
 			
             // Bind vertex buffer
             r.mesh.BindBuffers(commandList);
+
+            // Bind per-draw data, we only need an index, the rest is bindless
+            nativeCommandList->SetGraphicsRoot32BitConstant(1, materialIndex, 0);
 
 			// Draw mesh
 			commandList->DrawIndexed(r.mesh.indices.size(), 1, 0, 0, 0);
@@ -167,7 +179,7 @@ void DrawScene(std::shared_ptr<CommandList> commandList, Scene scene)
     }
 }
 
-void Renderer::RenderRasterization(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, Camera camera, Scene scene)
+void Renderer::RenderRasterization(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, const Camera& camera, std::shared_ptr<Scene> scene)
 {
     // TODO: clear render pass
 
@@ -187,7 +199,7 @@ void Renderer::RenderRasterization(std::shared_ptr<CommandList> commandList, std
     commandList->ResourceBarrier({ { mainDepthTexture, ResourceState::kDepthStencilWrite, ResourceState::kCommon } });
 }
 
-void Renderer::RenderPathTracing(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, Camera camera, Scene)
+void Renderer::RenderPathTracing(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, const Camera& camera, std::shared_ptr<Scene> scene)
 {
     // Dispatch compute to clear RT
     commandList->BindPipeline(pathTracerPipeline);

@@ -52,6 +52,10 @@ private:
 
     std::shared_ptr<Device> device;
 
+    // Disable copy constructor
+    Camera(const Camera&);
+    Camera& operator=(const Camera&);
+
 public:
     CameraControls cameraControls;
     

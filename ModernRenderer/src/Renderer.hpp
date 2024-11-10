@@ -51,13 +51,13 @@ private:
     // FrameBuffers
     std::shared_ptr<Framebuffer> mainColorFrameBuffer;
 
-    void RenderRasterization(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, Camera camera, Scene scene);
-    void RenderPathTracing(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, Camera camera, Scene scene);
+    void RenderRasterization(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, const Camera& camera, std::shared_ptr<Scene> scene);
+    void RenderPathTracing(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, const Camera& camera, std::shared_ptr<Scene> scene);
 
 public:
     Controls controls;
 
 	Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera);
 	~Renderer();
-	void UpdateCommandList(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, Camera camera, Scene);
+	void UpdateCommandList(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, const Camera& camera, std::shared_ptr<Scene> scene);
 };

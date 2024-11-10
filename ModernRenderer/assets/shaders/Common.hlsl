@@ -12,6 +12,41 @@ cbuffer CameraData : register(b0, space0)
     float4 cameraResolution;
 };
 
+cbuffer DrawData : register(b1, space0)
+{
+    uint materialIndex;
+};
+
+// TODO
+// draw data will be in a structured buffer, not a cbuffer
+//cbuffer DrawData : register(b2, space0)
+//{
+//    float4x4 modelMatrix;
+//};
+
+// Bindless textures for materials
+Texture2D<float4> bindlessTextures[] : register(t, space1);
+ByteAddressBuffer bindlessBuffers[] : register(t, space2);
+// TODO
+//Texture2D<float4> normalTextures[] : register(t, space1);
+//Texture2D<float4> roughnessTextures[] : register(t, space1);
+
+// Common samplers for textures
+
+SamplerState PointClampSampler
+{
+    Filter = MIN_MAG_MIP_POINT;
+    AddressU = Clamp;
+    AddressV = Clamp;
+};
+
+SamplerState LinearWrapSampler
+{
+    Filter = MIN_MAG_MIP_LINEAR;
+    AddressU = Wrap;
+    AddressV = Wrap;
+};
+
 float3 GetCameraRelativePosition(float3 position)
 {
     return position - cameraPosition.xyz;
