@@ -41,9 +41,10 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
 
     // Compute stage allows to bind to every shader stages
     BindKey drawRootConstant = { ShaderType::kCompute, ViewType::kConstantBuffer, 1, 0, 1, UINT32_MAX, true };
-    std::shared_ptr<BindingSetLayout> layout = device->CreateBindingSetLayout({ camera.cameraDataKeyVertex, drawRootConstant, camera.cameraDataKeyFragment });
+    std::shared_ptr<BindingSetLayout> layout = device->CreateBindingSetLayout({ camera.cameraDataKeyVertex, drawRootConstant, camera.cameraDataKeyFragment, Material::materialBufferBindKey, Texture::textureBufferBindKey });
     objectBindingSet = device->CreateBindingSet(layout);
-    objectBindingSet->WriteBindings({ camera.cameraDataDescVertex, camera.cameraDataDescFragment, { drawRootConstant, nullptr } });
+    objectBindingSet->WriteBindings({ camera.cameraDataDescVertex, camera.cameraDataDescFragment, { drawRootConstant, nullptr }, Material::materialBufferBinding, Texture::textureBufferBinding });
+    
     BindKey PathTracerMainColorKey = { ShaderType::kCompute, ViewType::kRWTexture, 0, 0, 1, UINT32_MAX };
     std::shared_ptr<BindingSetLayout> compute_layout = device->CreateBindingSetLayout({ camera.cameraDataKeyCompute, PathTracerMainColorKey });
     pathTracerBindingSet = device->CreateBindingSet(compute_layout);

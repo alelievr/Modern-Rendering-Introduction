@@ -17,6 +17,11 @@ cbuffer DrawData : register(b1, space0)
     uint materialIndex;
 };
 
+struct MaterialData
+{
+    uint albedoTextureIndex;
+};
+
 // TODO
 // draw data will be in a structured buffer, not a cbuffer
 //cbuffer DrawData : register(b2, space0)
@@ -25,14 +30,13 @@ cbuffer DrawData : register(b1, space0)
 //};
 
 // Bindless textures for materials
-Texture2D<float4> bindlessTextures[] : register(t, space1);
-ByteAddressBuffer bindlessBuffers[] : register(t, space2);
+Texture2D bindlessTextures[] : register(t, space1);
+StructuredBuffer<MaterialData> materialBuffer : register(t, space2);
 // TODO
 //Texture2D<float4> normalTextures[] : register(t, space1);
 //Texture2D<float4> roughnessTextures[] : register(t, space1);
 
 // Common samplers for textures
-
 SamplerState PointClampSampler
 {
     Filter = MIN_MAG_MIP_POINT;
@@ -46,6 +50,16 @@ SamplerState LinearWrapSampler
     AddressU = Wrap;
     AddressV = Wrap;
 };
+
+MaterialData LoadMaterialData(uint materialIndex)
+{
+    return materialBuffer.Load(materialIndex);
+}
+
+float4 SampleTexture(uint textureIndex, SamplerState s, float2 uv)
+{
+    return bindlessTextures[textureIndex].Load(uint3(uv * 4096, 0));
+}
 
 float3 GetCameraRelativePosition(float3 position)
 {

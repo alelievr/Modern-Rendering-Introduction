@@ -37,15 +37,17 @@ int main(int argc, char* argv[])
     std::shared_ptr<Fence> fence = device->CreateFence(fence_value);
 
     Camera camera = Camera(device, app);
-    Renderer renderer = Renderer(device, app, camera);
 
     // Load scene
     auto scene = Scene::LoadHardcodedScene(device, camera);
 
-    RenderPassDesc render_pass_desc = {
+    // Create renderer
+    Renderer renderer = Renderer(device, app, camera);
+
+    RenderPassDesc swapchainPassDesc = {
     { { swapchain->GetFormat(), RenderPassLoadOp::kLoad, RenderPassStoreOp::kStore } },
     };
-    std::shared_ptr<RenderPass> render_pass = device->CreateRenderPass(render_pass_desc);
+    std::shared_ptr<RenderPass> swapchainRenderPass = device->CreateRenderPass(swapchainPassDesc);
 
     InputController inputController;
     app.SubscribeEvents((InputEvents*)&inputController, nullptr);
@@ -70,7 +72,7 @@ int main(int argc, char* argv[])
         // TODO: check if we need that?
         std::shared_ptr<View> back_buffer_view = device->CreateView(back_buffer, back_buffer_view_desc);
         FramebufferDesc framebuffer_desc = {};
-        framebuffer_desc.render_pass = render_pass;
+        framebuffer_desc.render_pass = swapchainRenderPass;
         framebuffer_desc.width = appSize.width();
         framebuffer_desc.height = appSize.height();
         framebuffer_desc.colors = { back_buffer_view };

@@ -61,6 +61,22 @@ void ModelImporter::ProcessNode(aiNode* node, const aiScene* scene, const glm::m
     for (uint32_t i = 0; i < node->mNumChildren; ++i) {
         ProcessNode(node->mChildren[i], scene, globalTransformation);
     }
+
+    // Deduplicate materials
+    std::vector<std::shared_ptr<Material>> uniqueMaterials;
+    for (auto& part : model.parts)
+	{
+        for (auto& m : uniqueMaterials)
+            if (Material::Compare(m, part.material))
+			{
+                // find and erase the duplicate material from instances
+                std::erase(Material::instances, part.material);
+				part.material = m;
+				break;
+			}
+
+		uniqueMaterials.push_back(part.material);
+	}
 }
 
 inline glm::vec4 aiColor4DToVec4(const aiColor4D& x)

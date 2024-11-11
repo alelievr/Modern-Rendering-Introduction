@@ -1,9 +1,16 @@
 #include "Material.hpp"
+#include <algorithm>
 
 std::vector<std::shared_ptr<Material>> Material::instances = std::vector<std::shared_ptr<Material>>();
 std::vector<GPUMaterial> Material::materialBuffer = std::vector<GPUMaterial>();
 std::shared_ptr<Resource> Material::materialConstantBuffer = nullptr;
 std::shared_ptr<View> Material::materialConstantBufferView = nullptr;
+BindingDesc Material::materialBufferBinding;
+BindKey Material::materialBufferBindKey;
+
+Material::~Material()
+{
+}
 
 std::shared_ptr<Material> Material::CreateMaterial()
 {
@@ -29,9 +36,10 @@ void Material::AllocateMaterialBuffers(std::shared_ptr<Device> device)
 		{
 			if (parameter.type == MaterialParameterType::Texture)
 			{
-				if (parameter.name == "albedo")
+				if (parameter.textureValue->type == PBRTextureType::Albedo)
 				{
 					gpuMaterial.albedoTextureIndex = parameter.textureValue->shaderResourceView->GetDescriptorId();
+					printf("Albedo texture index: %d\n", gpuMaterial.albedoTextureIndex);
 				}
 			}
 		}
@@ -45,11 +53,45 @@ void Material::AllocateMaterialBuffers(std::shared_ptr<Device> device)
 	if (materialCount == 0)
 		return;
 
-	//materialConstantBuffer = device->CreateBuffer(BindFlag::kShaderResource | BindFlag::kCopyDest, sizeof(GPUMaterial) * materialCount);
-	//materialConstantBuffer->CommitMemory(MemoryType::kUpload);
-	//materialConstantBuffer->UpdateUploadBuffer(0, &materialBuffer, sizeof(GPUMaterial) * materialCount);
-	//ViewDesc viewDesc = {};
-	//viewDesc.view_type = ViewType::kBuffer;
-	//viewDesc.dimension = ViewDimension::kBuffer;
-	//materialConstantBufferView = device->CreateView(materialConstantBuffer, viewDesc);
+	materialConstantBuffer = device->CreateBuffer(BindFlag::kShaderResource | BindFlag::kCopyDest, sizeof(GPUMaterial) * materialCount);
+	materialConstantBuffer->CommitMemory(MemoryType::kUpload);
+	materialConstantBuffer->SetName("MaterialDataBuffer");
+	materialConstantBuffer->UpdateUploadBuffer(0, &materialBuffer, sizeof(GPUMaterial) * materialCount);
+	ViewDesc viewDesc = {};
+	viewDesc.view_type = ViewType::kStructuredBuffer;
+	viewDesc.dimension = ViewDimension::kBuffer;
+	viewDesc.buffer_size = materialCount;
+	viewDesc.structure_stride = sizeof(GPUMaterial);
+	materialConstantBufferView = device->CreateView(materialConstantBuffer, viewDesc);
+
+	materialBufferBindKey = { ShaderType::kPixel, ViewType::kStructuredBuffer, 0, 2, 1, UINT32_MAX };
+	materialBufferBinding = { materialBufferBindKey, materialConstantBufferView };
+}
+
+bool Material::Compare(const std::shared_ptr<Material>& a, const std::shared_ptr<Material>& b)
+{
+	if (a->parameters.size() != b->parameters.size())
+		return false;
+
+	std::sort(a->parameters.begin(), a->parameters.end(), [](const MaterialParameter& a, const MaterialParameter& b) { return a.name < b.name; });
+	std::sort(b->parameters.begin(), b->parameters.end(), [](const MaterialParameter& a, const MaterialParameter& b) { return a.name < b.name; });
+
+	// Check all parameters
+	for (int i = 0; i < a->parameters.size(); ++i)
+	{
+		if (a->parameters[i].name != b->parameters[i].name)
+			return false;
+		if (a->parameters[i].type != b->parameters[i].type)
+			return false;
+		if (a->parameters[i].textureValue != b->parameters[i].textureValue)
+			return false;
+		if (a->parameters[i].float4Value != b->parameters[i].float4Value)
+			return false;
+		if (a->parameters[i].floatValue != b->parameters[i].floatValue)
+			return false;
+		if (a->parameters[i].intValue != b->parameters[i].intValue)
+			return false;
+	}
+
+	return true;
 }

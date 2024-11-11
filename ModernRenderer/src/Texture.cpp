@@ -4,8 +4,11 @@
 #include "stb_image.h"
 #include <Device/DXDevice.h>
 #include "RenderDoc.hpp"
+#include <filesystem>
 
 std::vector<std::shared_ptr<Texture>> Texture::textures;
+BindingDesc Texture::textureBufferBinding = {};
+BindKey Texture::textureBufferBindKey = {};
 
 void Texture::LoadTextureData()
 {
@@ -54,6 +57,7 @@ void UploadTextureData(const std::shared_ptr<Resource>& resource, const std::sha
 
     auto upload_resource = device->CreateBuffer(BindFlag::kCopySource, numBytes);
     upload_resource->CommitMemory(MemoryType::kUpload);
+    upload_resource->SetName("Tmp Texture Upload Buffer");
     int bufferRowPitch = rowBytes;
     int bufferDepthPitch = bufferRowPitch * height;
     int srcRowPitch = rowBytes;
@@ -64,8 +68,6 @@ void UploadTextureData(const std::shared_ptr<Resource>& resource, const std::sha
         numRows, numSlices);
 
     std::shared_ptr<CommandList> cmd = device->CreateCommandList(CommandListType::kGraphics);
-
-    RenderDoc::StartCaptureImmediately();
 
     cmd->Reset();
     cmd->BeginEvent("UploadTextureData");
@@ -89,7 +91,6 @@ void UploadTextureData(const std::shared_ptr<Resource>& resource, const std::sha
     auto d = (DXDevice*)device.get();
     auto a = d->GetDevice();
     auto h = a->GetDeviceRemovedReason();
-    printf("%i\n", h);
 }
 
 void Texture::LoadAllTextures(std::shared_ptr<Device> device)
@@ -114,6 +115,10 @@ void Texture::LoadAllTextures(std::shared_ptr<Device> device)
         );
         texture->resource->CommitMemory(MemoryType::kDefault);
 
+        // Set the file name to the resource for debugging
+        std::filesystem::path p(path);
+        texture->resource->SetName(p.filename().string());
+
         // TODO: support HDR textures
         UploadTextureData(texture->resource, device, 0, image, width, height, channels, 1);
 
@@ -125,6 +130,7 @@ void Texture::LoadAllTextures(std::shared_ptr<Device> device)
 
     std::map<uint32_t, std::shared_ptr<View>> views;
     int index = 0;
+    std::vector<BindKey> bindKeys;
     for (auto& texture : textures)
     {
         if (texture->type != PBRTextureType::Albedo)
@@ -135,7 +141,12 @@ void Texture::LoadAllTextures(std::shared_ptr<Device> device)
         view_desc.dimension = ViewDimension::kTexture2D;
         view_desc.view_type = ViewType::kTexture;
         texture->shaderResourceView = device->CreateView(texture->resource, view_desc);
+        //bindKeys.push_back(textureBufferBindKey);
+        index++;
     }
+
+    textureBufferBindKey = { ShaderType::kPixel, ViewType::kTexture, 0, 1, (uint32_t)textures.size(), UINT32_MAX};
+    textureBufferBinding = { textureBufferBindKey , textures[0]->shaderResourceView };
 }
 
 std::shared_ptr<Texture> Texture::GetOrCreate(PBRTextureType type, const std::string& path)

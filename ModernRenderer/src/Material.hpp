@@ -37,6 +37,8 @@ public:
 	static std::vector<GPUMaterial> materialBuffer;
 	static std::shared_ptr<Resource> materialConstantBuffer;
 	static std::shared_ptr<View> materialConstantBufferView;
+	static BindingDesc materialBufferBinding;
+	static BindKey materialBufferBindKey;
 
 	std::vector<MaterialParameter> parameters;
 	std::string name;
@@ -45,9 +47,10 @@ public:
 	Material() = default;
 	Material(const Material&) = delete;
 	Material& operator=(const Material&) = delete;
-	~Material() = default;
+	~Material();
 
 	static std::shared_ptr<Material> CreateMaterial();
 	void AddTextureParameter(std::shared_ptr<Texture> texture);
 	static void AllocateMaterialBuffers(std::shared_ptr<Device> device);
+	static bool Compare(const std::shared_ptr<Material>& a, const std::shared_ptr<Material>& b);
 };
