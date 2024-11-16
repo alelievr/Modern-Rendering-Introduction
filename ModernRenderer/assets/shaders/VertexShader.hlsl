@@ -4,14 +4,14 @@ struct VertexAttributes
 {
     float3 pos : POSITION;
     float3 normal : NORMAL;
-    float2 uv : TEXCOORD0;
+    float4 uv : TEXCOORD0;
     float3 tangent : TANGENT;
 };
 
 struct VertexToFragment
 {
     float4 pos : SV_POSITION;
-    float2 uv : TEXCOORD0;
+    float4 uv : TEXCOORD0;
 };
 
 VertexToFragment main(VertexAttributes input)

@@ -15,7 +15,6 @@ Material::~Material()
 std::shared_ptr<Material> Material::CreateMaterial()
 {
 	auto shared = std::make_shared<Material>();
-	instances.push_back(shared);
 	return shared;
 }
 
@@ -54,13 +53,31 @@ void Material::AllocateMaterialBuffers(std::shared_ptr<Device> device)
 		return;
 
 	materialConstantBuffer = device->CreateBuffer(BindFlag::kShaderResource | BindFlag::kCopyDest, sizeof(GPUMaterial) * materialCount);
-	materialConstantBuffer->CommitMemory(MemoryType::kUpload);
+	materialConstantBuffer->CommitMemory(MemoryType::kDefault);
 	materialConstantBuffer->SetName("MaterialDataBuffer");
-	materialConstantBuffer->UpdateUploadBuffer(0, &materialBuffer, sizeof(GPUMaterial) * materialCount);
+
+	auto uploadBuffer = device->CreateBuffer(BindFlag::kCopySource, sizeof(GPUMaterial) * materialCount);
+	uploadBuffer->CommitMemory(MemoryType::kUpload);
+	uploadBuffer->SetName("MaterialDataUploadBuffer");
+	uploadBuffer->UpdateUploadBuffer(0, materialBuffer.data(), sizeof(GPUMaterial) * materialCount);
+	auto cmd = device->CreateCommandList(CommandListType::kCopy);
+	BufferCopyRegion region = {};
+	region.num_bytes = sizeof(GPUMaterial) * materialCount;
+	cmd->ResourceBarrier({ { materialConstantBuffer, ResourceState::kCommon, ResourceState::kCopyDest } });
+	cmd->ResourceBarrier({ { uploadBuffer, ResourceState::kCommon, ResourceState::kCopySource } });
+	cmd->CopyBuffer(uploadBuffer, materialConstantBuffer, { region });
+	cmd->Close();
+	std::shared_ptr<CommandQueue> queue = device->GetCommandQueue(CommandListType::kCopy);
+	queue->ExecuteCommandLists({ cmd });
+	std::shared_ptr<Fence> fence = device->CreateFence(0);
+	queue->Signal(fence, 1);
+	queue->Wait(fence, 1);
+	fence->Wait(1);
+
 	ViewDesc viewDesc = {};
 	viewDesc.view_type = ViewType::kStructuredBuffer;
 	viewDesc.dimension = ViewDimension::kBuffer;
-	viewDesc.buffer_size = materialCount;
+	viewDesc.buffer_size = sizeof(GPUMaterial) * materialCount;
 	viewDesc.structure_stride = sizeof(GPUMaterial);
 	materialConstantBufferView = device->CreateView(materialConstantBuffer, viewDesc);
 

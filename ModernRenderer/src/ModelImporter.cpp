@@ -13,7 +13,7 @@ ModelImporter::ModelImporter(const std::string& path, int flags)
     , directory(SplitFilename(path))
 {
     m_import.SetPropertyBool(AI_CONFIG_FBX_CONVERT_TO_M, true);
-    LoadModel(flags);
+    LoadModel(flags | aiProcess_ConvertToLeftHanded);
 }
 
 std::string ModelImporter::SplitFilename(const std::string& str)
@@ -23,9 +23,7 @@ std::string ModelImporter::SplitFilename(const std::string& str)
 
 void ModelImporter::LoadModel(int flags)
 {
-    const aiScene* scene = m_import.ReadFile(
-        path, flags & (aiProcess_FlipUVs | aiProcess_FlipWindingOrder | aiProcess_Triangulate |
-            aiProcess_GenSmoothNormals | aiProcess_OptimizeMeshes | aiProcess_CalcTangentSpace | aiProcess_ValidateDataStructure));
+    const aiScene* scene = m_import.ReadFile(path, flags);
     assert(scene && scene->mFlags != AI_SCENE_FLAGS_INCOMPLETE && scene->mRootNode);
 
     if (path.ends_with(".fbx"))
@@ -69,14 +67,14 @@ void ModelImporter::ProcessNode(aiNode* node, const aiScene* scene, const glm::m
         for (auto& m : uniqueMaterials)
             if (Material::Compare(m, part.material))
 			{
-                // find and erase the duplicate material from instances
-                std::erase(Material::instances, part.material);
 				part.material = m;
 				break;
 			}
 
 		uniqueMaterials.push_back(part.material);
 	}
+
+    Material::instances.insert(Material::instances.end(), uniqueMaterials.begin(), uniqueMaterials.end());
 }
 
 inline glm::vec4 aiColor4DToVec4(const aiColor4D& x)

@@ -48,6 +48,7 @@ add_executable(ModernRenderer WIN32
     src/Material.cpp
     src/Mesh.cpp
     src/Texture.cpp
+    src/RenderUtils.cpp
 )
 
 if (WIN32)

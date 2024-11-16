@@ -32,24 +32,8 @@ struct MaterialData
 // Bindless textures for materials
 Texture2D bindlessTextures[] : register(t, space1);
 StructuredBuffer<MaterialData> materialBuffer : register(t, space2);
-// TODO
-//Texture2D<float4> normalTextures[] : register(t, space1);
-//Texture2D<float4> roughnessTextures[] : register(t, space1);
-
-// Common samplers for textures
-SamplerState PointClampSampler
-{
-    Filter = MIN_MAG_MIP_POINT;
-    AddressU = Clamp;
-    AddressV = Clamp;
-};
-
-SamplerState LinearWrapSampler
-{
-    Filter = MIN_MAG_MIP_LINEAR;
-    AddressU = Wrap;
-    AddressV = Wrap;
-};
+SamplerState linearClampSampler : register(s0, space3);
+SamplerState linearRepeatSampler : register(s1, space3);
 
 MaterialData LoadMaterialData(uint materialIndex)
 {
@@ -58,7 +42,18 @@ MaterialData LoadMaterialData(uint materialIndex)
 
 float4 SampleTexture(uint textureIndex, SamplerState s, float2 uv)
 {
-    return bindlessTextures[textureIndex].Load(uint3(uv * 4096, 0));
+    if (textureIndex == -1)
+        return float4(1, 0, 1, 1); // magenta (error color)
+    
+    return bindlessTextures[textureIndex].Sample(s, uv);
+}
+
+float4 SampleTextureLOD(uint textureIndex, SamplerState s, float2 uv, float lod)
+{
+    if (textureIndex == -1)
+        return float4(1, 0, 1, 1); // magenta (error color)
+
+    return bindlessTextures[textureIndex].SampleLevel(s, uv, lod);
 }
 
 float3 GetCameraRelativePosition(float3 position)

@@ -7,8 +7,8 @@
 #include <filesystem>
 
 std::vector<std::shared_ptr<Texture>> Texture::textures;
-BindingDesc Texture::textureBufferBinding = {};
-BindKey Texture::textureBufferBindKey = {};
+std::vector<BindingDesc> Texture::textureBufferBindings = {};
+std::vector<BindKey> Texture::textureBufferBindKeys = {};
 
 void Texture::LoadTextureData()
 {
@@ -127,6 +127,8 @@ void Texture::LoadAllTextures(std::shared_ptr<Device> device)
     }
 
     // Once all textures are loaded, we can init the bindless arrays
+    BindKey textureKey = { ShaderType::kPixel, ViewType::kTexture, 0, 1, UINT32_MAX, UINT32_MAX };
+    textureBufferBindKeys.emplace_back(textureKey);
 
     std::map<uint32_t, std::shared_ptr<View>> views;
     int index = 0;
@@ -141,12 +143,33 @@ void Texture::LoadAllTextures(std::shared_ptr<Device> device)
         view_desc.dimension = ViewDimension::kTexture2D;
         view_desc.view_type = ViewType::kTexture;
         texture->shaderResourceView = device->CreateView(texture->resource, view_desc);
-        //bindKeys.push_back(textureBufferBindKey);
         index++;
     }
 
-    textureBufferBindKey = { ShaderType::kPixel, ViewType::kTexture, 0, 1, (uint32_t)textures.size(), UINT32_MAX};
-    textureBufferBinding = { textureBufferBindKey , textures[0]->shaderResourceView };
+    // Create samplers
+    BindKey samplerLinearClampKey = { ShaderType::kPixel, ViewType::kSampler, 0, 3, 1, UINT32_MAX };
+    textureBufferBindKeys.emplace_back(samplerLinearClampKey);
+    BindKey sampleLinearRepeatKey = { ShaderType::kPixel, ViewType::kSampler, 1, 3, 1, UINT32_MAX };
+    textureBufferBindKeys.emplace_back(sampleLinearRepeatKey);
+
+    ViewDesc sampler_view_desc = {};
+    sampler_view_desc.view_type = ViewType::kSampler;
+
+    auto linearClampSampler = device->CreateSampler({
+        SamplerFilter::kMinMagMipLinear,
+        SamplerTextureAddressMode::kClamp,
+        SamplerComparisonFunc::kNever,
+    });
+    auto linearClampSamplerView = device->CreateView(linearClampSampler, sampler_view_desc);
+    textureBufferBindings.emplace_back(BindingDesc{ samplerLinearClampKey, linearClampSamplerView });
+
+    auto linearRepeatSampler = device->CreateSampler({
+        SamplerFilter::kMinMagMipLinear,
+        SamplerTextureAddressMode::kWrap,
+        SamplerComparisonFunc::kNever,
+    });
+    auto linearRepeatSamplerView = device->CreateView(linearRepeatSampler, sampler_view_desc);
+    textureBufferBindings.emplace_back(BindingDesc{ sampleLinearRepeatKey, linearRepeatSamplerView });
 }
 
 std::shared_ptr<Texture> Texture::GetOrCreate(PBRTextureType type, const std::string& path)

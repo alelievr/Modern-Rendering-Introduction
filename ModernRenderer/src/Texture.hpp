@@ -38,8 +38,8 @@ public:
 	std::shared_ptr<Resource> resource;
 	std::shared_ptr<View> shaderResourceView;
 
-	static BindingDesc textureBufferBinding;
-	static BindKey textureBufferBindKey;
+	static std::vector<BindingDesc> textureBufferBindings;
+	static std::vector<BindKey> textureBufferBindKeys;
 
 	void LoadTextureData();
 	Texture(PBRTextureType type, const std::string& path);

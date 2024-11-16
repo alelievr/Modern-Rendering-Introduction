@@ -1,6 +1,7 @@
 #include "Renderer.hpp"
 #include "RenderDoc.hpp"
 #include <CommandList/DXCommandList.h>
+#include "RenderUtils.hpp"
 
 struct DrawRootConstants
 {
@@ -41,13 +42,13 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
 
     // Compute stage allows to bind to every shader stages
     BindKey drawRootConstant = { ShaderType::kCompute, ViewType::kConstantBuffer, 1, 0, 1, UINT32_MAX, true };
-    std::shared_ptr<BindingSetLayout> layout = device->CreateBindingSetLayout({ camera.cameraDataKeyVertex, drawRootConstant, camera.cameraDataKeyFragment, Material::materialBufferBindKey, Texture::textureBufferBindKey });
-    objectBindingSet = device->CreateBindingSet(layout);
-    objectBindingSet->WriteBindings({ camera.cameraDataDescVertex, camera.cameraDataDescFragment, { drawRootConstant, nullptr }, Material::materialBufferBinding, Texture::textureBufferBinding });
+    std::shared_ptr<BindingSetLayout> layout = RenderUtils::CreateLayoutSet(device, camera, { drawRootConstant });
+    objectBindingSet = RenderUtils::CreateBindingSet(device, layout, camera, { { drawRootConstant, nullptr } });
     
     BindKey PathTracerMainColorKey = { ShaderType::kCompute, ViewType::kRWTexture, 0, 0, 1, UINT32_MAX };
     std::shared_ptr<BindingSetLayout> compute_layout = device->CreateBindingSetLayout({ camera.cameraDataKeyCompute, PathTracerMainColorKey });
     pathTracerBindingSet = device->CreateBindingSet(compute_layout);
+    pathTracerBindingSet->WriteBindings({ camera.cameraDataDescCompute, { PathTracerMainColorKey, mainColorTextureView } });
 
 	// Create the load/store render pass setup
 	RenderPassDepthStencilDesc depthStencilDesc = {
@@ -83,8 +84,6 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
         compute_layout,
     };
     pathTracerPipeline = device->CreateComputePipeline(computeDesc);
-
-    pathTracerBindingSet->WriteBindings({ camera.cameraDataDescCompute, { PathTracerMainColorKey, mainColorTextureView } });
 
     ViewDesc renderTarget2DDesc = {};
     renderTarget2DDesc.view_type = ViewType::kRenderTarget;
@@ -165,7 +164,7 @@ void DrawScene(std::shared_ptr<CommandList> commandList, std::shared_ptr<Scene> 
             r.mesh.BindBuffers(commandList);
 
             // Bind per-draw data, we only need an index, the rest is bindless
-            dxCommandList->SetConstant(0, materialIndex, 0);
+            dxCommandList->SetGraphicsConstant(0, materialIndex, 0);
 
 			// Draw mesh
 			commandList->DrawIndexed(r.mesh.indices.size(), 1, 0, 0, 0);

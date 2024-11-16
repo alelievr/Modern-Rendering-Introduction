@@ -3,14 +3,15 @@
 struct VS_OUTPUT
 {
     float4 pos: SV_POSITION;
-    float2 uv: TEXCOORD0;
+    float4 uv: TEXCOORD0;
 };
 
 float4 main(VS_OUTPUT input) : SV_TARGET
 {
     MaterialData material = LoadMaterialData(materialIndex);
+    float2 uv = input.uv.xy;
     
-    float4 albedo = SampleTexture(material.albedoTextureIndex, LinearWrapSampler, input.uv);
+    float4 albedo = SampleTextureLOD(material.albedoTextureIndex, linearRepeatSampler, uv, 0);
     
     return albedo;
     
