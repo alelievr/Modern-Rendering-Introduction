@@ -16,6 +16,8 @@ This stage is called Amplification because it can generate more geometry as outp
 
 If this stage is not present, the mesh shader will be called for each vertex
 
-### Rasterization
-
 ### Fragment Shaders
+
+## References
+
+https://gpuopen.com/learn/mesh_shaders/mesh_shaders-from_vertex_shader_to_mesh_shader/

@@ -97,3 +97,5 @@ https://devblogs.microsoft.com/directx/dev-preview-of-new-directx-12-features/
 https://gpuopen.com/learn/occupancy-explained/
 
 https://gpuopen.com/learn/understanding-gpu-context-rolls/
+
+https://www.rastergrid.com/blog/gpu-tech/2022/02/simd-in-the-gpu-world/
