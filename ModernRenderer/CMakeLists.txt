@@ -26,14 +26,17 @@ add_subdirectory(3rdparty/FlyCube/src/Modules/AppBox)
 add_subdirectory(3rdparty/FlyCube/src/Modules/AppSettings)
 add_subdirectory(3rdparty/FlyCube/src/Modules/AppLoop)
 add_subdirectory(3rdparty/assimp)
+add_subdirectory(3rdparty/meshoptimizer)
 
 include_directories(
     ${project_root}/3rdparty/assimp/include
     ${project_root}/3rdparty/stb
+    ${project_root}/3rdparty/meshoptimizer/src
 )
 
 link_libraries(
     assimp
+    meshoptimizer
 )
 
 add_executable(ModernRenderer WIN32

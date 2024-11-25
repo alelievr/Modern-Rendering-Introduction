@@ -41,6 +41,7 @@ private:
     std::shared_ptr<Shader> objectVertexShader;
     std::shared_ptr<Shader> objectFragmentShader;
     std::shared_ptr<Pipeline> objectPipeline;
+    std::shared_ptr<Pipeline> objectMeshShaderPipeline;
     std::shared_ptr<BindingSet> objectBindingSet;
 
     // Path tracer resources

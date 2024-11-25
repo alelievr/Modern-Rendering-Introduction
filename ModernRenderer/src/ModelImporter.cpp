@@ -2,6 +2,7 @@
 
 #include "ModelImporter.hpp"
 #include "Material.hpp"
+#include "meshoptimizer.h"
 
 glm::vec3 AiVector3DToVec3(const aiVector3D& x)
 {
@@ -107,8 +108,10 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, const glm::m
     Mesh currentMesh = {};
     std::shared_ptr<Material> currentMaterial = Material::CreateMaterial();
     // Walk through each of the mesh's vertices
-    for (uint32_t i = 0; i < mesh->mNumVertices; ++i) {
-        struct Vertex {
+    for (uint32_t i = 0; i < mesh->mNumVertices; ++i)
+    {
+        struct Vertex
+        {
             glm::vec3 position;
             glm::vec3 normal;
             glm::vec2 texcoord;
@@ -116,7 +119,8 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, const glm::m
             glm::vec3 bitangent;
         } vertex;
 
-        if (mesh->HasPositions()) {
+        if (mesh->HasPositions())
+        {
             vertex.position.x = mesh->mVertices[i].x * scale;
             vertex.position.y = mesh->mVertices[i].y * scale;
             vertex.position.z = mesh->mVertices[i].z * scale;
@@ -124,27 +128,26 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, const glm::m
             vertex.position = transform * glm::vec4(vertex.position, 1);
         }
 
-        if (mesh->HasNormals()) {
+        if (mesh->HasNormals())
+        {
             vertex.normal = AiVector3DToVec3(mesh->mNormals[i]);
         }
 
-        if (mesh->HasTangentsAndBitangents()) {
+        if (mesh->HasTangentsAndBitangents())
+        {
             vertex.tangent = AiVector3DToVec3(mesh->mTangents[i]);
             vertex.bitangent = AiVector3DToVec3(mesh->mBitangents[i]);
 
-            if (glm::dot(glm::cross(vertex.normal, vertex.tangent), vertex.bitangent) < 0.0f) {
+            if (glm::dot(glm::cross(vertex.normal, vertex.tangent), vertex.bitangent) < 0.0f)
                 vertex.tangent *= -1.0f;
-            }
         }
 
         // A vertex can contain up to 8 different texture coordinates. We thus make the assumption that we won't
         // use models where a vertex can have multiple texture coordinates so we always take the first set (0).
-        if (mesh->HasTextureCoords(0)) {
+        if (mesh->HasTextureCoords(0))
             vertex.texcoord = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
-        }
-        else {
+        else
             vertex.texcoord = glm::vec2(0.0f, 0.0f);
-        }
 
         currentMesh.positions.push_back(vertex.position);
         currentMesh.normals.push_back(vertex.normal);
@@ -153,19 +156,21 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, const glm::m
     }
     // Now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex
     // indices.
-    for (uint32_t i = 0; i < mesh->mNumFaces; ++i) {
+    for (uint32_t i = 0; i < mesh->mNumFaces; ++i)
+    {
         aiFace face = mesh->mFaces[i];
         // Retrieve all indices of the face and store them in the indices vector
-        for (uint32_t j = 0; j < face.mNumIndices; ++j) {
+        for (uint32_t j = 0; j < face.mNumIndices; ++j)
             currentMesh.indices.push_back(face.mIndices[j]);
-        }
     }
 
     // Process materials
-    if (mesh->mMaterialIndex >= 0) {
+    if (mesh->mMaterialIndex >= 0)
+    {
         aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
         aiString name;
-        if (mat->Get(AI_MATKEY_NAME, name) == AI_SUCCESS) {
+        if (mat->Get(AI_MATKEY_NAME, name) == AI_SUCCESS)
+        {
             currentMaterial->name = name.C_Str();
         }
 

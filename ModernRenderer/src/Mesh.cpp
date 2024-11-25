@@ -9,13 +9,58 @@ std::shared_ptr<Resource> AllocateVertexBufer(std::shared_ptr<Device> device, co
 	return buffer;
 }
 
+void Mesh::BuildAndUploadMeshletData(std::shared_ptr<Device> device)
+{
+    vertices.resize(positions.size());
+    for (size_t i = 0; i < positions.size(); i++)
+    {
+        vertices[i].position = positions[i];
+        vertices[i].normal = normals[i];
+        vertices[i].texcoord = texcoords[i];
+        vertices[i].tangent = tangents[i];
+    }
+
+    // Process meshes to meshlets for the mesh shaders
+    const size_t max_vertices = 64;
+    const size_t max_triangles = 124;
+    const float cone_weight = 0.0f; // not used for now
+
+    size_t max_meshlets = meshopt_buildMeshletsBound(indices.size(), max_vertices, max_triangles);
+    meshlets.resize(max_meshlets);
+    meshletVertices.resize(max_meshlets * max_vertices);
+    meshletTriangles.resize(max_meshlets * max_triangles * 3);
+
+    meshletCount = meshopt_buildMeshlets(meshlets.data(), meshletVertices.data(), meshletTriangles.data(), indices.data(),
+        indices.size(), &vertices[0].position.x, vertices.size(), sizeof(Mesh::Vertex), max_vertices, max_triangles, cone_weight);
+
+    // TODO:
+    //meshopt_optimizeMeshlet(meshlet_vertices.data(), meshlet_triangles.data(), max_triangles, max_vertices);
+
+    // Reize the meshlet data to the actual count
+    meshlets.resize(meshletCount);
+    meshletVertices.resize(meshletCount * max_vertices);
+    meshletTriangles.resize(meshletCount * max_triangles * 3);
+
+    // Pack meshlet triangle indices into an uint for easy read in the shader
+    std::vector<uint32_t> packedMeshletTriangles(meshletCount * max_triangles * 3);
+    for (int i = 0; i < max_meshlets * max_triangles; i++)
+    {
+        uint32_t packed = 0;
+        for (int j = 0; j < 3; j++)
+			packed |= meshletTriangles[i * 3 + j] << (8 * j);
+		packedMeshletTriangles[i] = packed;
+    }
+
+    vertexBuffer = AllocateVertexBufer(device, vertices);
+    meshletsBuffer = AllocateVertexBufer(device, meshlets);
+    meshletIndicesBuffer = AllocateVertexBufer(device, meshletVertices);
+    meshletTrianglesBuffer = AllocateVertexBufer(device, packedMeshletTriangles);
+}
+
 void Mesh::UploadMeshData(std::shared_ptr<Device> device)
 {
-	// Allocate memory for the vertex buffer
-	vertexPositionBuffer = AllocateVertexBufer<glm::vec3>(device, positions);
-	vertexNormalBuffer = AllocateVertexBufer<glm::vec3>(device, normals);
-	vertexTexcoordBuffer = AllocateVertexBufer<glm::vec2>(device, texcoords);
-	vertexTangentBuffer = AllocateVertexBufer<glm::vec3>(device, tangents);
+	// Just before the upload, we build the meshlet data
+    BuildAndUploadMeshletData(device);
 
 	// Allocate memory for the index buffer
 	indexBuffer = device->CreateBuffer(BindFlag::kIndexBuffer | BindFlag::kCopyDest, sizeof(uint32_t) * indices.size());
@@ -25,9 +70,7 @@ void Mesh::UploadMeshData(std::shared_ptr<Device> device)
 
 void Mesh::BindBuffers(std::shared_ptr<CommandList> commandList) const
 {
-	commandList->IASetVertexBuffer(0, vertexPositionBuffer);
-	commandList->IASetVertexBuffer(1, vertexNormalBuffer);
-	commandList->IASetVertexBuffer(2, vertexTexcoordBuffer);
-	commandList->IASetVertexBuffer(3, vertexTangentBuffer);
-	commandList->IASetIndexBuffer(indexBuffer, gli::FORMAT_R32_UINT_PACK32);
+    // Binding goes through the pipeline now
+	//commandList->IASetVertexBuffer(0, vertexBuffer);
+	//commandList->IASetIndexBuffer(indexBuffer, gli::FORMAT_R32_UINT_PACK32);
 }

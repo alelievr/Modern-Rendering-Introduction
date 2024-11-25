@@ -8,6 +8,8 @@ struct DrawRootConstants
 	uint32_t materialIndex;
 };
 
+bool useMeshShader = false;
+
 Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
 {
     this->device = device;
@@ -36,6 +38,10 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
         { MODERN_RENDERER_ASSETS_PATH "shaders/PixelShader.hlsl", "main", ShaderType::kPixel, "6_5" });
     std::shared_ptr<Program> program = device->CreateProgram({ vertex_shader, pixel_shader });
 
+    std::shared_ptr<Shader> mesh_shader = device->CompileShader(
+        { MODERN_RENDERER_ASSETS_PATH "shaders/MeshShader.hlsl", "main", ShaderType::kMesh, "6_5" });
+    std::shared_ptr<Program> programMesh = device->CreateProgram({ mesh_shader, pixel_shader });
+
     std::shared_ptr<Shader> compute_test = device->CompileShader(
         { MODERN_RENDERER_ASSETS_PATH "shaders/PathTracerScene0.hlsl", "main", ShaderType::kCompute, "6_5" });
     std::shared_ptr<Program> compute_program = device->CreateProgram({ compute_test });
@@ -43,6 +49,7 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     // Compute stage allows to bind to every shader stages
     BindKey drawRootConstant = { ShaderType::kCompute, ViewType::kConstantBuffer, 1, 0, 1, UINT32_MAX, true };
     std::shared_ptr<BindingSetLayout> layout = RenderUtils::CreateLayoutSet(device, camera, { drawRootConstant });
+    std::shared_ptr<BindingSetLayout> meshShaderLayout = RenderUtils::CreateLayoutSet(device, camera, { drawRootConstant });
     objectBindingSet = RenderUtils::CreateBindingSet(device, layout, camera, { { drawRootConstant, nullptr } });
     
     BindKey PathTracerMainColorKey = { ShaderType::kCompute, ViewType::kRWTexture, 0, 0, 1, UINT32_MAX };
@@ -71,13 +78,24 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     clearColorRenderPass = device->CreateRenderPass(renderPassDesc);
 
     GraphicsPipelineDesc pipelineDesc = {
-        program,
+        programMesh,
         layout,
         { Mesh::GetInputAssemblerLayout() },
         clearColorRenderPass,
     };
-    pipelineDesc.rasterizer_desc = { FillMode::kSolid, CullMode::kNone, 0 };
+    pipelineDesc.rasterizer_desc = { FillMode::kSolid, CullMode::kBack, 0 };
     objectPipeline = device->CreateGraphicsPipeline(pipelineDesc);
+
+
+    GraphicsPipelineDesc meshShaderPipelineDesc = {
+        program,
+        layout,
+        {},
+        clearColorRenderPass,
+    };
+    pipelineDesc.rasterizer_desc = { FillMode::kSolid, CullMode::kBack, 0 };
+
+    objectMeshShaderPipeline = device->CreateGraphicsPipeline(meshShaderPipelineDesc);
 
     ComputePipelineDesc computeDesc = {
         compute_program,
@@ -167,7 +185,10 @@ void DrawScene(std::shared_ptr<CommandList> commandList, std::shared_ptr<Scene> 
             dxCommandList->SetGraphicsConstant(0, materialIndex, 0);
 
 			// Draw mesh
-			commandList->DrawIndexed(r.mesh.indices.size(), 1, 0, 0, 0);
+            if (useMeshShader)
+                commandList->DispatchMesh(r.mesh.meshletCount);
+            else
+		    	commandList->DrawIndexed(r.mesh.indices.size(), 1, 0, 0, 0);
 		}
     }
 }
@@ -177,7 +198,7 @@ void Renderer::RenderRasterization(std::shared_ptr<CommandList> commandList, std
     // TODO: clear render pass
 
     ClearDesc clear_desc = { { { 0.0, 0.2, 0.4, 1.0 } } }; // Clear Color
-    commandList->BindPipeline(objectPipeline);
+    commandList->BindPipeline(useMeshShader ? objectMeshShaderPipeline : objectPipeline);
     commandList->BindBindingSet(objectBindingSet);
     commandList->SetViewport(0, 0, appSize.width(), appSize.height());
     commandList->SetScissorRect(0, 0, appSize.width(), appSize.height());
