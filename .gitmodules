@@ -10,3 +10,6 @@
 [submodule "ModernRenderer/3rdparty/FlyCube"]
 	path = ModernRenderer/3rdparty/FlyCube
 	url = https://github.com/alelievr/FlyCube
+[submodule "ModernRenderer/3rdparty/meshoptimizer"]
+	path = ModernRenderer/3rdparty/meshoptimizer
+	url = https://github.com/zeux/meshoptimizer
