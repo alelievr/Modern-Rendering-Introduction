@@ -68,28 +68,112 @@ To know the result of the depth test for the whole tile without computing the de
 
 ## Fine Rasterization
 
-For each tile that passed the tests above, we can do the fine rasterization pass which correspond to the output resolution.
+Now that we know which tile passed the tests, it means that a part of the triangle overlaps the tile. The fine rasterization step determines which pixel in the tile actually intersect the triangle.
+
+From this point, the granularity of the work is per pixel.
+
+// TODO: gif
+
+### Fill Mode
+
+When rendering polygons using the rasterizer tou can also specify a **Fill Mode** it lets you choose how you want the polygons to appear, Usually there only 3 choices:
+- Fill: The default option, it renders the triangle surface.
+- Line: Only renders the edges of the polygons.
+- Point: Only renders the vertices of the polygons.
 
 ## Stencil Test
 
-Stencil Testing is another important feature of the GPU
+Stencil Testing is an important feature of the GPU, it's purpose is to discard pixels (early out the rasterization) to optimize the rendering of an object. It is mainly used to perform special effects such as having an object visible only behind another one or making objects disappear when the camera gets close to see through them.
 
-pre-fragment work, post fragment (alpha clip)
-ALso have hierarchical-stencil optimization
+// TODO: stencil glasses example
+
+In order to early out those pixels, the stencil test reads the value of the **Stencil Buffer**, this texture contains 8 bit per pixel of data. This data is then compared with a fixed value to evaluate if the stencil test passes or fails.
+
+If the stencil test fails, then the pixel is immediately discarded and it doesn't show on the screen.
+If the stencil test passes, then the pixel can proceed to the next steps of the rasterization process.
+
+The stencil test is something that can be configured and not programmed (see the diagram above), this configuration is often exposed by the different graphics API as a structure or handle that holds values relevant to perform the stencil test. In this structure you can generally find these values:
+
+Name | Description
+--- | ---
+Stencil Enabled | 
+Reference Value | TODO
+Read Mask | 
+Write Mask | 
+Fail Operation | 
+Pass Operation | 
+Depth Fail Operation | 
+Function | 
+
+If we translate this into code, we can see the stencil test like so:
+
+```c
+if (StencilEnabled())
+{
+    uint8_t stencilBufferValue = StencilBuffer[pixelCoordinate] & StencilReadMask;
+    uint8_t stencilReferenceValue = GetStencilStateReferenceValue() & StencilReadMask;
+
+    uint8_t result = 0;
+    if (StencilCompare(stencilBufferValue, stencilReferenceValue))
+    {
+        if (DepthTestPassed())
+            result = StencilPassOperation();
+        else
+            result = StencilDepthFailOperation();
+    }
+    else
+        result = StencilFailOperation();
+
+    result &= StencilWriteMask;
+    StencilBuffer[pixelCoordinate] = (StencilBuffer[pixelCoordinate] & ~StencilWriteMask) | result;
+}
+```
+
+Usually this stencil test is performed before any fragment shader is invoked, this allows to have a cheap early out mechanism. But depending on what the shader is doing (writing depth or using a pixel discard instruction for example), the stencil test can actually be performed after the invocation. This significantly reduces the performances when rendering such objects but it's sometimes necessary to achieve certain effects.
 
 ## Depth Test
 
+Depth Testing is probably one of the most used feature of the rasterizer. It's purpose to make sure that the objects are correctly occluded. Without the depth testing, every objects will appear on the screen based on the order they where rendered with the last ones appearing on top of everything even if they should be behind other objects.
+
+// TODO: gif
+
+To make sure that the objects are occluded, we use another texture called **Depth Buffer**, this texture stores the depth (not distance) of each pixel on the screen. To check if a new pixel is occluded or not, we just have to compare the depth inside the texture and the depth of the new pixel, if it's larger, then the pixel is discarded as it's occluded and if it's lower, then the pixel can proceed to the following stages of rasterization.
+
+Just like the stencil test, dept test can be configured with these properties:
+
+Name | Description
+--- | ---
+Depth Enabled | TODO
+Comparison Function | 
+Depth Write | 
+
+> Note that the depth values inside the depth textures are stored normalized (between 0 to 1 in DirectX, Metal and Vulkan and from 1 to -1 in OpenGL). This means that you need conversion functions using the projection matrix parameters to recover the actual depth of the pixel.
+
 ## Depth Write
 
-## Fill Mode
+This step is pretty straightforward, depending on the depth state, we write the new depth value into the depth buffer.
 
 ## Fragment Invocation
 
+This steps is the only programmable part of the rasterizer, for each pixel tha successfully made it there the fragment shader is called to compute the final color of the pixel.
+
 ### Vertex Interpolation
+
+Every attributes passed to the input of the fragment shader gets interpolated using barycentric coordinates. This interpolation can be controlled using [Interpolation Modifiers](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-struct#interpolation-modifiers-introduced-in-shader-model-4), the control how values from the mesh vertices are interpolated and even allow you to disable interpolation if you need it.
 
 ### Pixel discard
 
+The [discard](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-discard) instruction in HLSL allows to exit the rasterization without writing to any output. It is useful if you want to programmatically control which pixel to discard in cases where depth and stencil testing are not flexible enough. For example pixel discard are often used for foliage or vegetation to cutout the complex shapes of leaves.
+
+As mentioned above in the diagram, adding a discard instruction in the fragment shader automatically moves all the early depth and stencil tests after the fragment shader evaluation making them less interesting in terms of performance.
+
 ### Quads & Helper Pixels
+
+One particularity of the rasterizer is that the minimum unit it can process is not a single pixel but actually 4, we call this a quad and represent a 2x2 pixel shape. 
+
+Having the guarantee that at least 4 adjacent pixels are being processed at the same time is neat as it allows to do calculation between the values of those pixels. This is what the [ddx](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-ddx) and [ddy](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-ddy) instructions do, these instruction calculate the rate of change of the value passed in parameter and are essential for texture filtering. We'll see them more in detail in the chapter about filtering and texturing.
+
+// TODO: gif of helper pixels
 
 ## Blending & Output Merger
 
@@ -120,3 +204,5 @@ https://fgiesen.wordpress.com/2011/07/08/a-trip-through-the-graphics-pipeline-20
 https://learn.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-rasterizer-stage-rules#triangle-rasterization-rules-without-multisampling
 
 https://www.khronos.org/opengl/wiki/Face_Culling
+
+https://www.asawicki.info/news_1654_stencil_test_explained_using_code
