@@ -176,7 +176,7 @@ public class Triangle : MonoBehaviour
     {
         anchoredTextC.SetText(text, textColor);
     }
-
+    
     void OnDisable()
     {
         DestroyImmediate(triangleMesh);
