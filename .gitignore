@@ -93,3 +93,4 @@ ModernRenderer/ModernRenderer.dir
 ModernRenderer/imgui.dir
 Media/Introduction To Modern Rendering/Assets/Tmp
 Media/Introduction To Modern Rendering/Assets/Tmp.meta
+*.bkp
