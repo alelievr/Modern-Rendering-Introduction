@@ -21,7 +21,7 @@ As you can see it's quite a bit more complex and it doesn't include all the case
 
 The process of rasterization in itself is simple, it consist in converting a series of 2D shapes into pixels. In our case these shapes represent the transformed data from the mesh shaders and the final pixels represent the output image that we want to render. You can see this process as overlaying a grid of the same size as the output image on top of the geometry and then calculating the color of the triangle only if it intersect with the center of each cell.
 
-// TODO: image
+![](Media/Recordings/Rasterization.gif)
 
 In a sense you can see this process as turning the input geometry which has infinite resolution (linear) into a finite resolution matching the output image. This process is called [Discretization](https://en.wikipedia.org/wiki/Discretization) and introducing the infamous aliasing that you've probably seen countless times in video games or graphic apps. We'll see that in more details in the following chapter when dealing with textures.
 
@@ -34,6 +34,10 @@ The Primitive Assembler takes data from the mesh and turn it into a list of Prim
 To form these primitives, the assembler reads the index buffer linking vertices together. It's possible to specify how the GPU should read this index buffer to form the triangle by specifying the type of [topologies](https://learn.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-primitive-topologies), that way you can form triangle strips or fans.
 
 ## Viewport Clipping & Scissors Test
+
+The viewport represent the rectangular area where your triangles are rendered, anything outside this area will get culled. Usually the viewport matches the size of the output texture so that every part of the triangles that are outside of the camera gets clipped.
+
+Scissors testing is setup by specifying a list of 2D rectangles relative to the viewport area where the pixels in these area will get culled.
 
 ## Face Culling
 

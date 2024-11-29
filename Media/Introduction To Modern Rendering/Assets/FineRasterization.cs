@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class Rasterization : MonoBehaviour
+public class FineRasterization : MonoBehaviour
 {
-    public BackgroundGrid grid;
+    public BackgroundGrid tileGrid;
     public Triangle triangle;
     public GameObject quad;
     
@@ -17,20 +17,22 @@ public class Rasterization : MonoBehaviour
     public Color centerColor;
     public float centerSize = 0.01f;
 
-    List<GameObject> gridCenters = new();
-    List<GameObject> overlappingSquares = new();
+    List<GameObject> tileOverlappingSquares = new();
+    List<GameObject> fineRasterLines = new();
+    List<GameObject> fineGridCenters = new();
+    List<GameObject> fineOverlappingSquares = new();
     
     void Start()
     {
-        grid.enabled = false;
+        tileGrid.enabled = false;
         
-        // Spawn grid centers:
-        for (int x = -grid.lineCount; x < grid.lineCount; x++)
+        // Spawn tileGrid centers:
+        for (int x = -tileGrid.lineCount; x < tileGrid.lineCount; x++)
         {
-            for (int y = -grid.lineCount; y < grid.lineCount; y++)
+            for (int y = -tileGrid.lineCount; y < tileGrid.lineCount; y++)
             {
-                var center = new Vector2(x + 0.5f, y + 0.5f) + (Vector2)grid.transform.position;
-                center *= grid.scale;
+                var center = new Vector2(x + 0.5f, y + 0.5f) + (Vector2)tileGrid.transform.position;
+                center *= tileGrid.scale;
                 SpawnCenter(center);
 
                 if (InsideTriangle(center))
@@ -60,7 +62,7 @@ public class Rasterization : MonoBehaviour
         dot.size = centerSize;
         dot.transform.position = center;
         dot.gameObject.SetActive(false);
-        gridCenters.Add(dot.gameObject);
+        fineGridCenters.Add(dot.gameObject);
     }
 
     void SpawnQuad(Vector2 center)
@@ -77,7 +79,7 @@ public class Rasterization : MonoBehaviour
     {
         grid.gameObject.SetActive(showGrid);
 
-        foreach (var c in gridCenters)
+        foreach (var c in fineGridCenters)
             c.SetActive(showGridCenters);
 
         foreach (var o in overlappingSquares)

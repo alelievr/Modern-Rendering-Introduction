@@ -1,14 +1,14 @@
 {
   "dependencies": {
-    "com.unity.cinemachine": "2.9.7",
-    "com.unity.collab-proxy": "2.3.1",
+    "com.unity.cinemachine": "2.10.1",
+    "com.unity.collab-proxy": "2.4.4",
     "com.unity.feature.development": "1.0.1",
     "com.unity.mathematics": "1.2.6",
-    "com.unity.recorder": "4.0.2",
+    "com.unity.recorder": "4.0.3",
     "com.unity.textmeshpro": "3.0.6",
     "com.unity.timeline": "1.7.6",
     "com.unity.ugui": "1.0.0",
-    "com.unity.visualscripting": "1.9.1",
+    "com.unity.visualscripting": "1.9.4",
     "org.khronos.unitygltf": "https://github.com/KhronosGroup/UnityGLTF.git",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
