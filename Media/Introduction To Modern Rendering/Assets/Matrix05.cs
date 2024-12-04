@@ -7,7 +7,7 @@ public class Matrix05 : MonoBehaviour
     public Camera filmDeformationCam;
 
     Matrix04FrustumToBox matrix04FrustumToBox;
-    bool init = false;
+    // bool init = false;
 
     // Start is called before the first frame update
     void Start()

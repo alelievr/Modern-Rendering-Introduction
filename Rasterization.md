@@ -76,7 +76,7 @@ Now that we know which tile passed the tests, it means that a part of the triang
 
 From this point, the granularity of the work is per pixel.
 
-// TODO: gif
+![](Media/Recordings/Rasterization%20-%20Fine.gif)
 
 ### Fill Mode
 
