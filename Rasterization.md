@@ -5,7 +5,7 @@ Rasterization is probably one of the most known and used part of the GPU, this i
 > Note that for the sake of clarity I'll only talk about how the rasterizer work in a Discrete GPU. If you're interested in learning how rasterization work with different architectures like TBRD check out [GPU architecture types explained
 ](https://www.rastergrid.com/blog/gpu-tech/2021/07/gpu-architecture-types-explained/).
 
-Let's take a look at a diagram representing all the steps happening during rasterization of a very simple shader. Note that the order of some steps can change depending on the graphics API or GPU but the overall layout remains similar.
+Let's take a look at a diagram representing all the steps happening during rasterization of a simple shader. Note that the order of some steps can change depending on the graphics API or GPU but the overall layout remains similar.
 
 ![](Media/Images/SimpleRasterization.png)
 
@@ -15,7 +15,7 @@ For reference, here's what the pipeline could look like if we take in account de
 
 ![](Media/Images/Rasterization.png)
 
-As you can see it's quite a bit more complex and it doesn't include all the cases, we could add MSAA, conservative depth, coverage, etc. 
+As you can see it's quite a bit more complex and it doesn't include all the cases, we could add MSAA, alpha coverage, VRS, etc.
 
 ## From Linear To Discrete
 
@@ -147,9 +147,9 @@ Just like the stencil test, dept test can be configured with these properties:
 
 Name | Description
 --- | ---
-Depth Enabled | TODO
-Comparison Function | 
-Depth Write | 
+Depth Enabled | Specifies whether the depth test is enabled or not, if disabled, the depth test will always pass.
+Comparison Function | The function used to compare the fragment depth and the depth buffer value.
+Depth Write | Specifies whether the fragment should write it's depth value if the depth test passes.
 
 > Note that the depth values inside the depth textures are stored normalized (between 0 to 1 in DirectX, Metal and Vulkan and from 1 to -1 in OpenGL). This means that you need conversion functions using the projection matrix parameters to recover the actual depth of the pixel.
 
@@ -159,11 +159,11 @@ This step is pretty straightforward, depending on the depth state, we write the 
 
 ## Fragment Invocation
 
-This steps is the only programmable part of the rasterizer, for each pixel tha successfully made it there the fragment shader is called to compute the final color of the pixel.
+This steps is the only programmable part of the rasterizer, for each pixel that successfully made it there the fragment shader is called to compute the final color of the pixel.
 
 ### Vertex Interpolation
 
-Every attributes passed to the input of the fragment shader gets interpolated using barycentric coordinates. This interpolation can be controlled using [Interpolation Modifiers](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-struct#interpolation-modifiers-introduced-in-shader-model-4), the control how values from the mesh vertices are interpolated and even allow you to disable interpolation if you need it.
+Every attributes passed to the input of the fragment shader gets interpolated using barycentric coordinates. This interpolation can be controlled using [Interpolation Modifiers](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-struct#interpolation-modifiers-introduced-in-shader-model-4), they control how values from the mesh vertices are interpolated and even allows disabling interpolation if needed.
 
 ### Pixel discard
 
@@ -171,9 +171,15 @@ The [discard](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-gr
 
 As mentioned above in the diagram, adding a discard instruction in the fragment shader automatically moves all the early depth and stencil tests after the fragment shader evaluation making them less interesting in terms of performance.
 
+### Multiple Render Targets
+
+The fragment shader can have a maximum of 8 color outputs, each output is 4 channel, so it's a maximum of 32 values representing "color" data that can be output from the fragment shader.
+
+This is an interesting feature that allows to implement more complex rendering algorithms like deferred shading that relies on exporting material properties into a `GBuffer` composed of several render targets.
+
 ### Quads & Helper Pixels
 
-One particularity of the rasterizer is that the minimum unit it can process is not a single pixel but actually 4, we call this a quad and represent a 2x2 pixel shape. 
+One particularity of the rasterizer is that the minimum unit it can process is not a single pixel but actually 4, we call this a quad and represent a 2x2 pixel shape.
 
 Having the guarantee that at least 4 adjacent pixels are being processed at the same time is neat as it allows to do calculation between the values of those pixels. This is what the [ddx](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-ddx) and [ddy](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-ddy) instructions do, these instruction calculate the rate of change of the value passed in parameter and are essential for texture filtering. We'll see them more in detail in the chapter about filtering and texturing.
 
@@ -181,9 +187,65 @@ Having the guarantee that at least 4 adjacent pixels are being processed at the 
 
 ## Blending & Output Merger
 
+Once the fragment shader finished it's execution, the GPU needs to write back the output data (color values and potentially depth) to the main memory of the GPU. This action is executed by the Output Merger.
+
+Inside the output merger stage, we find the blending operation. This is mostly interesting to render transparent surfaces as we want to blend their color with the rest of the scene when they are rendered. This blending operation is another configurable step that can be enabled and configured from the graphics API. Note that the blending operation can only be performed on color data and that you can have a different blending configuration per render target bound (see Multiple Render Target above).
+
+Name | Description
+--- | ---
+Blend Enabled | Controls whether the blending stage is enabled or not. When rendering opaque objects it is disabled.
+Source Color Blend | The value that multiplies the source color (i.e. the color from the fragment shader output).
+Destination Color Blend | The value that multiplies the destination color (i.e. the color from the frame buffer).
+Color Blend Operation | The operation performed between the source color and destination color.
+Source Alpha Blend | The value that multiplies the source alpha (i.e. the alpha from the fragment shader output).
+Destination Alpha Blend | The value that multiplies the destination alpha (i.e. the alpha from the frame buffer).
+Alpha Blend Operation | The operation performed between the source alpha and destination alpha.
+Color Write Mask | Specify which channels of the fragment shader color will affect the blending.
+
+We can also say that the blending is performed by following this formula:
+
+```c
+// sourceColor is the output from the fragment shader
+// destination color is the value from the FrameBuffer.
+output.rgb = (sourceColorBlend * sourceColor) colorBlendOperation (destinationColorBlend * destinationColor)
+output.a = (sourceAlphaBlend * sourceAlpha) alphaBlendOperation (destinationAlphaBlend * destinationAlpha)
+```
+
+> Note that there is also a mode that allows to perform logic operations like `AND`, `OR`, etc. instead of blending, it can be used on integer typed textures.
+
+The output merger unit is able to perform compression and blending in hardware thus improving performances and bandwidth compared to a manual implementation in a shader. Of course this is at the cost of having limited blending configuration, but they are often enough to cover most cases we encounter in games.
+
+For example the standard transparency can be achieved by using this blending configuration:
+
+- Source Color Blend: Source Alpha
+- Destination Color Blend: 1 - Source Alpha
+- Color Blend Operation: Add
+
+Following the formula above, this gives:
+
+```c
+output.rgb = (sourceAlpha * sourceColor) + ((1 - sourceAlpha) * destinationColor)
+```
+
+Which is a linear interpolation of the color using the fragment shader alpha value.
+
 ## Conservative Rasterization
 
+Conservative rasterization is an option that ensures that every pixel overlapping the triangle gets rasterized, even if it's center is outside the primitive. This method increases the coverage of the rasterization and make sure that triangles smaller than the pixels are still visible.
+
+Conservative rasterization has some implication regarding the different stages of the pipeline, especially vertex interpolation that need to be carefully evaluated if you want to enabled it.
+
+For more information you can see the [Conservative Rasterization](https://learn.microsoft.com/en-us/windows/win32/direct3d12/conservative-rasterization) page in DirectX12.
+
 ## Multisampling (MSAA)
+
+Multisampling is an option that allows to increase the number of fragment invocation per pixel to help reduce the aliasing generated from the process of rasterization.
+
+MSAA is enabled when the textures are created, you can specify the level of multisampling between 2, 4 and 8. The amount of memory allocated by the texture increases linearly with the level of multisampling to store the additional shading results.
+
+When using MSAA, instead of using the center of each pixel to rasterize the geometry, a sample position within the pixel is used. This sample position is a fixed offset within the pixel defined by the MSAA sample index.
+
+MSAA textures cannot be displayed directly on screen because there are multiple values per pixel. To merge these values together, graphics API provides commands that convert MSAA textures to regular ones. It's also possible to do a custom shader that interpolate each sample within a pixel which allows for better filtering control. This step is often called a **Resolve**.
 
 ## Variable Rate Shading
 
@@ -210,3 +272,7 @@ https://learn.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-progra
 https://www.khronos.org/opengl/wiki/Face_Culling
 
 https://www.asawicki.info/news_1654_stencil_test_explained_using_code
+
+https://learn.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage
+
+https://therealmjp.github.io/posts/msaa-overview/
