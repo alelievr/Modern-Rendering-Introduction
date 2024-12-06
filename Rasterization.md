@@ -81,6 +81,7 @@ From this point, the granularity of the work is per pixel.
 ### Fill Mode
 
 When rendering polygons using the rasterizer tou can also specify a **Fill Mode** it lets you choose how you want the polygons to appear, Usually there only 3 choices:
+
 - Fill: The default option, it renders the triangle surface.
 - Line: Only renders the edges of the polygons.
 - Point: Only renders the vertices of the polygons.
@@ -100,14 +101,14 @@ The stencil test is something that can be configured and not programmed (see the
 
 Name | Description
 --- | ---
-Stencil Enabled | 
-Reference Value | TODO
-Read Mask | 
-Write Mask | 
-Fail Operation | 
-Pass Operation | 
-Depth Fail Operation | 
-Function | 
+Stencil Enabled | Controls whether the stencil test is enabled or not.
+Reference Value | Set the reference value for the stencil test, this is an 8 bit value.
+Read Mask | Controls which bits to read from the stencil buffer, this is an 8 bit mask.
+Write Mask | Controls which bits to write to the stencil buffer, this is an 8 bit mask.
+Fail Operation | Specify which operation is performed in case the stencil test fails.
+Pass Operation | Specify which operation is performed in case the stencil test passes.
+Depth Fail Operation | Specify which operation is performed in case the stencil test passes but the depth test fails.
+Function | Specify which comparison function is used to check if the stencil test passes (i.e. equal, greater equal, etc.).
 
 If we translate this into code, we can see the stencil test like so:
 
@@ -249,9 +250,23 @@ MSAA textures cannot be displayed directly on screen because there are multiple 
 
 ## Variable Rate Shading
 
-## Misc
+Like multisampling, **Variable Rate Shading** or **VRS** for short allows to control the amount of shading the rasterizer performs except that multisampling can only increase the shading rate while VRS can only decrease it.
 
-Talk about Occlusion Queries, depth bounds, z-clip, etc.
+There are several types of VRS and the support differs depending on the type of GPU used. Nevertheless this feature allows to decrease the amount of shading performed to render an image of the same resolution, thus increasing the performance of the application.
+
+Reducing the amount of shading will introduce blurriness in the image which in some case is not a problem if the area doesn't need high detail density. For example if you know that an area will be blurred by a motion blur effect, then you don't need the full resolution input as the result will be blurred out anyway.
+
+VRS is generally used in low-power devices or VR headset to implement [Foveated Rendering](https://en.wikipedia.org/wiki/Foveated_rendering). And more recently some [AAA games](https://research.activision.com/publications/2020-09/software-based-variable-rate-shading-in-call-of-duty--modern-war) implement their own version of VRS in software which allows to have a lot more control and achieve better graphical fidelity.
+
+VRS is a complex topic with many caveats and implementation details, if you're interested in those, I recommend reading [Variable-rate shading](https://learn.microsoft.com/en-us/windows/win32/direct3d12/vrs) from DirectX12 documentation.
+
+## Conclusion
+
+The rasterizer is probably the most important piece of hardware in GPUs, understanding it's steps like we explained in this chapter is important to learn how to use this complex system.
+
+We've explained most of the important parts of the process of rasterization and we'll be using that in future chapters when writing fragment shaders.
+
+I want to mention that there are several other interesting features in the rasterizer that we didn't talk about because they are used in more specific cases like z-clipping, depth bounds testing, etc. With this amount of options it's easy to get lost or forget that something exist, that's why it's important to research if there is something in hardware that can help you before writing the shader code.
 
 ## References
 
