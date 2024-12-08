@@ -90,7 +90,7 @@ When rendering polygons using the rasterizer tou can also specify a **Fill Mode*
 
 Stencil Testing is an important feature of the GPU, it's purpose is to discard pixels (early out the rasterization) to optimize the rendering of an object. It is mainly used to perform special effects such as having an object visible only behind another one or making objects disappear when the camera gets close to see through them.
 
-// TODO: stencil glasses example
+![](Media/Recordings/Rasterization%20-%20Stencil.gif)
 
 In order to early out those pixels, the stencil test reads the value of the **Stencil Buffer**, this texture contains 8 bit per pixel of data. This data is then compared with a fixed value to evaluate if the stencil test passes or fails.
 
@@ -140,7 +140,9 @@ Usually this stencil test is performed before any fragment shader is invoked, th
 
 Depth Testing is probably one of the most used feature of the rasterizer. It's purpose to make sure that the objects are correctly occluded. Without the depth testing, every objects will appear on the screen based on the order they where rendered with the last ones appearing on top of everything even if they should be behind other objects.
 
-// TODO: gif
+Without Depth Test | With Depth Test
+--- | ---
+![](Media/Recordings/Rasterization%20-%20NoDepth.gif) | ![](Media/Recordings/Rasterization%20-%20Depth.gif)
 
 To make sure that the objects are occluded, we use another texture called **Depth Buffer**, this texture stores the depth (not distance) of each pixel on the screen. To check if a new pixel is occluded or not, we just have to compare the depth inside the texture and the depth of the new pixel, if it's larger, then the pixel is discarded as it's occluded and if it's lower, then the pixel can proceed to the following stages of rasterization.
 
@@ -184,7 +186,9 @@ One particularity of the rasterizer is that the minimum unit it can process is n
 
 Having the guarantee that at least 4 adjacent pixels are being processed at the same time is neat as it allows to do calculation between the values of those pixels. This is what the [ddx](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-ddx) and [ddy](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-ddy) instructions do, these instruction calculate the rate of change of the value passed in parameter and are essential for texture filtering. We'll see them more in detail in the chapter about filtering and texturing.
 
-// TODO: gif of helper pixels
+![](Media/Recordings/Rasterization%20-%20Quads.gif)
+
+As you can see in this animation, there are quite a few helper pixels dispatched by the GPU (shown in red). This triangle is particularly small if you consider that each cell of the grid is a pixel on screen, but in this particular case, we can see that 50% of the fragment shader invoked by the GPU are only dedicated to helping the computation of the other half. This is one of the main reason why small triangles are inefficient on modern GPUs and that we see more and more software rasterizers bypassing this limitation.
 
 ## Blending & Output Merger
 
