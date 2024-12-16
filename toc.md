@@ -18,7 +18,7 @@
 - Matrices + transformations [complete]
 - Meshes [complete]
 - Mesh Shaders [started]
-- Rasterization [started]
+- Rasterization [complete]
 - Mesh intersection
 - Bindless
 - Material
