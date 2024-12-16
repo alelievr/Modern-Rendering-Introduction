@@ -19,7 +19,8 @@
 - Meshes [complete]
 - Mesh Shaders [started]
 - Rasterization [complete]
-- Mesh intersection
+<!-- - Mesh intersection -->
+- The Render Pipeline
 - Bindless
 - Material
 - Texturing
@@ -32,7 +33,6 @@
 - Roughness
 - BRDF / BSDF
 - Furnace Test
-- Mapping PBR Textures
 - HDR and Tone Mapping
 - Shading?
 - Shadow Maps
