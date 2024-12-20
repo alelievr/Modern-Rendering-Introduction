@@ -293,7 +293,7 @@ This has 3 main implications:
 
 To clarify in which space we are, we call these two **Camera Relative World Space** and **Absolute World Space**.
 
-## Matrix alternatives
+## Alternatives to matrices
 
 There are alternative solutions to matrices for performing transforms, amongst the most common ones, we find quaternions, dual quaternions, and Geometric Algebra.
 
