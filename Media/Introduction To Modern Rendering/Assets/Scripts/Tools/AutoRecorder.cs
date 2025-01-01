@@ -47,6 +47,8 @@ public class AutoRecorder : MonoBehaviour
         controllerSettings.AddRecorderSettings(CreateRecorder());
         controllerSettings.SetRecordModeToManual();
         controllerSettings.FrameRate = frameRate;
+        controllerSettings.CapFrameRate = true;
+        controllerSettings.FrameRatePlayback = FrameRatePlayback.Constant;
 
         StartCoroutine(StartRecording(controllerSettings));
     }
@@ -75,7 +77,7 @@ public class AutoRecorder : MonoBehaviour
         {
             case Mode.Picture:
                 var i = ScriptableObject.CreateInstance<ImageRecorderSettings>();
-                i.name = "GIF Recorder";
+                i.name = "PNG Recorder";
                 i.Enabled = true;
 
                 i.CaptureAlpha = false;

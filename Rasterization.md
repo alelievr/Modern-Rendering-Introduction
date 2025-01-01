@@ -190,6 +190,8 @@ Having the guarantee that at least 4 adjacent pixels are being processed at the 
 
 As you can see in this animation, there are quite a few helper pixels dispatched by the GPU (shown in red). This triangle is particularly small if you consider that each cell of the grid is a pixel on screen, but in this particular case, we can see that 50% of the fragment shader invoked by the GPU are only dedicated to helping the computation of the other half. This is one of the main reason why small triangles are inefficient on modern GPUs and that we see more and more software rasterizers bypassing this limitation.
 
+The ratio between the effective and helper pixels is called the **Quad Occupancy** and is an important metric to look for when profiling and optimizing a renderer. The quad occupancy can be either 100%, 75%, 50% or 25% in the worst case.
+
 ## Blending & Output Merger
 
 Once the fragment shader finished it's execution, the GPU needs to write back the output data (color values and potentially depth) to the main memory of the GPU. This action is executed by the Output Merger.
