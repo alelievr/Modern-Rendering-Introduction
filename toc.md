@@ -20,8 +20,8 @@
 - Mesh Shaders [started]
 - Rasterization [complete]
 <!-- - Mesh intersection -->
-- The Render Pipeline
-- Bindless
+- The Render Pipeline [complete]
+- Bindless Bindings [started]
 - Material
 - Texturing
 - Aliasing and Filtering
