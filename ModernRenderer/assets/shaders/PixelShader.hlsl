@@ -1,12 +1,12 @@
 #include "common.hlsl"
 
-struct VS_OUTPUT
+struct MeshToFragment
 {
     float4 pos: SV_POSITION;
     float4 uv: TEXCOORD0;
 };
 
-float4 main(VS_OUTPUT input) : SV_TARGET
+float4 main(MeshToFragment input) : SV_TARGET
 {
     MaterialData material = LoadMaterialData(materialIndex);
     float2 uv = input.uv.xy;

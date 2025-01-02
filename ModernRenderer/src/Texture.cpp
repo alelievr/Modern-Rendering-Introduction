@@ -71,12 +71,13 @@ void UploadTextureData(const std::shared_ptr<Resource>& resource, const std::sha
 
     cmd->Reset();
     cmd->BeginEvent("UploadTextureData");
-    // TODO execute commands as the tmp buffer will be destroyed when the function exits
+    
     cmd->ResourceBarrier({ { resource, ResourceState::kCommon, ResourceState::kCopyDest } });
-    cmd->ResourceBarrier({ { upload_resource, ResourceState::kCommon, ResourceState::kCopySource } });
-    //cmd->ResourceBarrier({ barrierDesc });
-    //ImageBarrier(resource, region.texture_mip_level, 1, region.texture_array_layer, 1, ResourceState::kCopyDest);
+    
     cmd->CopyBufferToTexture(upload_resource, resource, regions);
+
+    cmd->ResourceBarrier({ { resource, ResourceState::kCopyDest, ResourceState::kCommon } });
+    
     cmd->EndEvent();
     cmd->Close();
     queue->ExecuteCommandLists({ cmd });

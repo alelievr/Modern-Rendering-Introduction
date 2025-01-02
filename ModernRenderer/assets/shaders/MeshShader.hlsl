@@ -29,7 +29,7 @@ struct Meshlet
 
 // TODO: single vertex buffer for all meshes
 StructuredBuffer<VertexData> vertexBuffer : register(t0, space4);
-StructuredBuffer<VertexData> meshlets : register(t1, space4);
+StructuredBuffer<Meshlet> meshlets : register(t1, space4);
 Buffer<uint> meshletIndices : register(t2, space4);
 Buffer<uint> meshletTriangles : register(t3, space4);
 
@@ -63,6 +63,8 @@ void main(
     out vertices MeshToFragment vertices[MAX_OUTPUT_VERTICES])
 {
     Meshlet meshlet = meshlets[groupID];
+
+    SetMeshOutputCounts(meshlet.vertexCount, meshlet.triangleCount);
 
     if (threadId < meshlet.triangleCount)
     {

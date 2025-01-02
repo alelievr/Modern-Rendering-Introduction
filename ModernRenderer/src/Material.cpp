@@ -64,7 +64,6 @@ void Material::AllocateMaterialBuffers(std::shared_ptr<Device> device)
 	BufferCopyRegion region = {};
 	region.num_bytes = sizeof(GPUMaterial) * materialCount;
 	cmd->ResourceBarrier({ { materialConstantBuffer, ResourceState::kCommon, ResourceState::kCopyDest } });
-	cmd->ResourceBarrier({ { uploadBuffer, ResourceState::kCommon, ResourceState::kCopySource } });
 	cmd->CopyBuffer(uploadBuffer, materialConstantBuffer, { region });
 	cmd->Close();
 	std::shared_ptr<CommandQueue> queue = device->GetCommandQueue(CommandListType::kCopy);
