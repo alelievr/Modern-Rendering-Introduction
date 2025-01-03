@@ -15,14 +15,14 @@
 - Sphere intersection [kinda complete]
 - Box / AABB intersection
 - Triangle intersection [complete]
+- Hardware Ray Tracing
 - Matrices + transformations [complete]
 - Meshes [complete]
 - Mesh Shaders [started]
 - Rasterization [complete]
-<!-- - Mesh intersection -->
 - The Render Pipeline [complete]
 - Bindless Bindings [started]
-- Material
+- Material [started]
 - Texturing
 - Aliasing and Filtering
 - Integrals in Rendering
