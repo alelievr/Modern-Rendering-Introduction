@@ -1,12 +1,14 @@
 # Bindless Bindings
 
-Bindless rendering is an approach that simplifies the resource management between CPU and shaders. To appreciate the benefits of bindless rendering, we first have to look at what is a binding.
+Bindless rendering is an approach that simplifies resource management between the CPU and shaders. To fully understand the benefits of bindless rendering, we first need to explore the concept of bindings.
 
 ## Bindings
 
-A shader often requires to read or write from an external resource such as a texture, a buffer or a sampler. At the time where the shader is rendered, all the resources need to be bound (pointing to a valid resource created by the CPU). This binding operation is executed on the CPU and require fine management of which shader need which resource, thus increasing the CPU cost of the render loop. In modern graphics API this cost can be alleviated by preparing objects that contain a list of bindings ahead of time, but it still mean handling possibly thousands of them if there is a scene with lots of materials.
+A shader often needs to read from or write to an external resource such as a texture, a buffer, or a sampler. At the time the shader is executed, all the required resources must be bound (pointing to valid resources created by the CPU). This binding operation is performed on the CPU and requires precise management of which shaders need which resources, thus increasing the CPU cost of the render loop. 
 
-Let's see a simple example to demonstrate this, we have a shader that read a texture:
+In modern graphics APIs, this cost can be mitigated by preparing objects that contain lists of bindings ahead of time. However, this still involves handling potentially thousands of bindings in a scene with numerous materials.
+
+Let's look at a simple example to illustrate this. Here, we have a shader that reads a texture:
 
 ```hlsl
 Texture2D<float4> albedoTexture : register(t0, space0);
@@ -20,11 +22,11 @@ float4 main(MeshToFragment input) : SV_TARGET
 }
 ```
 
-This shader has 2 external resources that need to be bound: `albedoTexture` and `linearRepeatSampler`. We can easily imagine that the albedo texture will be changing between draw calls if the object material has a different texture set up.
+This shader has 2 external resources that need to be bound: `albedoTexture` and `linearRepeatSampler`. We can easily imagine that the albedo texture will change between draw calls if the object's material has a different texture setup.
 
-In this example, the [register](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-variable-register) keyword is used to specify the exact location of the resource, this is necessary because the amount of resources you can bind to a single shader is limited (most of graphics APIs have a limit of 32 textures and 16 samplers). This location is composed of 3 components: a letter (here 't' for texture or 's' for sampler), a number following this letter which is the index of the slot used by the resource and finally a space index which allows several resources to use the same slot without overlapping if they use a different space.
+In this example, the [register](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-variable-register) keyword is used to specify the exact location of the resource. This is necessary because the number of resources you can bind to a single shader is limited (most graphics APIs have a limit of 32 textures and 16 samplers). This location is composed of three components: a letter (here 't' for texture or 's' for sampler), a number following this letter, which is the index of the slot used by the resource, and finally a space index. The space index allows several resources to use the same slot without overlapping if they are in different spaces.
 
-These slots and space indices are directly provided to the graphics API when binding a resource to a shader. To make sure that the indices match between the API and shader declaration, reflection APIs were developed that allows to query this information from the compiled shader to avoid hardcoding binding values and mismatching between different shaders.
+These slots and space indices are directly provided to the graphics API when binding a resource to a shader. To ensure that the indices match between the API and shader declaration, reflection APIs were developed. These allow you to query this information from the compiled shader to avoid hardcoding binding values and mismatches between different shaders.
 
 Then, if we look at the render loop on the CPU with these bindings, we have something like this:
 
@@ -66,7 +68,7 @@ for (Material material : visibleObjects.GetMaterials())
 
 In a bindless pipeline, resources like textures and buffers are placed in globally accessible arrays or descriptor tables, and shaders reference them via indices. These indices can be passed as constants during draw calls or stored in other GPU-accessible structures, such as buffers. This approach removes the need for binding operations during the render loop, allowing the CPU to issue draw calls with minimal overhead.
 
-> Note that even though this is called bindless, we still need to "bind" the descriptor table and send the indices to the shader.
+> Note that even though this is called "bindless," we still need to "bind" the descriptor table and send the indices to the shader.
 
 Following the previous example, here's the same shader code but using bindless resources instead:
 
@@ -90,11 +92,11 @@ float4 main(MeshToFragment input) : SV_TARGET
 }
 ```
 
-Note that the slot index in this example is gone from the register declaration, this is because the whole space is used to store textures and the same is true for the sampler array. This is great because it allows to get rid of the number of resources bound to a shader limitation we had previously.
+Note that the slot index in this example is omitted from the register declaration. This is because the entire space is used to store textures, and the same applies to the sampler array. This approach is advantageous because it eliminates the limitation on the number of resources that can be bound to a shader, which we had previously.
 
-The indices are sent over in a constant buffer, which is patched directly from the CPU using a [push constant](https://vkguide.dev/docs/chapter-3/push_constants/) / [root constant](https://learn.microsoft.com/en-us/windows/win32/direct3d12/using-constants-directly-in-the-root-signature), these updates are very fast compared to other ways of uploading data to the GPU so it's okay to use inside the render loop.
+The indices are sent in a constant buffer, which is patched directly from the CPU using a [push constant](https://vkguide.dev/docs/chapter-3/push_constants/) or a [root constant](https://learn.microsoft.com/en-us/windows/win32/direct3d12/using-constants-directly-in-the-root-signature). These updates are very fast compared to other methods of uploading data to the GPU, making them suitable for use within the render loop.
 
-Now if we look at the new render loop, it'd be something like this using indices in arrays instead of manually passing each resource to the shader/material.
+Now, if we examine the updated render loop, it would look something like this, using indices in arrays instead of manually passing each resource to the shader or material.
 
 ```c++
 // Bind global descriptor tables containing textures, samplers, and buffers
@@ -114,15 +116,15 @@ for (RenderObject object : visibleObjects)
 }
 ```
 
-In this example, every resources access by the shader is using bindless, thus every data has to be prepared in advance into large buffers storing or array of resources. These buffers can then be partially updated if needed when loading new assets in the scene. 
+In this example, every resource accessed by the shader uses bindless rendering. Therefore, all data must be prepared in advance and stored in large buffers or arrays of resources. These buffers can then be partially updated if needed when loading new assets into the scene.
 
-As you can see this CPU render loop is much more simple and require a lot less graphics API calls making it significantly faster.
+As you can see, this CPU render loop is much simpler and requires far fewer graphics API calls, making it significantly faster.
 
-## Mixing both APIs
+## Mixing Both APIs
 
-In real applications it's much more common to use a mix of both APIs, for example bindless is amazing for textures as it lifts the limit of textures bound to a shader. But for other type of data such as transform data, it's unnecessary because we can already pass it as a buffer with an index using a regular buffer.
+In real applications, it is much more common to use a mix of both APIs. For example, bindless rendering is excellent for textures as it removes the limit on the number of textures that can be bound to a shader. However, for other types of data, such as transform data, it is unnecessary because this data can already be passed as a buffer with an index using a regular buffer.
 
-There are also some performance consideration to be careful with bindless on the GPU, because of the extra indirection when accessing the resources, memory load operation can be slower, especially if the index is vectorial.
+There are also some performance considerations to be mindful of when using bindless rendering on the GPU. Due to the extra indirection involved in accessing resources, memory load operations can be slower, especially if the index is vectorial.
 
 ## Conclusion
 
