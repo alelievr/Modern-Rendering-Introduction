@@ -21,7 +21,7 @@
 - Mesh Shaders [started]
 - Rasterization [complete]
 - The Render Pipeline [complete]
-- Bindless Bindings [started]
+- Bindless Bindings [complete]
 - Material [started]
 - Texturing
 - Aliasing and Filtering

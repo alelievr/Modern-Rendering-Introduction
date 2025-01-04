@@ -139,3 +139,5 @@ https://learn.microsoft.com/en-us/windows/win32/direct3d12/resource-binding-in-h
 https://www.nvidia.com/en-us/drivers/bindless-graphics/
 
 https://vulkan.org/user/pages/09.events/vulkanised-2023/vulkanised_2023_setting_up_a_bindless_rendering_pipeline.pdf
+
+https://wickedengine.net/2021/04/bindless-descriptors/
