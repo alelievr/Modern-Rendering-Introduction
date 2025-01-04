@@ -12,30 +12,34 @@ Materials are usually categorized into three distinct parts. Let's take a look a
 
 ## Unlit Materials
 
-These materials are a bit special as their shader doesn't implement lighting code, which makes them very fast to render. They can either be opaque or transparent and are usually used to display text or UI elements, or mimic the bright parts of an emissive object, this is an optimization that we often see as the emissive part is brighter than the lighting it recieves, it doesn't need to take it into account.
+These materials are a bit special because their shader doesn't implement lighting code, which makes them very fast to render. They can either be opaque or transparent and are usually used to display text or UI elements, or to mimic the bright parts of an emissive object. This is an optimization often used because the emissive part is brighter than the lighting it receives, so it doesn't need to take the lighting into account.
+
+Another interesting use case for unlit materials is when using pre-computed lighting. In this case, the lighting is computed "offline" (during the game development process), and then a simple unlit material is sufficient to display the resulting lighting.
 
 ## Lit Materials
 
-Lit materials are the kind of materials that is the most commonly used in games, almost every objects in a scene respond to lighting in some way. There are multiple types of Lit material, often categorized by the parametrization they are using. The parametrization of the material describes how the surface reacts to the lighting and is defined by the lighting algorithm used in the shader of the lit material. Among the most used ones, we can see
+Lit materials are the most commonly used type of materials in games. Almost every object in a scene responds to lighting in some way. There are multiple types of lit materials, often categorized by the parametrization they use. The parametrization of the material describes how the surface reacts to lighting and is defined by the lighting algorithm used in the shader of the lit material. Among the most commonly used ones, we can find:
 
-- Standard: This is a material type that can be used to render metals, plastics, wood, etc.
-- Subsurface scattering: Used for skin, snow, leaves, wax, etc.
-- Transparent / Translucent: Used for glass
-- Hair: Hairs use a different shading model to account for the complex light scattering happening in hairs due to their shape.
+- **Standard**: This material type can be used to render metals, plastics, wood, etc.
+- **Subsurface scattering**: Used for skin, snow, leaves, wax, etc.
+- **Transparent / Translucent**: Used for glass.
+- **Hair**: Hairs use a different shading model to account for the complex light scattering that happens in hair due to their shape.
 
-On top of that, most material support a coating system that adds an extra lighting response on top of the base material, this is typically used to represent oil coatings or varnish.
+In addition, most materials support a coating system that adds an extra lighting response on top of the base material. This is typically used to represent oil coatings or varnish.
 
-Materials can also be blended between each other as long as the lighting model used is similar. This is interesting to make the transition between two objects less obvious for example. This is a technique that is used a lot in terrain rendering to transition from on type of soil to another.
+Materials can also be blended with each other as long as the lighting models used are similar. This is useful for making the transition between two objects less obvious, for example. This technique is commonly used in terrain rendering to transition from one type of soil to another.
 
-Lit materials and their parametrization is a complex topic that we'll look at closely when talking about the BSDFs that models lighting interactions with the surface.
+Lit materials and their parametrization is a complex topic that we will explore in more detail when discussing [BSDFs](https://en.wikipedia.org/wiki/Bidirectional_scattering_distribution_function) (Bidirectional Scattering Distribution Functions) that model lighting interactions with surfaces.
 
 ## Volume Materials
 
-These materials are used to model participating media or "fog", they are evaluated throughout the a volume and create an optical density that looks like fog. These material are often used to represent fog, clouds, particles in air, etc.
+These materials are used to model participating media or "fog." They are evaluated throughout a volume and create an optical density that resembles fog. These materials are often used to represent fog, clouds, particles in the air, etc.
 
-To give this volumetric feeling, volume materials need to be evaluated multiple times throughout the depth which makes them particularly expensive, that's why in realtime they are used for specialized effects whereas the regular fog or atmospheric scattering uses an implementation that is not parametrized through materials hence allowing further optimizations.
+To achieve this volumetric effect, volume materials need to be evaluated multiple times throughout the depth, which makes them particularly expensive. That's why, in real-time rendering, they are typically used for specialized effects. In contrast, regular fog or atmospheric scattering uses an implementation that is not parameterized through materials, allowing for further optimizations.
 
 ## Conclusion
+
+Materials play a fundamental role in real-time rendering, as they define how surfaces interact with light and other environmental factors. From the simplicity of unlit materials, used to render objects with no lighting influence, to the complexity of lit and volume materials, which simulate phenomena like subsurface scattering or fog, each material type serves a distinct purpose in achieving different visual effects. While the material entity itself can remain somewhat mysterious, as it merely exposes the inputs for underlying algorithms, it's valuable to explore the various use cases and types. This will provide you with a clearer understanding of their function, which will be especially helpful when we delve into more abstract concepts later on. By familiarizing yourself with these material types, you'll gain insight into the practical applications of materials in rendering, laying the foundation for understanding more advanced topics as we move forward.
 
 ## References
 

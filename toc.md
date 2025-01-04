@@ -22,7 +22,7 @@
 - Rasterization [complete]
 - The Render Pipeline [complete]
 - Bindless Bindings [complete]
-- Material [started]
+- Material [complete]
 - Texturing
 - Aliasing and Filtering
 - Integrals in Rendering
