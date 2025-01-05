@@ -36,6 +36,7 @@ public class MaterialGrid : MonoBehaviour
                 Material sphereMaterial = new Material(baseMaterial);
                 sphereMaterial.SetFloat("_Metallic", metallic);
                 sphereMaterial.SetFloat("_Glossiness", 1.0f - roughness);
+                sphereMaterial.SetFloat("_Smoothness", 1.0f - roughness);
 
                 sphere.GetComponent<Renderer>().material = sphereMaterial;
                 sphere.transform.parent = transform;
