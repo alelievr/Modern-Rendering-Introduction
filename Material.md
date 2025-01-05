@@ -111,10 +111,20 @@ Nevertheless, procedural materials often need to be evaluated every frame, makin
 
 ## Conclusion
 
-Materials play a fundamental role in real-time rendering, as they define how surfaces interact with light and other environmental factors. From the simplicity of unlit materials, used to render objects with no lighting influence, to the complexity of lit and volume materials, which simulate phenomena like subsurface scattering or fog, each material type serves a distinct purpose in achieving different visual effects. While the material entity itself can remain somewhat mysterious, as it merely exposes the inputs for underlying algorithms, it's valuable to explore the various use cases and types. This will provide you with a clearer understanding of their function, which will be especially helpful when we delve into more abstract concepts later on. By familiarizing yourself with these material types, you'll gain insight into the practical applications of materials in rendering, laying the foundation for understanding more advanced topics as we move forward.
+Materials play a fundamental role in real-time rendering, defining how surfaces interact with light and other environmental factors. From the simplicity of unlit materials, used to render objects without lighting influence, to the complexity of lit and volume materials, which simulate phenomena like subsurface scattering or fog, each material type serves a distinct purpose in achieving diverse visual effects. While the material entity itself may seem abstract, as it primarily exposes inputs for underlying algorithms, understanding its use cases and types provides valuable insight into their functionality.
+
+By exploring material authoring, we see how the creation process shifts from purely technical parameters to a more artistic approach. Material authoring demonstrates how parameters for lighting models can be derived from algorithms, procedural functions, and re-parameterization. Through tools like material graphs, artists and developers gain an intuitive interface to design and manipulate materials, allowing for rapid prototyping and iteration. Moreover, techniques such as material layering and procedural generation enable the creation of highly detailed and adaptable materials, whether through blending layers for terrains or generating textures algorithmically for unique effects.
+
+Understanding these concepts equips you with the knowledge to leverage materials effectively in rendering. It lays the groundwork for exploring more abstract and advanced topics, ensuring you can navigate the interplay between artistic vision and technical implementation.
 
 ## References
 
 https://academysoftwarefoundation.github.io/OpenPBR/index.html
 
 https://google.github.io/filament/Filament.html
+
+https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/lit-material.html
+
+https://docs.blender.org/manual/fr/dev/render/shader_nodes/shader/principled.html
+
+https://en.wikipedia.org/wiki/Procedural_texture
