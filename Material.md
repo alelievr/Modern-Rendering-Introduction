@@ -8,15 +8,31 @@ For example, if we take an opaque object with a simple PBR shader that takes alb
 - Metallic: Floating point value or a 2D Texture
 - Roughness: Floating point value or a 2D Texture
 
-Materials are usually categorized into three distinct parts. Let's take a look at them.
+Materials are closely linked to the shaders they use, and this relationship is not typically present in low-level APIs. Because of this, the way material systems are implemented can vary greatly depending on the software. In some systems, materials provide the ability to create or modify parts of the shader itself, offering a higher level of control over the final effect and allowing for more customization and flexibility in how materials are rendered.
 
-## Unlit Materials
+## Material Types
 
-These materials are a bit special because their shader doesn't implement lighting code, which makes them very fast to render. They can either be opaque or transparent and are usually used to display text or UI elements, or to mimic the bright parts of an emissive object. This is an optimization often used because the emissive part is brighter than the lighting it receives, so it doesn't need to take the lighting into account.
+Materials can be categorized into three distinct parts. Let's take a look at them.
+
+### Unlit Materials
+
+| Unity | Blender |
+| --- | --- |
+| ![](Media/Images/HDRP_Unlit.png) | ![](Media/Images/Blender_Unlit.png) |
+
+> Example of an unlit material in Unity HDRP and Blender.
+
+These materials are a bit special because their shader doesn't implement lighting code, which makes them very fast to render. They can either be opaque or transparent and are usually used to display text or UI elements, or to mimic the bright parts of an emissive object. This is an optimization often used because the emissive part is brighter than the lighting it receives, so it doesn't need to take it into account.
 
 Another interesting use case for unlit materials is when using pre-computed lighting. In this case, the lighting is computed "offline" (during the game development process), and then a simple unlit material is sufficient to display the resulting lighting.
 
-## Lit Materials
+### Lit Materials
+
+| Unity | Blender |
+| --- | --- |
+| ![](Media/Images/HDRP_Lit.png) | ![](Media/Images/Blender_Lit.png) |
+
+> Example of a standard lit material in Unity HDRP and Blender.
 
 Lit materials are the most commonly used type of materials in games. Almost every object in a scene responds to lighting in some way. There are multiple types of lit materials, often categorized by the parametrization they use. The parametrization of the material describes how the surface reacts to lighting and is defined by the lighting algorithm used in the shader of the lit material. Among the most commonly used ones, we can find:
 
@@ -27,15 +43,71 @@ Lit materials are the most commonly used type of materials in games. Almost ever
 
 In addition, most materials support a coating system that adds an extra lighting response on top of the base material. This is typically used to represent oil coatings or varnish.
 
-Materials can also be blended with each other as long as the lighting models used are similar. This is useful for making the transition between two objects less obvious, for example. This technique is commonly used in terrain rendering to transition from one type of soil to another.
-
 Lit materials and their parametrization is a complex topic that we will explore in more detail when discussing [BSDFs](https://en.wikipedia.org/wiki/Bidirectional_scattering_distribution_function) (Bidirectional Scattering Distribution Functions) that model lighting interactions with surfaces.
 
-## Volume Materials
+### Volume Materials
+
+| Unity | Blender |
+| --- | --- |
+| ![](Media/Images/HDRP_Volume.png) | ![](Media/Images/Blender_Volume.png) |
+
+> Example of a volume material in Unity HDRP and Blender.
 
 These materials are used to model participating media or "fog." They are evaluated throughout a volume and create an optical density that resembles fog. These materials are often used to represent fog, clouds, particles in the air, etc.
 
 To achieve this volumetric effect, volume materials need to be evaluated multiple times throughout the depth, which makes them particularly expensive. That's why, in real-time rendering, they are typically used for specialized effects. In contrast, regular fog or atmospheric scattering uses an implementation that is not parameterized through materials, allowing for further optimizations.
+
+## Material Authoring
+
+Now that we've seen the how materials are defined from their interaction to lighting, let's take a look at the more artistic part of the creation of the material.
+
+The purpose of the material is still unchanged, i.e. provide the correct parameters for the underlying lighting model to shade the surface. What we'll see in the material authoring process is how these parameters can be computed from algorithms, procedural functions and exposed in other ways by re-parametrization.
+
+Depending on the use case, even some gameplay logic or reaction to environment changes can be baked into the material.
+
+### Material Graph
+
+| Unity | Blender |
+| --- | --- |
+| ![](Media/Images/Unity_ShaderGraph.png) | ![](Media/Images/Blender_ShaderEditor.png) |
+
+> Example of a shader/material editors in Unity HDRP and Blender.
+
+A **Material Graph** is a nodal editor used to create and manipulate materials in a more visual and intuitive way. Instead of manually coding shader functions, artists and developers can use a node-based interface to build the material's properties by connecting different nodes that represent various operators or properties. These graphs abstract the underlying shader code, making it easier to design and test materials without needing deep programming knowledge.
+
+The material graph typically operates in a **data-flow** style, where each node processes inputs (like textures or numerical values) and outputs them in a way that eventually determines the material's visual appearance. The benefit of this system is that it enables rapid prototyping, debugging, and tweaking of material properties without needing to rewrite code.
+
+It is worth noting that the logic of a material graph is often decoupled from the inputs of the lighting algorithm, which are typically represented by a monolithic node. This separation ensures that the logic within the graph can be adjusted safely without compromising the integrity of the lighting calculations.
+
+### Material Layering
+
+// TODO: find a better image
+
+![](MEdia/Images/HDRP_LayeredLit.png)
+
+> Example of a layered material with 4 layers in Unity HDRP.
+
+### Material Layering
+
+Material Layering is a technique that allows you to combine different materials on a single surface. Instead of creating a single monolithic material that defines all of an object’s characteristics, layering enables you to stack multiple materials on top of one another and blend them. Each layer can represent a different surface, such as grass, dirt, rocks, etc. The interpolation can then be achieved through a procedural function, a texture created by artists, or a height-based blend that uses the heightmap of each layer to determine which one to display.
+
+This system provides a non-destructive approach to material creation, allowing artists to make changes to specific layers without affecting others. In essence, material layering blends the material properties just before they are sent to the lighting algorithm.
+
+Material layering is a technique commonly used for terrain rendering, but it can also be applied to create complex materials like chipped paint or rusty metals.
+
+### Procedural Materials
+
+[![](https://cdn.80.lv/api/upload/content/09/images/6303dc9595c76/widen_920x0.jpeg)](https://80.lv/articles/creating-a-procedural-sci-fi-material-generator-in-substance-3d-designer-toolbag/)
+
+> Image from Creating a Procedural Sci-Fi Material Generator in Substance 3D Designer & Toolbag at [80.lv](80.lv).
+
+Procedural materials are generated algorithmically rather than being based on static textures or manually painted data. These materials are defined by mathematical functions or rules that describe their appearance, which means they can be created and modified without relying on traditional image-based textures. Procedural materials are extremely flexible, allowing for nearly infinite variation based on parameters, noise patterns, and other inputs.
+
+A major advantage of procedural materials is that they are resolution-independent, meaning they can be scaled to almost any size without losing quality. They are also dynamic and adaptable, often responding to changes in the environment, such as weather or lighting conditions.
+
+Additionally, procedural techniques allow for easy iteration and variation, as small changes in input values can produce drastically different results. This makes them ideal for applications where unique materials need to be created at runtime, such as generating random textures, terrain types, or effects dependent on game state or player interactions.
+
+Nevertheless, procedural materials often need to be evaluated every frame, making them expensive in real-time and limiting the complexity of procedural effects achievable in such scenarios. A common approach to mitigate these costs is to bake the procedural material output and re-evaluate it only when necessary, effectively turning the procedural material into a regular one.
 
 ## Conclusion
 
