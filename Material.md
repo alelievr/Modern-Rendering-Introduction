@@ -81,11 +81,9 @@ It is worth noting that the logic of a material graph is often decoupled from th
 
 ### Material Layering
 
-// TODO: find a better image
+[![](Media/Images/MaterialLayering.png)](https://unity3d.com/files/solutions/photogrammetry/Unity-Photogrammetry-Workflow-Layered-Shader_v2.pdf)
 
-![](MEdia/Images/HDRP_LayeredLit.png)
-
-> Example of a layered material with 4 layers in Unity HDRP.
+> Example of a layered material in Unity HDRP with 3 different surfaces.
 
 ### Material Layering
 
