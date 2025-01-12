@@ -81,11 +81,9 @@ It is worth noting that the logic of a material graph is often decoupled from th
 
 ### Material Layering
 
-// TODO: find a better image
+[![](Media/Images/MaterialLayering.png)](https://unity3d.com/files/solutions/photogrammetry/Unity-Photogrammetry-Workflow-Layered-Shader_v2.pdf)
 
-![](MEdia/Images/HDRP_LayeredLit.png)
-
-> Example of a layered material with 4 layers in Unity HDRP.
+> Example of a layered material in Unity HDRP with 3 different surfaces.
 
 ### Material Layering
 
@@ -108,6 +106,12 @@ A major advantage of procedural materials is that they are resolution-independen
 Additionally, procedural techniques allow for easy iteration and variation, as small changes in input values can produce drastically different results. This makes them ideal for applications where unique materials need to be created at runtime, such as generating random textures, terrain types, or effects dependent on game state or player interactions.
 
 Nevertheless, procedural materials often need to be evaluated every frame, making them expensive in real-time and limiting the complexity of procedural effects achievable in such scenarios. A common approach to mitigate these costs is to bake the procedural material output and re-evaluate it only when necessary, effectively turning the procedural material into a regular one.
+
+## Other Uses
+
+Since materials are often used to represent surfaces, they can also store the physical properties of those surfaces required for gameplay. For example, the footstep sound of a character needs to match the type of surface the player is walking on. Similarly, the friction coefficient or bounciness can be stored for the game's physics system. 
+
+Although this course focuses solely on properties related to rendering, it is still interesting to note that the same object can be utilized by several systems.
 
 ## Conclusion
 
