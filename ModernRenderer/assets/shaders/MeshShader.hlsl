@@ -1,4 +1,5 @@
-#include "common.hlsl"
+#include "Common.hlsl"
+#include "MeshUtils.hlsl"
 
 struct VertexData
 {
@@ -6,13 +7,6 @@ struct VertexData
     float3 normal;
     float2 uv;
     float3 tangent;
-};
-
-struct MeshToFragment
-{
-    float4 positionCS : SV_POSITION;
-    float2 uv : TEXCOORD0;
-    nointerpolation float meshletIndex : TEXCOORD1;
 };
 
 // From meshoptimizer

@@ -69,9 +69,13 @@ public:
     std::shared_ptr<Resource> cameraDataBuffer;
     std::shared_ptr<View> cameraDataView;
     BindingDesc cameraDataDescFragment;
+    BindingDesc cameraDataDescMesh;
+    BindingDesc cameraDataDescAmplification;
     BindingDesc cameraDataDescVertex;
     BindingDesc cameraDataDescCompute;
     BindKey cameraDataKeyFragment = { ShaderType::kUnknown, ViewType::kUnknown, 0, 0, 0, UINT32_MAX };
+    BindKey cameraDataKeyMesh = { ShaderType::kUnknown, ViewType::kUnknown, 0, 0, 0, UINT32_MAX };
+    BindKey cameraDataKeyAmplification = { ShaderType::kUnknown, ViewType::kUnknown, 0, 0, 0, UINT32_MAX };
     BindKey cameraDataKeyVertex = { ShaderType::kUnknown, ViewType::kUnknown, 0, 0, 0, UINT32_MAX };
     BindKey cameraDataKeyCompute = { ShaderType::kUnknown, ViewType::kUnknown, 0, 0, 0, UINT32_MAX };
 

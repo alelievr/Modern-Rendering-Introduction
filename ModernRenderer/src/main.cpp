@@ -10,10 +10,12 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include "GLFW/glfw3native.h"
 
-//#define LOAD_RENDERDOC
+#define LOAD_RENDERDOC
 
 int main(int argc, char* argv[])
 {
+    _set_abort_behavior(_CALL_REPORTFAULT, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
+
     Settings settings = ParseArgs(argc, argv);
     AppBox app("ModernRenderer", settings);
     AppSize appSize = app.GetAppSize();
@@ -58,29 +60,11 @@ int main(int argc, char* argv[])
     inputController.registeredEvents.push_back((InputEvents*)&renderer.controls);
     inputController.registeredEvents.push_back((InputEvents*)&screenShotController);
 
-    // Create GFX Buffer
+    // Allocate command lists for each swapchain image
     std::array<uint64_t, swapchainTextureCount> fence_values = {};
     std::vector<std::shared_ptr<CommandList>> command_lists;
-    std::vector<std::shared_ptr<Framebuffer>> framebuffers;
     for (uint32_t i = 0; i < swapchainTextureCount; ++i)
-    {
-        // Allocate command list and frame buffer for double buffering.
-        ViewDesc back_buffer_view_desc = {};
-        back_buffer_view_desc.view_type = ViewType::kRenderTarget;
-        back_buffer_view_desc.dimension = ViewDimension::kTexture2D;
-        std::shared_ptr<Resource> back_buffer = swapchain->GetBackBuffer(i);
-        // TODO: check if we need that?
-        std::shared_ptr<View> back_buffer_view = device->CreateView(back_buffer, back_buffer_view_desc);
-        FramebufferDesc framebuffer_desc = {};
-        framebuffer_desc.render_pass = swapchainRenderPass;
-        framebuffer_desc.width = appSize.width();
-        framebuffer_desc.height = appSize.height();
-        framebuffer_desc.colors = { back_buffer_view };
-        std::shared_ptr<Framebuffer> framebuffer =
-            framebuffers.emplace_back(device->CreateFramebuffer(framebuffer_desc));
-        std::shared_ptr<CommandList> command_list =
-            command_lists.emplace_back(device->CreateCommandList(CommandListType::kGraphics));
-    }
+        command_lists.emplace_back(device->CreateCommandList(CommandListType::kGraphics));
 
     while (!app.PollEvents())
     {

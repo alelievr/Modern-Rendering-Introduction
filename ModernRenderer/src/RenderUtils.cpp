@@ -1,12 +1,17 @@
 #include "RenderUtils.hpp"
 
+#include "Mesh.hpp"
+
 std::shared_ptr<BindingSetLayout> RenderUtils::CreateLayoutSet(std::shared_ptr<Device> device, const Camera& camera, const std::vector<BindKey>& keys)
 {
 	// Add bindless textures and material datas
 	std::vector<BindKey> allBindings = keys;
 	allBindings.emplace_back(camera.cameraDataKeyVertex);
 	allBindings.emplace_back(camera.cameraDataKeyFragment);
+	allBindings.emplace_back(camera.cameraDataKeyMesh);
+	allBindings.emplace_back(camera.cameraDataKeyAmplification);
 	allBindings.emplace_back(Material::materialBufferBindKey);
+	allBindings.insert(allBindings.end(), Mesh::meshletBufferBindKeys.begin(), Mesh::meshletBufferBindKeys.end());
 	for (const auto& textureKeys : Texture::textureBufferBindKeys)
 		allBindings.emplace_back(textureKeys);
 	return device->CreateBindingSetLayout(allBindings);
@@ -18,7 +23,10 @@ std::shared_ptr<BindingSet> RenderUtils::CreateBindingSet(std::shared_ptr<Device
 
 	allBindings.emplace_back(camera.cameraDataDescVertex);
 	allBindings.emplace_back(camera.cameraDataDescFragment);
+	allBindings.emplace_back(camera.cameraDataDescMesh);
+	allBindings.emplace_back(camera.cameraDataDescAmplification);
 	allBindings.emplace_back(Material::materialBufferBinding);
+	allBindings.insert(allBindings.end(), Mesh::meshletBufferBindingDescs.begin(), Mesh::meshletBufferBindingDescs.end());
 	for (const auto& textureBindings : Texture::textureBufferBindings)
 		allBindings.emplace_back(textureBindings);
 

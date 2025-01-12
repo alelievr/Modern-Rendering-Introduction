@@ -19,11 +19,15 @@ Camera::Camera(std::shared_ptr<Device> device, AppBox & app)
     cameraDataView = device->CreateView(cameraDataBuffer, constant_view_desc);
 
     // Prepare binding keys for all shader types
-    cameraDataKeyFragment = { ShaderType::kPixel, ViewType::kConstantBuffer, 0, 0, 1, UINT32_MAX };
+	cameraDataKeyFragment = { ShaderType::kPixel, ViewType::kConstantBuffer, 0, 0, 1, UINT32_MAX };
+	cameraDataKeyMesh = { ShaderType::kMesh, ViewType::kConstantBuffer, 0, 0, 1, UINT32_MAX };
+	cameraDataKeyAmplification = { ShaderType::kAmplification, ViewType::kConstantBuffer, 0, 0, 1, UINT32_MAX };
     cameraDataKeyVertex = { ShaderType::kVertex, ViewType::kConstantBuffer, 0, 0, 1, UINT32_MAX };
     cameraDataKeyCompute = { ShaderType::kCompute, ViewType::kConstantBuffer, 0, 0, 1, UINT32_MAX };
 
 	cameraDataDescFragment = { cameraDataKeyFragment, cameraDataView };
+	cameraDataDescMesh = { cameraDataKeyMesh, cameraDataView };
+	cameraDataDescAmplification = { cameraDataKeyAmplification, cameraDataView };
 	cameraDataDescVertex = { cameraDataKeyVertex, cameraDataView };
 	cameraDataDescCompute = { cameraDataKeyCompute, cameraDataView };
 

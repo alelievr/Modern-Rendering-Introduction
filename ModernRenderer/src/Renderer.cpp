@@ -32,15 +32,19 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     mainDepthTexture->SetName("DepthTexture");
     //std::shared_ptr<View> mainDepthTextureView = device->CreateView(mainDepthTexture, outputTextureViewDesc);
 
+    // Standard vertex pipeline: TODO: remove it once mesh path works
     std::shared_ptr<Shader> vertex_shader = device->CompileShader(
         { MODERN_RENDERER_ASSETS_PATH "shaders/VertexShader.hlsl", "main", ShaderType::kVertex, "6_5" });
     std::shared_ptr<Shader> pixel_shader = device->CompileShader(
-        { MODERN_RENDERER_ASSETS_PATH "shaders/PixelShader.hlsl", "main", ShaderType::kPixel, "6_5" });
+        { MODERN_RENDERER_ASSETS_PATH "shaders/PixelShaderFromVertex.hlsl", "main", ShaderType::kPixel, "6_5" });
     std::shared_ptr<Program> program = device->CreateProgram({ vertex_shader, pixel_shader });
 
-    std::shared_ptr<Shader> mesh_shader = device->CompileShader(
+    // Create mesh shader program
+    std::shared_ptr<Shader> pixelMeshshader = device->CompileShader(
+        { MODERN_RENDERER_ASSETS_PATH "shaders/PixelShader.hlsl", "main", ShaderType::kPixel, "6_5" });
+    std::shared_ptr<Shader> meshShader = device->CompileShader(
         { MODERN_RENDERER_ASSETS_PATH "shaders/MeshShader.hlsl", "main", ShaderType::kMesh, "6_5" });
-    std::shared_ptr<Program> programMesh = device->CreateProgram({ mesh_shader, pixel_shader });
+    std::shared_ptr<Program> programMesh = device->CreateProgram({ meshShader, pixelMeshshader });
 
     std::shared_ptr<Shader> compute_test = device->CompileShader(
         { MODERN_RENDERER_ASSETS_PATH "shaders/PathTracerScene0.hlsl", "main", ShaderType::kCompute, "6_5" });
@@ -78,7 +82,7 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     clearColorRenderPass = device->CreateRenderPass(renderPassDesc);
 
     GraphicsPipelineDesc pipelineDesc = {
-        programMesh,
+        program,
         layout,
         { Mesh::GetInputAssemblerLayout() },
         clearColorRenderPass,
@@ -86,14 +90,13 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     pipelineDesc.rasterizer_desc = { FillMode::kSolid, CullMode::kBack, 0 };
     objectPipeline = device->CreateGraphicsPipeline(pipelineDesc);
 
-
     GraphicsPipelineDesc meshShaderPipelineDesc = {
-        program,
+        programMesh,
         layout,
         {},
         clearColorRenderPass,
     };
-    pipelineDesc.rasterizer_desc = { FillMode::kSolid, CullMode::kBack, 0 };
+    meshShaderPipelineDesc.rasterizer_desc = { FillMode::kSolid, CullMode::kBack, 0 };
 
     objectMeshShaderPipeline = device->CreateGraphicsPipeline(meshShaderPipelineDesc);
 
@@ -177,18 +180,22 @@ void DrawScene(std::shared_ptr<CommandList> commandList, std::shared_ptr<Scene> 
 		{
             // TODO: mesh index when meshlets are supported
             int materialIndex = r.material->materialIndex;
-			
-            // Bind vertex buffer
-            r.mesh.BindBuffers(commandList);
 
             // Bind per-draw data, we only need an index, the rest is bindless
             dxCommandList->SetGraphicsConstant(0, materialIndex, 0);
 
 			// Draw mesh
             if (useMeshShader)
+            {
                 commandList->DispatchMesh(r.mesh.meshletCount);
+            }
             else
-		    	commandList->DrawIndexed(r.mesh.indices.size(), 1, 0, 0, 0);
+            {
+                // Bind vertex buffer
+                r.mesh.BindBuffers(commandList);
+
+                commandList->DrawIndexed(r.mesh.indices.size(), 1, 0, 0, 0);
+            }
 		}
     }
 }

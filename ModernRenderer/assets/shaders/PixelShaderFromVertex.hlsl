@@ -1,5 +1,10 @@
-#include "Common.hlsl"
-#include "MeshUtils.hlsl"
+#include "common.hlsl"
+
+struct MeshToFragment
+{
+    float4 pos: SV_POSITION;
+    float4 uv: TEXCOORD0;
+};
 
 float4 main(MeshToFragment input) : SV_TARGET
 {

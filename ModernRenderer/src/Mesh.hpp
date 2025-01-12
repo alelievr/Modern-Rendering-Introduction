@@ -41,6 +41,14 @@ public:
     std::shared_ptr<Resource> meshletTrianglesBuffer;
     std::shared_ptr<Resource> meshletsBuffer;
 
+    std::shared_ptr<View> vertexBufferView;
+    std::shared_ptr<View> meshletIndicesBufferView;
+    std::shared_ptr<View> meshletTrianglesBufferView;
+    std::shared_ptr<View> meshletsBufferView;
+
+    static std::vector<BindingDesc> meshletBufferBindingDescs;
+    static std::vector<BindKey> meshletBufferBindKeys;
+
 	Mesh() = default;
 	~Mesh() = default;
 

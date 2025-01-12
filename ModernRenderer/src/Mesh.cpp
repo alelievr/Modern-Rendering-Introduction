@@ -1,18 +1,29 @@
 #include "Mesh.hpp"
 
+std::vector<BindingDesc> Mesh::meshletBufferBindingDescs;
+std::vector<BindKey> Mesh::meshletBufferBindKeys;
+
 template<typename T>
-std::shared_ptr<Resource> AllocateVertexBufer(std::shared_ptr<Device> device, const std::vector<T>& data)
+void AllocateVertexBufer(std::shared_ptr<Device> device, const std::vector<T>& data, ViewType viewType, gli::format format, std::shared_ptr<Resource>& resource, std::shared_ptr<View>& view)
 {
-	auto buffer = device->CreateBuffer(BindFlag::kVertexBuffer | BindFlag::kCopyDest, sizeof(T) * data.size());
-	buffer->CommitMemory(MemoryType::kUpload);
-	buffer->UpdateUploadBuffer(0, data.data(), sizeof(data.front()) * data.size());
-	return buffer;
+	resource = device->CreateBuffer(BindFlag::kVertexBuffer | BindFlag::kCopyDest, sizeof(T) * data.size());
+    resource->CommitMemory(MemoryType::kUpload);
+    resource->UpdateUploadBuffer(0, data.data(), sizeof(data.front()) * data.size());
+
+    ViewDesc d = {};
+    d.view_type = viewType;
+    d.dimension = ViewDimension::kBuffer;
+    d.buffer_format = format;
+    d.structure_stride = sizeof(T);
+    d.buffer_size = sizeof(T) * data.size();
+    view = device->CreateView(resource, d);
 }
 
 void Mesh::BuildAndUploadMeshletData(std::shared_ptr<Device> device)
 {
-    vertices.resize(positions.size());
-    for (size_t i = 0; i < positions.size(); i++)
+    size_t vertexCount = positions.size();
+    vertices.resize(vertexCount);
+    for (size_t i = 0; i < vertexCount; i++)
     {
         vertices[i].position = positions[i];
         vertices[i].normal = normals[i];
@@ -43,7 +54,7 @@ void Mesh::BuildAndUploadMeshletData(std::shared_ptr<Device> device)
 
     // Pack meshlet triangle indices into an uint for easy read in the shader
     std::vector<uint32_t> packedMeshletTriangles(meshletCount * max_triangles * 3);
-    for (int i = 0; i < max_meshlets * max_triangles; i++)
+    for (int i = 0; i < meshletCount * max_triangles; i++)
     {
         uint32_t packed = 0;
         for (int j = 0; j < 3; j++)
@@ -51,10 +62,31 @@ void Mesh::BuildAndUploadMeshletData(std::shared_ptr<Device> device)
 		packedMeshletTriangles[i] = packed;
     }
 
-    vertexBuffer = AllocateVertexBufer(device, vertices);
-    meshletsBuffer = AllocateVertexBufer(device, meshlets);
-    meshletIndicesBuffer = AllocateVertexBufer(device, meshletVertices);
-    meshletTrianglesBuffer = AllocateVertexBufer(device, packedMeshletTriangles);
+    AllocateVertexBufer(device, vertices, ViewType::kStructuredBuffer, gli::FORMAT_UNDEFINED, vertexBuffer, vertexBufferView);
+    AllocateVertexBufer(device, meshlets, ViewType::kStructuredBuffer, gli::FORMAT_UNDEFINED, meshletsBuffer, meshletsBufferView);
+    AllocateVertexBufer(device, meshletVertices, ViewType::kStructuredBuffer, gli::FORMAT_UNDEFINED, meshletIndicesBuffer, meshletIndicesBufferView);
+    AllocateVertexBufer(device, packedMeshletTriangles, ViewType::kBuffer, gli::FORMAT_R32_UINT_PACK32, meshletTrianglesBuffer, meshletTrianglesBufferView);
+
+    auto vertexBufferBindKey = BindKey{ ShaderType::kCompute, ViewType::kStructuredBuffer, 0, 4 };
+    auto meshletsBufferBindKey = BindKey{ ShaderType::kCompute, ViewType::kStructuredBuffer, 1, 4 };
+    auto meshletIndicesBindKey = BindKey{ ShaderType::kCompute, ViewType::kBuffer, 2, 4 };
+    auto meshletTrianglesBindKey = BindKey{ ShaderType::kCompute, ViewType::kBuffer, 3, 4 };
+
+    meshletBufferBindingDescs = {
+        BindingDesc{ vertexBufferBindKey, vertexBufferView },
+        BindingDesc{ meshletsBufferBindKey, meshletsBufferView },
+        BindingDesc{ meshletIndicesBindKey, meshletIndicesBufferView },
+        BindingDesc{ meshletTrianglesBindKey, meshletTrianglesBufferView }
+    };
+
+    meshletBufferBindKeys = {
+        vertexBufferBindKey,
+        meshletsBufferBindKey,
+        meshletIndicesBindKey,
+        meshletTrianglesBindKey
+    };
+
+    // TODO: make a pipeline per mesh before moving everything to bindless or big f array
 }
 
 void Mesh::UploadMeshData(std::shared_ptr<Device> device)
@@ -71,6 +103,6 @@ void Mesh::UploadMeshData(std::shared_ptr<Device> device)
 void Mesh::BindBuffers(std::shared_ptr<CommandList> commandList) const
 {
     // Binding goes through the pipeline now
-	//commandList->IASetVertexBuffer(0, vertexBuffer);
-	//commandList->IASetIndexBuffer(indexBuffer, gli::FORMAT_R32_UINT_PACK32);
+	commandList->IASetVertexBuffer(0, vertexBuffer);
+	commandList->IASetIndexBuffer(indexBuffer, gli::FORMAT_R32_UINT_PACK32);
 }
