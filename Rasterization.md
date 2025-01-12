@@ -276,24 +276,15 @@ I want to mention that there are several other interesting features in the raste
 
 ## References
 
-https://en.wikipedia.org/wiki/Rasterisation
-
-https://www.rastergrid.com/blog/gpu-tech/2021/07/gpu-architecture-types-explained/
-
-https://learn.microsoft.com/en-us/windows/win32/direct3d12/conservative-rasterization
-
-https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VK_AMD_rasterization_order.html
-
-https://fgiesen.wordpress.com/2011/07/05/a-trip-through-the-graphics-pipeline-2011-part-5/
-https://fgiesen.wordpress.com/2011/07/06/a-trip-through-the-graphics-pipeline-2011-part-6/
-https://fgiesen.wordpress.com/2011/07/08/a-trip-through-the-graphics-pipeline-2011-part-7/
-
-https://learn.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-rasterizer-stage-rules#triangle-rasterization-rules-without-multisampling
-
-https://www.khronos.org/opengl/wiki/Face_Culling
-
-https://www.asawicki.info/news_1654_stencil_test_explained_using_code
-
-https://learn.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage
-
-https://therealmjp.github.io/posts/msaa-overview/
+- 📄 [Rasterisation - Wikipedia](https://en.wikipedia.org/wiki/Rasterisation)
+- 📄 [GPU Architecture Types Explained - RasterGrid](https://www.rastergrid.com/blog/gpu-tech/2021/07/gpu-architecture-types-explained/)
+- 📄 [Conservative Rasterization - Direct3D 12 | Microsoft Learn](https://learn.microsoft.com/en-us/windows/win32/direct3d12/conservative-rasterization)
+- 📄 [VK_AMD_rasterization_order Extension - Vulkan](https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VK_AMD_rasterization_order.html)
+- 📄 [A Trip Through the Graphics Pipeline 2011 - Part 5 - FGiesen](https://fgiesen.wordpress.com/2011/07/05/a-trip-through-the-graphics-pipeline-2011-part-5/)
+- 📄 [A Trip Through the Graphics Pipeline 2011 - Part 6 - FGiesen](https://fgiesen.wordpress.com/2011/07/06/a-trip-through-the-graphics-pipeline-2011-part-6/)
+- 📄 [A Trip Through the Graphics Pipeline 2011 - Part 7 - FGiesen](https://fgiesen.wordpress.com/2011/07/08/a-trip-through-the-graphics-pipeline-2011-part-7/)
+- 📄 [Triangle Rasterization Rules without Multisampling - Direct3D 11 | Microsoft Learn](https://learn.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-rasterizer-stage-rules#triangle-rasterization-rules-without-multisampling)
+- 📄 [Face Culling - OpenGL Wiki](https://www.khronos.org/opengl/wiki/Face_Culling)
+- 📄 [Stencil Test Explained Using Code - AsaWicki](https://www.asawicki.info/news_1654_stencil_test_explained_using_code)
+- 📄 [Output Merger Stage - Direct3D 11 | Microsoft Learn](https://learn.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage)
+- 📄 [MSAA Overview - MJP's Blog](https://therealmjp.github.io/posts/msaa-overview/)

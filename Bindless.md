@@ -134,10 +134,7 @@ While bindless rendering introduces minor GPU overhead due to dynamic access and
 
 ## References
 
-https://learn.microsoft.com/en-us/windows/win32/direct3d12/resource-binding-in-hlsl
-
-https://www.nvidia.com/en-us/drivers/bindless-graphics/
-
-https://vulkan.org/user/pages/09.events/vulkanised-2023/vulkanised_2023_setting_up_a_bindless_rendering_pipeline.pdf
-
-https://wickedengine.net/2021/04/bindless-descriptors/
+- 📄 [Resource binding in HLSL - Win32 apps | Microsoft Learn](https://learn.microsoft.com/en-us/windows/win32/direct3d12/resource-binding-in-hlsl)
+- 📄 [Bindless Graphics Tutorial | NVIDIA](https://www.nvidia.com/en-us/drivers/bindless-graphics/)
+- 📄 [Setting up a bindless rendering pipeline - Vulkanised 2023](https://vulkan.org/user/pages/09.events/vulkanised-2023/vulkanised_2023_setting_up_a_bindless_rendering_pipeline.pdf)
+- 📄 [Bindless Descriptors – Wicked Engine](https://wickedengine.net/2021/04/bindless-descriptors/)

@@ -60,6 +60,5 @@ We often need more information than the intersection point when rendering an obj
 
 ## References
 
-https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection
-
-https://iquilezles.org/articles/distfunctions/
+- 📄 [Line–plane intersection - Wikipedia](https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection)
+- 📄 [Distance Functions - Inigo Quilez](https://iquilezles.org/articles/distfunctions/)

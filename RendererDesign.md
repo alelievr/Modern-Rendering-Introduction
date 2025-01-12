@@ -72,6 +72,14 @@ there are also external factors like the polling rate of the mouse/keyboard and 
 
 Some applications require extreme care on handling of input latency like competitive games that must ensure consistent and low latency. That's why it's important to make the application runs as fast as possible using all the tools we have at disposition like multi-threading and async GPU utilization.
 
+## Frame Generation
+
+**Frame Generation** is a technique where the GPU generates intermediate frames between two existing images to increase the framerate. This technique has become extremely popular recently due to high-refresh-rate screens becoming more affordable, as well as being more efficient than rendering an extra frame from the engine.
+
+Frame Generation is almost independent of the renderer and hooks directly into the application's swapchain. This allows the application to continue running at a certain frequency (let's say 60 Hz) while the frame generation algorithm presents frames to the screen at a higher refresh rate (120 Hz or more, depending on the number of generated frames).
+
+Generating new frames is not without issues. One of the biggest drawbacks is that it adds latency, as two whole frames are required to generate the one in between. At best, half of the display refresh rate is added as extra latency (often more in practice). Frame Generation algorithms also introduce new graphical artifacts such as ghosting, blurring, or interpolation issues (visible only on generated frames). These artifacts tend to be less noticeable at higher refresh rates, as the interpolated images are usually closer together.
+
 ## Conclusion
 
 Understanding the architecture of a renderer is essential for building efficient and performant systems, particularly when aiming for real-time rendering. The interaction between the CPU and GPU must be carefully orchestrated to ensure that both components are working optimally without unnecessary idling. Techniques such as double buffering and resource management strategies help mitigate latency and maximize throughput, allowing the renderer to generate frames at high refresh rates smoothly.
@@ -80,6 +88,6 @@ As we have seen, by utilizing concepts like swapchains, double buffering, and of
 
 ## References
 
-https://en.wikipedia.org/wiki/Multiple_buffering
-
-https://unity.com/blog/engine-platform/fixing-time-deltatime-in-unity-2020-2-for-smoother-gameplay
+- 📄 [Multiple buffering - Wikipedia](https://en.wikipedia.org/wiki/Multiple_buffering)
+- 📄 [Fixing Time.deltaTime in Unity 2020.2 for Smoother Gameplay - Unity Blog](https://unity.com/blog/engine-platform/fixing-time-deltatime-in-unity-2020-2-for-smoother-gameplay)
+- 🎥 [Lossless Scaling: Frame Generation For Every Game - But How Good Is it? - Digital Foundry](https://www.youtube.com/watch?v=69k7ZXLK1to)

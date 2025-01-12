@@ -14,10 +14,7 @@ Texturing or [Texture Mapping](https://en.wikipedia.org/wiki/Texture_mapping) is
 
 ## References
 
-https://en.wikipedia.org/wiki/Texture_mapping
-
-https://www.autodesk.com/solutions/texture-mapping
-
-https://learn.foundry.com/modo/content/help/pages/uving/udim_workflow.html
-
-https://github.com/mmikk/hextile-demo
+- 📄 [Texture mapping - Wikipedia](https://en.wikipedia.org/wiki/Texture_mapping)
+- 📄 [Texture Mapping Solutions - Autodesk](https://www.autodesk.com/solutions/texture-mapping)
+- 📄 [UDIM Workflow - Modo | Foundry](https://learn.foundry.com/modo/content/help/pages/uving/udim_workflow.html)
+- 📄 [HexTile Demo - GitHub](https://github.com/mmikk/hextile-demo)

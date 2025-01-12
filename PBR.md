@@ -72,14 +72,9 @@ At first, this idea of coherence might seem obvious to respect PBR principles bu
 
 ## References
 
-https://en.wikipedia.org/wiki/Physically_based_rendering
-
-https://renderman.pixar.com/
-
-https://pbr-book.org/4ed/contents
-
-https://en.wikipedia.org/wiki/Luminous_intensity
-
-https://advances.realtimerendering.com/s2023/SIGGRAPH2023-Advances-The-Rendering-of-The-Callisto-Protocol-JimenezPetersen.pdf
-
-https://seblagarde.wordpress.com/wp-content/uploads/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf
+- 📄 [Moving Frostbite to PBR - Seb Lagarde (PDF)](https://seblagarde.wordpress.com/wp-content/uploads/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf)
+- 📄 [Physically based rendering - Wikipedia](https://en.wikipedia.org/wiki/Physically_based_rendering)
+- 📄 [RenderMan - Pixar](https://renderman.pixar.com/)
+- 📄 [Physically Based Rendering: From Theory to Implementation (4th Edition)](https://pbr-book.org/4ed/contents)
+- 📄 [Luminous intensity - Wikipedia](https://en.wikipedia.org/wiki/Luminous_intensity)
+- 📄 [SIGGRAPH 2023: Advances in The Rendering of The Callisto Protocol (PDF)](https://advances.realtimerendering.com/s2023/SIGGRAPH2023-Advances-The-Rendering-of-The-Callisto-Protocol-JimenezPetersen.pdf)

@@ -183,14 +183,9 @@ In this 3D scene you can see the front and back faces of the triangle, the green
 
 ## References
 
-https://en.wikipedia.org/wiki/Barycentric_coordinate_system
-
-https://en.wikipedia.org/wiki/Area_of_a_triangle
-
-https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates.html
-
-https://www.r-5.org/files/books/computers/algo-list/realtime-3d/Christer_Ericson-Real-Time_Collision_Detection-EN.pdf 5.3.4 Intersecting Line Against Triangle - page 184
-
-https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/moller-trumbore-ray-triangle-intersection.html
-
-https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
+- 📄 [Barycentric coordinate system - Wikipedia](https://en.wikipedia.org/wiki/Barycentric_coordinate_system)
+- 📄 [Area of a triangle - Wikipedia](https://en.wikipedia.org/wiki/Area_of_a_triangle)
+- 📄 [Barycentric Coordinates - Scratchapixel](https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates.html)
+- 📄 [Real-Time Collision Detection (Christer Ericson) - PDF](https://www.r-5.org/files/books/computers/algo-list/realtime-3d/Christer_Ericson-Real-Time_Collision_Detection-EN.pdf) (5.3.4 Intersecting Line Against Triangle - page 184)
+- 📄 [Möller–Trumbore Ray-Triangle Intersection - Scratchapixel](https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/moller-trumbore-ray-triangle-intersection.html)
+- 📄 [Möller–Trumbore Intersection Algorithm - Wikipedia](https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm)

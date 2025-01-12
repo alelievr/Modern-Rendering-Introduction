@@ -123,12 +123,8 @@ Understanding these concepts equips you with the knowledge to leverage materials
 
 ## References
 
-https://academysoftwarefoundation.github.io/OpenPBR/index.html
-
-https://google.github.io/filament/Filament.html
-
-https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/lit-material.html
-
-https://docs.blender.org/manual/fr/dev/render/shader_nodes/shader/principled.html
-
-https://en.wikipedia.org/wiki/Procedural_texture
+- 📄 [OpenPBR Documentation - Academy Software Foundation](https://academysoftwarefoundation.github.io/OpenPBR/index.html)
+- 📄 [Filament Documentation - Google](https://google.github.io/filament/Filament.html)
+- 📄 [Lit Shader Documentation - Unity](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/lit-material.html)
+- 📄 [Principled BSDF Shader - Blender Manual](https://docs.blender.org/manual/fr/dev/render/shader_nodes/shader/principled.html)
+- 📄 [Procedural texture - Wikipedia](https://en.wikipedia.org/wiki/Procedural_texture)

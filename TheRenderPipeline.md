@@ -181,16 +181,10 @@ Modern renderers also heavily rely on tools like Frame Graphs to optimize resour
 
 ## References
 
-https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.0/manual/rendering-execution-order.html
-
-https://dev.epicgames.com/community/learning/tutorials/vyZ1/unreal-engine-begin-play-rendering
-
-https://www.gdcvault.com/play/1024612/FrameGraph-Extensible-Rendering-Architecture-in
-
-https://logins.github.io/graphics/2021/05/31/RenderGraphs.html
-
-http://filmicworlds.com/blog/visibility-buffer-rendering-with-material-graphs/
-
-https://en.wikipedia.org/wiki/Shadow_mapping
-
-https://diaryofagraphicsprogrammer.blogspot.com/2018/03/triangle-visibility-buffer.html
+- 📄 [Rendering Execution Order - Unity Manual](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.0/manual/rendering-execution-order.html)
+- 📄 [Unreal Engine Begin Play Rendering - Epic Games](https://dev.epicgames.com/community/learning/tutorials/vyZ1/unreal-engine-begin-play-rendering)
+- 🎥 [FrameGraph: Extensible Rendering Architecture - GDC Vault](https://www.gdcvault.com/play/1024612/FrameGraph-Extensible-Rendering-Architecture-in)
+- 📄 [Render Graphs - Login's Graphics](https://logins.github.io/graphics/2021/05/31/RenderGraphs.html)
+- 📄 [Visibility Buffer Rendering with Material Graphs - Filmic Worlds](http://filmicworlds.com/blog/visibility-buffer-rendering-with-material-graphs/)
+- 📄 [Shadow Mapping - Wikipedia](https://en.wikipedia.org/wiki/Shadow_mapping)
+- 📄 [Triangle Visibility Buffer - Diary of a Graphics Programmer](https://diaryofagraphicsprogrammer.blogspot.com/2018/03/triangle-visibility-buffer.html)

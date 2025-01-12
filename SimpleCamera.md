@@ -36,12 +36,8 @@ Usually exposure is the result of the combination of several settings on a camer
 
 ## References
 
-https://en.wikipedia.org/wiki/Shutter_speed
-
-https://en.wikipedia.org/wiki/Film_speed#ISO
-
-https://en.wikipedia.org/wiki/Aperture
-
-https://en.wikipedia.org/wiki/Texel_(graphics)
-
-https://en.wikipedia.org/wiki/Aspect_ratio_(image)
+- 📄 [Shutter speed - Wikipedia](https://en.wikipedia.org/wiki/Shutter_speed)
+- 📄 [Film speed - Wikipedia (ISO)](https://en.wikipedia.org/wiki/Film_speed#ISO)
+- 📄 [Aperture - Wikipedia](https://en.wikipedia.org/wiki/Aperture)
+- 📄 [Texel - Wikipedia](https://en.wikipedia.org/wiki/Texel_(graphics))
+- 📄 [Aspect ratio - Wikipedia](https://en.wikipedia.org/wiki/Aspect_ratio_(image))

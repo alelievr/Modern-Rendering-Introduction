@@ -35,8 +35,6 @@ There is also a very complete book about mathematics in computer graphics: [Math
 
 ## References
 
-The [Essence of linear algebra](https://www.youtube.com/watch?v=fNk_zzaMoSs&list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab).
-
-https://www.3blue1brown.com/topics/linear-algebra
-
-https://immersivemath.com/ila/index.html
+- 🎥 [Essence of Linear Algebra - YouTube](https://www.youtube.com/watch?v=fNk_zzaMoSs&list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab)
+- 📄 [Linear Algebra - 3Blue1Brown](https://www.3blue1brown.com/topics/linear-algebra)
+- 📄 [Interactive Linear Algebra - ImmersiveMath](https://immersivemath.com/ila/index.html)

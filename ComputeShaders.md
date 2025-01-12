@@ -53,7 +53,7 @@ void main(uint3 id : SV_GroupThreadID)
 
 The kernel have access to all the resources that were bound by the CPU to this compute shader as well as some automatically generated variables. like `SV_DispatchThreadID` that indicates the "position" of the current kernel in the dispatch, there are several other semantics to know the position of the group or the thread position inside the group:
 
-![](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/images/threadgroupids.png)
+[![](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/images/threadgroupids.png)](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/sv-groupthreadid#remarks)
 
 To know all the special values that are supported in parameter of a compute shader kernel, see the [Semantic](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-semantics) documentation of DirectX.
 
@@ -79,4 +79,6 @@ Note that in a compute shader we can read and write to the same coordinate in th
 
 ## References
 
-https://fr.wikipedia.org/wiki/General-purpose_processing_on_graphics_processing_units
+- 📄 [Calcul générique sur processeur graphique — Wikipédia](https://fr.wikipedia.org/wiki/General-purpose_processing_on_graphics_processing_units)
+- 📄 [Compute Shader Overview - Win32 apps | Microsoft Learn](https://learn.microsoft.com/en-us/windows/win32/direct3d11/direct3d-11-advanced-stages-compute-shader)
+- 🎥 [Getting Started with Compute Shaders in Unity - YouTube](https://www.youtube.com/watch?v=eDLilzy2mq0)

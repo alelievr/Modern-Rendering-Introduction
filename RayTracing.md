@@ -78,8 +78,6 @@ You can check out the intersection functions in the [GeometryUtils.hlsl](https:/
 
 ## References
 
-https://en.wikipedia.org/wiki/Path_tracing
-
-https://pbr-book.org/4ed/contents
-
-https://ssteinberg.xyz/2023rtplt/2023_rtplt.pdf
+- 📄 [Path tracing - Wikipedia](https://en.wikipedia.org/wiki/Path_tracing)
+- 📄 [Physically Based Rendering: From Theory to Implementation (4th Edition)](https://pbr-book.org/4ed/contents)
+- 📄 [2023 Path Tracing Paper - S. Steinberg (PDF)](https://ssteinberg.xyz/2023rtplt/2023_rtplt.pdf)

@@ -138,22 +138,13 @@ Meshes are the foundation of 3D modeling and rendering, offering a versatile str
 
 ## References
 
-https://en.wikipedia.org/wiki/UV_mapping
-
-https://en.wikipedia.org/wiki/Normal_(geometry)
-
-https://en.wikipedia.org/wiki/Polygon_mesh
-
-https://en.wikipedia.org/wiki/Wavefront_.obj_file
-
-https://openusd.org/release/index.html
-
-https://casual-effects.com/data/
-
-https://en.wikipedia.org/wiki/List_of_common_3D_test_models
-
-https://github.com/KhronosGroup/glTF-Sample-Assets
-
-https://learn.microsoft.com/en-us/windows/win32/direct3d9/texture-coordinates
-
-https://en.wikipedia.org/wiki/FBX
+- 📄 [UV mapping - Wikipedia](https://en.wikipedia.org/wiki/UV_mapping)
+- 📄 [Normal (geometry) - Wikipedia](https://en.wikipedia.org/wiki/Normal_(geometry))
+- 📄 [Polygon mesh - Wikipedia](https://en.wikipedia.org/wiki/Polygon_mesh)
+- 📄 [Wavefront .obj file - Wikipedia](https://en.wikipedia.org/wiki/Wavefront_.obj_file)
+- 📄 [OpenUSD Release - OpenUSD](https://openusd.org/release/index.html)
+- 📄 [Casual Effects - Data](https://casual-effects.com/data/)
+- 📄 [List of common 3D test models - Wikipedia](https://en.wikipedia.org/wiki/List_of_common_3D_test_models)
+- 📄 [glTF Sample Assets - Khronos Group](https://github.com/KhronosGroup/glTF-Sample-Assets)
+- 📄 [Texture Coordinates - Direct3D 9 | Microsoft Learn](https://learn.microsoft.com/en-us/windows/win32/direct3d9/texture-coordinates)
+- 📄 [FBX - Wikipedia](https://en.wikipedia.org/wiki/FBX)

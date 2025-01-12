@@ -316,22 +316,13 @@ For more information about, you can check out [LookMaNoMatrices](https://enkimut
 
 ## References
 
-https://en.wikipedia.org/wiki/Matrix_(mathematics)
-
-https://antongerdelan.net/opengl/raycasting.html
-
-http://davidlively.com/programming/graphics/opengl-matrices/row-major-vs-column-major/
-
-https://www.scratchapixel.com/lessons/mathematics-physics-for-computer-graphics/geometry/row-major-vs-column-major-vector.html
-
-https://en.wikipedia.org/wiki/Transpose
-
-https://en.wikipedia.org/wiki/Rotation_matrix
-
-https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/projection-matrix-introduction.html
-
-https://en.wikipedia.org/wiki/Multiplicative_inverse
-
-https://learn.microsoft.com/en-us/windows/win32/dxtecharts/the-direct3d-transformation-pipeline
-
-https://learn.microsoft.com/en-us/windows/win32/direct3d9/viewports-and-clipping
+- 📄 [Matrix (mathematics) - Wikipedia](https://en.wikipedia.org/wiki/Matrix_(mathematics))
+- 📄 [Raycasting in OpenGL - Anton Gerdelan](https://antongerdelan.net/opengl/raycasting.html)
+- 📄 [OpenGL Matrices: Row Major vs Column Major - David Lively](http://davidlively.com/programming/graphics/opengl-matrices/row-major-vs-column-major/)
+- 📄 [Row Major vs Column Major Vector - Scratchapixel](https://www.scratchapixel.com/lessons/mathematics-physics-for-computer-graphics/geometry/row-major-vs-column-major-vector.html)
+- 📄 [Transpose - Wikipedia](https://en.wikipedia.org/wiki/Transpose)
+- 📄 [Rotation matrix - Wikipedia](https://en.wikipedia.org/wiki/Rotation_matrix)
+- 📄 [Projection Matrix Introduction - Scratchapixel](https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/projection-matrix-introduction.html)
+- 📄 [Multiplicative inverse - Wikipedia](https://en.wikipedia.org/wiki/Multiplicative_inverse)
+- 📄 [The Direct3D Transformation Pipeline - Microsoft Learn](https://learn.microsoft.com/en-us/windows/win32/dxtecharts/the-direct3d-transformation-pipeline)
+- 📄 [Viewports and Clipping - Direct3D 9 | Microsoft Learn](https://learn.microsoft.com/en-us/windows/win32/direct3d9/viewports-and-clipping)

@@ -88,14 +88,9 @@ As we’ve discussed, the GPU’s fixed-function hardware, such as rasterizers a
 
 ## References
 
-https://gpuopen.com/wp-content/uploads/2021/01/AMD_Graphics_pipeline_GIC2020.pdf
-
-https://devblogs.microsoft.com/directx/d3d12-work-graphs/
-
-https://devblogs.microsoft.com/directx/dev-preview-of-new-directx-12-features/
-
-https://gpuopen.com/learn/occupancy-explained/
-
-https://gpuopen.com/learn/understanding-gpu-context-rolls/
-
-https://www.rastergrid.com/blog/gpu-tech/2022/02/simd-in-the-gpu-world/
+- 📄 [AMD Graphics Pipeline (GIC 2020) - PDF](https://gpuopen.com/wp-content/uploads/2021/01/AMD_Graphics_pipeline_GIC2020.pdf)
+- 📄 [D3D12 Work Graphs - DirectX Developer Blog](https://devblogs.microsoft.com/directx/d3d12-work-graphs/)
+- 📄 [Dev Preview of New DirectX 12 Features - DirectX Developer Blog](https://devblogs.microsoft.com/directx/dev-preview-of-new-directx-12-features/)
+- 📄 [Occupancy Explained - GPUOpen](https://gpuopen.com/learn/occupancy-explained/)
+- 📄 [Understanding GPU Context Rolls - GPUOpen](https://gpuopen.com/learn/understanding-gpu-context-rolls/)
+- 📄 [SIMD in the GPU World - RasterGrid](https://www.rastergrid.com/blog/gpu-tech/2022/02/simd-in-the-gpu-world/)

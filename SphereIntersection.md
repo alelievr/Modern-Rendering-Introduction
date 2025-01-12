@@ -50,4 +50,4 @@ $$d = (l_0 - c) \cdot l $$
 
 ## References
 
-https://en.wikipedia.org/wiki/Line%E2%80%93sphere_intersection
+- 📄 [Line–sphere intersection - Wikipedia](https://en.wikipedia.org/wiki/Line%E2%80%93sphere_intersection)
