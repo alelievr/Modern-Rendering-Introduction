@@ -1,6 +1,7 @@
 #include "RenderUtils.hpp"
-
 #include "Mesh.hpp"
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include "GLFW/glfw3native.h"
 
 std::shared_ptr<BindingSetLayout> RenderUtils::CreateLayoutSet(std::shared_ptr<Device> device, const Camera& camera, const std::vector<BindKey>& keys)
 {
@@ -34,4 +35,19 @@ std::shared_ptr<BindingSet> RenderUtils::CreateBindingSet(std::shared_ptr<Device
 	set->WriteBindings(allBindings);
 
 	return set;
+}
+
+void RenderUtils::SetBackgroundColor(GLFWwindow* window, COLORREF color)
+{
+	HWND hwnd = glfwGetWin32Window(window);
+	HDC hdc = GetDC(hwnd);
+
+	RECT rect;
+	GetClientRect(hwnd, &rect);
+
+	HBRUSH brush = CreateSolidBrush(color);
+	FillRect(hdc, &rect, brush);
+
+	DeleteObject(brush);
+	ReleaseDC(hwnd, hdc);
 }

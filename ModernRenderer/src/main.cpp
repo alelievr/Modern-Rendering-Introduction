@@ -7,6 +7,7 @@
 #include "InputController.hpp"
 #include "RenderDoc.hpp"
 #include "ScreenShotController.hpp"
+#include "RenderUtils.hpp"
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include "GLFW/glfw3native.h"
 
@@ -27,6 +28,9 @@ int main(int argc, char* argv[])
 
     glfwSetInputMode(app.GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+    // Set window color back while waiting for the rest to load
+    RenderUtils::SetBackgroundColor(app.GetWindow(), RGB(0, 0, 0));
+
     std::shared_ptr<Instance> instance = CreateInstance(settings.api_type);
     std::shared_ptr<Adapter> adapter = std::move(instance->EnumerateAdapters()[settings.required_gpu_index]);
     app.SetGpuName(adapter->GetName());
@@ -45,11 +49,6 @@ int main(int argc, char* argv[])
 
     // Create renderer
     Renderer renderer = Renderer(device, app, camera);
-
-    RenderPassDesc swapchainPassDesc = {
-    { { swapchain->GetFormat(), RenderPassLoadOp::kLoad, RenderPassStoreOp::kStore } },
-    };
-    std::shared_ptr<RenderPass> swapchainRenderPass = device->CreateRenderPass(swapchainPassDesc);
 
     InputController inputController;
     app.SubscribeEvents((InputEvents*)&inputController, nullptr);
