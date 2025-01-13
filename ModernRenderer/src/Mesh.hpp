@@ -13,6 +13,9 @@ private:
 
     void BuildAndUploadMeshletData(std::shared_ptr<Device> device);
 
+    template<typename T>
+    void AllocateVertexBufer(std::shared_ptr<Device> device, const std::vector<T>& data, ViewType viewType, gli::format format, std::shared_ptr<Resource>& resource, std::shared_ptr<View>& view);
+
 public:
     struct Vertex
     {
@@ -21,6 +24,8 @@ public:
         glm::vec2 texcoord;
         glm::vec3 tangent;
     };
+
+    std::string name;
 
     std::vector<uint32_t> indices;
     std::vector<Vertex> vertices;

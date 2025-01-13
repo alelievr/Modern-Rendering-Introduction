@@ -106,6 +106,7 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, const glm::m
     scene->mMetaData->Get("UnitScaleFactor", scale);
 
     Mesh currentMesh = {};
+    currentMesh.name = mesh->mName.C_Str();
     std::shared_ptr<Material> currentMaterial = Material::CreateMaterial();
     // Walk through each of the mesh's vertices
     for (uint32_t i = 0; i < mesh->mNumVertices; ++i)

@@ -4,11 +4,12 @@ std::vector<BindingDesc> Mesh::meshletBufferBindingDescs;
 std::vector<BindKey> Mesh::meshletBufferBindKeys;
 
 template<typename T>
-void AllocateVertexBufer(std::shared_ptr<Device> device, const std::vector<T>& data, ViewType viewType, gli::format format, std::shared_ptr<Resource>& resource, std::shared_ptr<View>& view)
+void Mesh::AllocateVertexBufer(std::shared_ptr<Device> device, const std::vector<T>& data, ViewType viewType, gli::format format, std::shared_ptr<Resource>& resource, std::shared_ptr<View>& view)
 {
 	resource = device->CreateBuffer(BindFlag::kVertexBuffer | BindFlag::kCopyDest, sizeof(T) * data.size());
     resource->CommitMemory(MemoryType::kUpload);
     resource->UpdateUploadBuffer(0, data.data(), sizeof(data.front()) * data.size());
+    resource->SetName(name);
 
     ViewDesc d = {};
     d.view_type = viewType;
@@ -67,20 +68,23 @@ void Mesh::BuildAndUploadMeshletData(std::shared_ptr<Device> device)
     AllocateVertexBufer(device, meshletVertices, ViewType::kStructuredBuffer, gli::FORMAT_UNDEFINED, meshletIndicesBuffer, meshletIndicesBufferView);
     AllocateVertexBufer(device, packedMeshletTriangles, ViewType::kBuffer, gli::FORMAT_R32_UINT_PACK32, meshletTrianglesBuffer, meshletTrianglesBufferView);
 
-    auto vertexBufferBindKey = BindKey{ ShaderType::kCompute, ViewType::kStructuredBuffer, 0, 4 };
-    auto meshletsBufferBindKey = BindKey{ ShaderType::kCompute, ViewType::kStructuredBuffer, 1, 4 };
-    auto meshletIndicesBindKey = BindKey{ ShaderType::kCompute, ViewType::kBuffer, 2, 4 };
-    auto meshletTrianglesBindKey = BindKey{ ShaderType::kCompute, ViewType::kBuffer, 3, 4 };
+    auto vertexBufferBindKeyMesh = BindKey{ ShaderType::kMesh, ViewType::kStructuredBuffer, 0, 4 };
+    auto vertexBufferBindKeyVertex = BindKey{ ShaderType::kVertex, ViewType::kStructuredBuffer, 0, 4 };
+    auto meshletsBufferBindKey = BindKey{ ShaderType::kMesh, ViewType::kStructuredBuffer, 1, 4 };
+    auto meshletIndicesBindKey = BindKey{ ShaderType::kMesh, ViewType::kBuffer, 2, 4 };
+    auto meshletTrianglesBindKey = BindKey{ ShaderType::kMesh, ViewType::kBuffer, 3, 4 };
 
     meshletBufferBindingDescs = {
-        BindingDesc{ vertexBufferBindKey, vertexBufferView },
+        BindingDesc{ vertexBufferBindKeyMesh, vertexBufferView },
+        BindingDesc{ vertexBufferBindKeyVertex, vertexBufferView },
         BindingDesc{ meshletsBufferBindKey, meshletsBufferView },
         BindingDesc{ meshletIndicesBindKey, meshletIndicesBufferView },
         BindingDesc{ meshletTrianglesBindKey, meshletTrianglesBufferView }
     };
 
     meshletBufferBindKeys = {
-        vertexBufferBindKey,
+        vertexBufferBindKeyMesh,
+        vertexBufferBindKeyVertex,
         meshletsBufferBindKey,
         meshletIndicesBindKey,
         meshletTrianglesBindKey
@@ -98,6 +102,7 @@ void Mesh::UploadMeshData(std::shared_ptr<Device> device)
 	indexBuffer = device->CreateBuffer(BindFlag::kIndexBuffer | BindFlag::kCopyDest, sizeof(uint32_t) * indices.size());
 	indexBuffer->CommitMemory(MemoryType::kUpload);
 	indexBuffer->UpdateUploadBuffer(0, indices.data(), sizeof(indices.front()) * indices.size());
+    indexBuffer->SetName(name + " Index Buffer");
 }
 
 void Mesh::BindBuffers(std::shared_ptr<CommandList> commandList) const

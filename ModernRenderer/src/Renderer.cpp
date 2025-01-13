@@ -8,7 +8,7 @@ struct DrawRootConstants
 	uint32_t materialIndex;
 };
 
-bool useMeshShader = false;
+bool useMeshShader = true;
 
 Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
 {

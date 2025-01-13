@@ -21,15 +21,15 @@ int main(int argc, char* argv[])
     AppBox app("ModernRenderer", settings);
     AppSize appSize = app.GetAppSize();
 
+    // Set window color back while waiting for the rest to load
+    RenderUtils::SetBackgroundColor(app.GetWindow(), RGB(0, 0, 0));
+
 #if defined(LOAD_RENDERDOC)
     // Loading renderdoc will diisable the validation layer, make sure there is no error before enabling it.
     RenderDoc::LoadRenderDoc();
 #endif
 
     glfwSetInputMode(app.GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-    // Set window color back while waiting for the rest to load
-    RenderUtils::SetBackgroundColor(app.GetWindow(), RGB(0, 0, 0));
 
     std::shared_ptr<Instance> instance = CreateInstance(settings.api_type);
     std::shared_ptr<Adapter> adapter = std::move(instance->EnumerateAdapters()[settings.required_gpu_index]);
