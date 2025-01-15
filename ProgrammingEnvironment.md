@@ -2,6 +2,16 @@
 
 In this chapiter we'll spend a bit of time exploring the offering of IDE, debuggers and profilers available to you when making a 3D application. Unlike programming languages on the CPU that have a very broad offering of products to develop in lots of different languages, you'll see that it's a different story on the GPU.
 
+## Shader Languages
+
+### HLSL
+
+### GLSL
+
+### Slang
+
+TODO: https://github.com/shader-slang/slang
+
 ## HLSL Editors
 
 IDE/Code editors that support well HLSL are pretty scarce, while most of the common IDE have HLSL or shader extension, they often lack good autocomplete functionalities, linting or symbol parsing.
@@ -32,10 +42,10 @@ One of the best debugging tool is [RenderDoc](https://renderdoc.org/) it is easy
 
 [PIX](https://devblogs.microsoft.com/pix/) is another great debugging tool, this time only for windows. It has the particularity of being up to date with the latest DirectX features, so if you're trying out new features it's your choice of tool. PIX is also able to profile and analyze the performances of your application.
 
-[GPA](https://www.intel.com/content/www/us/en/developer/tools/graphics-performance-analyzers/overview.html) 
+[GPA](https://www.intel.com/content/www/us/en/developer/tools/graphics-performance-analyzers/overview.html) TODO
 
-[NVIDIA NSight Graphics](https://developer.nvidia.com/nsight-graphics)
+[NVIDIA NSight Graphics](https://developer.nvidia.com/nsight-graphics) TODO
 
-[Xcode Metal Debugger](https://developer.apple.com/documentation/xcode/metal-debugger)
+[Xcode Metal Debugger](https://developer.apple.com/documentation/xcode/metal-debugger) TODO
 
-Another great tool to have is validation layers, they are additonal checks that can be enabled on low-levels APIs that catches errors before they are sent to the GPU, they are very useful to detect issues in setup and order in the GPU commands sent to the GPU
+Another great tool to have is validation layers, they are additional checks that can be enabled on low-levels APIs that catches errors before they are sent to the GPU, they are very useful to detect issues in setup and order in the GPU commands sent to the GPU

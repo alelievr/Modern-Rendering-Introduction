@@ -49,24 +49,41 @@ void Mesh::BuildAndUploadMeshletData(std::shared_ptr<Device> device)
     //meshopt_optimizeMeshlet(meshlet_vertices.data(), meshlet_triangles.data(), max_triangles, max_vertices);
 
     // Reize the meshlet data to the actual count
+    const meshopt_Meshlet& last = meshlets[meshletCount - 1];
     meshlets.resize(meshletCount);
-    meshletVertices.resize(meshletCount * max_vertices);
-    meshletTriangles.resize(meshletCount * max_triangles * 3);
+    meshletVertices.resize(last.vertex_offset + last.vertex_count);
+    meshletTriangles.resize(last.triangle_offset + ((last.triangle_count * 3 + 3) & ~3));
+
+    // TODO: pack 3 meshelet indices (triangle) into a single uint 
+    std::vector<uint32_t> unpackedMeshletTriangles(meshletTriangles.size());
+    for (int i = 0; i < meshletTriangles.size(); i++)
+		unpackedMeshletTriangles[i] = meshletTriangles[i];
+
 
     // Pack meshlet triangle indices into an uint for easy read in the shader
-    std::vector<uint32_t> packedMeshletTriangles(meshletCount * max_triangles * 3);
-    for (int i = 0; i < meshletCount * max_triangles; i++)
-    {
-        uint32_t packed = 0;
-        for (int j = 0; j < 3; j++)
-			packed |= meshletTriangles[i * 3 + j] << (8 * j);
-		packedMeshletTriangles[i] = packed;
-    }
+    //std::vector<uint32_t> packedMeshletTriangles(meshletTriangles.size() / 3);
+
+    //for (int i = 0; i < meshletCount; i++)
+    //{
+    //    for (int j = 0; j < max_triangles; j++)
+    //    {
+    //        if (j >= meshlets[i].triangle_count)
+    //            break;
+
+    //        unsigned triangleIndex = meshlets[i].triangle_offset + j;
+    //        unsigned index = i * max_triangles * 3 + j * 3;
+    //        uint32_t packed = 0;
+    //        for (int k = 0; k < 3; k++)
+    //            packed |= meshletTriangles[index + k] << (8 * k);
+    //        packedMeshletTriangles[triangleIndex] = packed;
+    //    }
+    //}
 
     AllocateVertexBufer(device, vertices, ViewType::kStructuredBuffer, gli::FORMAT_UNDEFINED, vertexBuffer, vertexBufferView);
     AllocateVertexBufer(device, meshlets, ViewType::kStructuredBuffer, gli::FORMAT_UNDEFINED, meshletsBuffer, meshletsBufferView);
     AllocateVertexBufer(device, meshletVertices, ViewType::kStructuredBuffer, gli::FORMAT_UNDEFINED, meshletIndicesBuffer, meshletIndicesBufferView);
-    AllocateVertexBufer(device, packedMeshletTriangles, ViewType::kBuffer, gli::FORMAT_R32_UINT_PACK32, meshletTrianglesBuffer, meshletTrianglesBufferView);
+    //AllocateVertexBufer(device, packedMeshletTriangles, ViewType::kBuffer, gli::FORMAT_R32_UINT_PACK32, meshletTrianglesBuffer, meshletTrianglesBufferView);
+    AllocateVertexBufer(device, unpackedMeshletTriangles, ViewType::kBuffer, gli::FORMAT_R32_UINT_PACK32, meshletTrianglesBuffer, meshletTrianglesBufferView);
 
     auto vertexBufferBindKeyMesh = BindKey{ ShaderType::kMesh, ViewType::kStructuredBuffer, 0, 4 };
     auto vertexBufferBindKeyVertex = BindKey{ ShaderType::kVertex, ViewType::kStructuredBuffer, 0, 4 };

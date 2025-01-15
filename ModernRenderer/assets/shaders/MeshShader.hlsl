@@ -45,7 +45,7 @@ MeshToFragment GetVertexAttributes(uint meshletIndex, uint vertexIndex)
 }
 
 // must match meshlet generation limits
-#define MAX_OUTPUT_PRIMITIVES 128
+#define MAX_OUTPUT_PRIMITIVES 124
 #define MAX_OUTPUT_VERTICES 64
 
 [NumThreads(MAX_OUTPUT_PRIMITIVES, 1, 1)]
@@ -62,10 +62,12 @@ void main(
 
     if (threadId < meshlet.triangleCount)
     {
-        uint packed = meshletTriangles[meshlet.triangleOffset + threadId];
-        uint vIdx0  = (packed >>  0) & 0xFF;
-        uint vIdx1  = (packed >>  8) & 0xFF;
-        uint vIdx2  = (packed >> 16) & 0xFF;
+        uint vIdx0 = meshletTriangles[meshlet.triangleOffset + threadId * 3 + 0];
+        uint vIdx1 = meshletTriangles[meshlet.triangleOffset + threadId * 3 + 1];
+        uint vIdx2 = meshletTriangles[meshlet.triangleOffset + threadId * 3 + 2];
+        //uint vIdx0  = (packed >>  0) & 0xFF;
+        //uint vIdx1  = (packed >>  8) & 0xFF;
+        //uint vIdx2  = (packed >> 16) & 0xFF;
         triangles[threadId] = uint3(vIdx0, vIdx1, vIdx2);
     }
 

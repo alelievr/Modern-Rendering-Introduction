@@ -34,6 +34,7 @@ public:
 	~Scene() = default;
 
 	void LoadSingleSphereScene(std::shared_ptr<Device> device, const Camera& camera);
+	void LoadSingleCubeScene(std::shared_ptr<Device> device, const Camera& camera);
 	void LoadSponzaScene(std::shared_ptr<Device> device, const Camera& camera);
 	void LoadChessScene(std::shared_ptr<Device> device, const Camera& camera);
 

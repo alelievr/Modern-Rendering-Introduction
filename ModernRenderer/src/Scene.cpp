@@ -16,6 +16,21 @@ void Scene::LoadSingleSphereScene(std::shared_ptr<Device> device, const Camera& 
 	UploadInstancesToGPU(device);
 }
 
+void Scene::LoadSingleCubeScene(std::shared_ptr<Device> device, const Camera& camera)
+{
+	name = L"SingleCube";
+
+	ModelImporter importer("assets/models/MeshShaderTestPlane.fbx", aiProcessPreset_TargetRealtime_Fast);
+
+	ModelInstance instance;
+	instance.model = importer.GetModel();
+	instance.transform = glm::mat4(0.0f);
+
+	instances.push_back(instance);
+
+	UploadInstancesToGPU(device);
+}
+
 void Scene::LoadSponzaScene(std::shared_ptr<Device> device, const Camera& camera)
 {
 	name = L"Sponza";
@@ -48,8 +63,9 @@ std::shared_ptr<Scene> Scene::LoadHardcodedScene(std::shared_ptr<Device> device,
 {
 	std::shared_ptr<Scene> scene = std::make_shared<Scene>();
 
-	//LoadSingleSphereScene(device, camera);
-	scene->LoadChessScene(device, camera);
+	//scene->LoadSingleCubeScene(device, camera);
+	scene->LoadSingleSphereScene(device, camera);
+	//scene->LoadChessScene(device, camera);
 
 	scene->UploadInstancesToGPU(device);
 	Texture::LoadAllTextures(device);
