@@ -1,0 +1,83 @@
+fileFormatVersion: 2
+guid: e489f81eb14c1c845b6125ebe44283f2
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 804e1ce4c496647cfa3f1a1134187c71, type: 3}
+  _removeEmptyRootObjects: 1
+  _scaleFactor: 1
+  _deduplicateResources: 0
+  _maximumLod: 300
+  _readWriteEnabled: 1
+  _generateColliders: 0
+  _swapUvs: 0
+  _generateLightmapUVs: 0
+  _importBlendShapeNames: 1
+  _blendShapeFrameWeight:
+    _option: 0
+    _multiplier: 1
+  _importNormals: 0
+  _importTangents: 0
+  _importCamera: 2
+  _importAnimations: 2
+  _mecanimHumanoidFlip: 0
+  _addAnimatorComponent: 0
+  _animationLoopTime: 1
+  _animationLoopPose: 0
+  _importMaterials: 1
+  _enableGpuInstancing: 0
+  _texturesReadWriteEnabled: 1
+  _generateMipMaps: 1
+  _useSceneNameIdentifier: 1
+  _textureCompression: -50
+  _gltfAsset: '<b>Generator: </b>babylon.js glTF exporter for Maya 2018 v20200617.6
+    with custom modifications for sheen
+
+    <b>Version: </b>2.0
+
+'
+  optimizeGameObjects: 0
+  materials:
+  - {instanceID: 0}
+  textures:
+  - {fileID: 2800000, guid: 34ec12366c2b11e44a38991c501fa9bd, type: 3}
+  - {fileID: 2800000, guid: 5510d61b4c38ff34e90854153905f8ca, type: 3}
+  - {fileID: 2800000, guid: 5ef2bbfb1d491d34085de6f061cb54ea, type: 3}
+  - {fileID: 2800000, guid: abd6e34881290474fae379a260032302, type: 3}
+  - {fileID: 2800000, guid: afd22b70a89c4674f99e0e5f056cf7b0, type: 3}
+  hasSceneData: 1
+  hasAnimationData: 0
+  hasMaterialData: 1
+  hasTextureData: 1
+  animations: []
+  _extensions:
+  - name: KHR_texture_transform
+    supported: 1
+    used: 1
+    required: 1
+  - name: KHR_materials_sheen
+    supported: 1
+    used: 1
+    required: 0
+  _textures:
+  - texture: {fileID: 2800000, guid: 34ec12366c2b11e44a38991c501fa9bd, type: 3}
+    shouldBeLinear: 1
+    shouldBeNormalMap: 1
+  - texture: {fileID: 2800000, guid: 5510d61b4c38ff34e90854153905f8ca, type: 3}
+    shouldBeLinear: 1
+    shouldBeNormalMap: 0
+  - texture: {fileID: 2800000, guid: 5ef2bbfb1d491d34085de6f061cb54ea, type: 3}
+    shouldBeLinear: 0
+    shouldBeNormalMap: 0
+  - texture: {fileID: 2800000, guid: abd6e34881290474fae379a260032302, type: 3}
+    shouldBeLinear: 1
+    shouldBeNormalMap: 0
+  - texture: {fileID: 2800000, guid: afd22b70a89c4674f99e0e5f056cf7b0, type: 3}
+    shouldBeLinear: 1
+    shouldBeNormalMap: 0
+  _mainAssetIdentifier: scenes/Scene
+  _importPlugins: []
