@@ -23,7 +23,7 @@
 - The Render Pipeline [complete]
 - Bindless Bindings [complete]
 - Material [complete]
-- Texturing
+- Texturing [complete]
 - Aliasing and Filtering
 - Integrals in Rendering
 - The Rendering Equation

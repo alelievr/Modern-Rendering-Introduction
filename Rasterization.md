@@ -166,7 +166,13 @@ This steps is the only programmable part of the rasterizer, for each pixel that 
 
 ### Vertex Interpolation
 
-Every attributes passed to the input of the fragment shader gets interpolated using barycentric coordinates. This interpolation can be controlled using [Interpolation Modifiers](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-struct#interpolation-modifiers-introduced-in-shader-model-4), they control how values from the mesh vertices are interpolated and even allows disabling interpolation if needed.
+Every attribute (data contained in each vertex) passed to the input of the fragment shader gets interpolated using [barycentric coordinates](https://en.wikipedia.org/wiki/Barycentric_coordinate_system). When a triangle is rasterized, the graphics pipeline determines the value of each attribute at every pixel by blending the values from the three vertices of the triangle.
+This blending is performed through interpolation using the [barycentric coordinates](https://en.wikipedia.org/wiki/Barycentric_coordinate_system) of the triangle.
+This interpolation ensures a smooth transition of attributes such as position, color, UVs, and more across the surface of the triangle.
+
+![](Media/Recordings/TriangleIntersection%2001.gif)
+
+This interpolation can be controlled using [Interpolation Modifiers](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-struct#interpolation-modifiers-introduced-in-shader-model-4), they control how values from the mesh vertices are interpolated and even allows disabling interpolation if needed.
 
 ### Pixel discard
 

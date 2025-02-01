@@ -188,3 +188,4 @@ Modern renderers also heavily rely on tools like Frame Graphs to optimize resour
 - 📄 [Visibility Buffer Rendering with Material Graphs - Filmic Worlds](http://filmicworlds.com/blog/visibility-buffer-rendering-with-material-graphs/)
 - 📄 [Shadow Mapping - Wikipedia](https://en.wikipedia.org/wiki/Shadow_mapping)
 - 📄 [Triangle Visibility Buffer - Diary of a Graphics Programmer](https://diaryofagraphicsprogrammer.blogspot.com/2018/03/triangle-visibility-buffer.html)
+- 📄 [A Primer On Efficient Rendering Algorithms & Clustered Shading](https://www.aortiz.me/2018/12/21/CG.html)
