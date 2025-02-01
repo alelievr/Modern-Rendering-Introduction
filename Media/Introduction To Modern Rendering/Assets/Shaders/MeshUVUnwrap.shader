@@ -15,9 +15,6 @@ Shader "Unlit/MeshUVUnwrap"
 
 		Pass
 		{
-			// Wireframe shader based on the the following
-			// http://developer.download.nvidia.com/SDK/10/direct3d/Source/SolidWireframe/Doc/SolidWireframe.pdf
-
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
