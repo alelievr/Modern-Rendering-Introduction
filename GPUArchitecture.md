@@ -94,3 +94,4 @@ As we’ve discussed, the GPU’s fixed-function hardware, such as rasterizers a
 - 📄 [Occupancy Explained - GPUOpen](https://gpuopen.com/learn/occupancy-explained/)
 - 📄 [Understanding GPU Context Rolls - GPUOpen](https://gpuopen.com/learn/understanding-gpu-context-rolls/)
 - 📄 [SIMD in the GPU World - RasterGrid](https://www.rastergrid.com/blog/gpu-tech/2022/02/simd-in-the-gpu-world/)
+- 🎥 [How do Graphics Cards Work?  Exploring GPU Architecture - Branch Education](https://youtu.be/h9Z4oGN89MU?si=a_kCXj6zf2sw-f98)

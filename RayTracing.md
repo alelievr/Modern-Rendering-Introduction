@@ -1,28 +1,34 @@
 # Ray Tracing
 
-Ray tracing is is a technique that consist in computing the intersection between a ray and another primitive. This technique is used in a lot of different algorithm in rendering and provide a simple and intuitive approach to rendering.
+Ray tracing is a technique that involves computing the intersection between a ray and a geometric primitive, such as a triangle or a sphere. This method is widely used in various rendering algorithms and provides a straightforward way to simulate how light interacts with objects in a scene.
 
-A ray is composed of two vectors: one position and one direction.
+In fact ray tracing is often the first step when learning to make 3D renders because you can easily achieve compelling results with a few lines of code. This simplicity comes at with a very high performance cost, which makes it hard to use in real-time applications.
 
-Each intersection with a ray allows to retrieve information such as the hit position, which 3D models was hit by the ray, which triangle was hit inside the mesh. From this intersection, we can then get the mesh surface data and interpolate it.
+A ray is defined by two vectors: a **position**, which represents its starting point, and a **direction**, which determines the path it follows. These rays can be used to trace visibility, reflections, shadows, and other effects by intersecting with objects in the scene.
+
+When a ray intersects with a surface, we can extract useful information from the hit point. This includes the **3D model** that was hit, the **specific triangle** within the model’s mesh that was intersected, the normal of the surface, it's color, etc.
 
 ## Path Tracing
 
-[Path tracing](https://en.wikipedia.org/wiki/Path_tracing) is the name of a [Light Transport](https://en.wikipedia.org/wiki/Light_transport_theory) algorithm, it uses the principle of ray-tracing to simulate how light rays interacts with a 3D scene.
+[Path tracing](https://en.wikipedia.org/wiki/Path_tracing) is the name of a [Light Transport](https://en.wikipedia.org/wiki/Light_transport_theory) algorithm. It uses the principle of ray tracing to simulate how light rays interact with a 3D scene.
 
-The idea of the algorithm is simple: we're going to start shooting rays from the camera or the light sources, these rays will intersect the objects in the scene, at each intersection we'll evaluate how light interacts with the surface and we'll accumulate the lighting information to simulate light bouncing between objects.
+The idea behind the algorithm is simple: we start by shooting rays from the camera or the light sources. These rays will intersect the objects in the scene. At each intersection, we evaluate how light interacts with the surface, and we accumulate the lighting information to simulate light bouncing between objects.
 
-There are several types of path tracer that exist, for this course, we're particularly interested in "backward" path tracing. It's called backward because the rays starts from the camera and then bounces of the objects of the scene before hitting a light, this is the reverse of what happens in reality.
+There are several types of path tracers. For this course, we're particularly interested in "backward" path tracing. It's called backward because the rays start from the camera and then bounce off the objects in the scene before hitting a light. This is the reverse of what happens in reality.
 
-## PBRT 4th edition
+### PBRT 4th edition
 
 In this course the reference renderer we're making will mostly follow the guidelines of [Physically Based Rendering V4](https://pbr-book.org/4ed/contents) with some simplifications. We're also doing it fully on the GPU from the start whereas the book only talk about GPU implantation at the end. This book is an amazing resource on path tracing and design, I heavily recommend reading it, or at least the chapters that you're interested in.
 
-## Approximations
+### Approximations
 
-Here we are already starting to approximate by assuming that the light can be represented by a photo going straight in space and interacting with any surface that it comes in contact. We already know that this is physically wrong because we know from observation that light behaves both as a particle and a wave. So with ray-tracing it's impossible to represent interference patterns or diffraction grating which we assume is okay for our use case (If you're interested in this, you can take a look at [A Generalized Ray Formulation For Wave-Optics Rendering](https://ssteinberg.xyz/2023rtplt/2023_rtplt.pdf)).
+Here, we are already making an approximation by assuming that light can be represented as a "photon packet" traveling in a straight line through space and interacting with any surface it encounters. We already know that this is physically inaccurate because light exhibits both particle and wave behavior.  
 
-Some path tracers are trying to do a closer match to reality by tracing multiple rays per photon, each ray representing a single wavelength of light (usually they do at least 3 ray for the wavelength corresponding to red, green and blue), this is called spectral path tracing. It allows to accurately model diffraction in prisms, iridescence, fluorescence, etc. We're also going to assume that these are not needed for our course because as you can imagine this is pretty expensive to compute and we'd need to adjust not only all the lighting equations to work with wavelength but also all our material descriptions.
+With ray tracing, it is impossible to represent interference patterns or diffraction grating, but we assume this is acceptable for our use case. (If you're interested in this topic, you can take a look at [A Generalized Ray Formulation for Wave-Optics Rendering](https://ssteinberg.xyz/2023rtplt/2023_rtplt.pdf)).
+
+Some path tracers attempt to achieve a closer match to reality by tracing multiple rays per photon packet, with each ray representing a single wavelength of light. Typically, at least three rays are used for the wavelengths corresponding to red, green, and blue. This technique is called **spectral path tracing**. It allows for accurate modeling of phenomena such as diffraction in prisms, iridescence, and fluorescence.
+
+However, for our course, we will assume that these effects are not required. As you can imagine, spectral path tracing is computationally expensive, as it requires adjusting not only all lighting equations to work with wavelengths but also all material descriptions.
 
 ## Implementation
 
@@ -41,7 +47,7 @@ void main(uint3 id : SV_GroupThreadID)
 }
 ```
 
-In this code we have the screen space pixel position denoted by `positionSS`. To determine the ray direction from this position, I'm going to jump ahead a bit here because we need some transformations to be able to know the exact direction the rays need to go. To cast our rays By taking a look at the transformation pipeline described in [Matrices And Transformations](MatricesAndTransformations.md).
+In this code, we have the screen space pixel position denoted by `positionSS`. To determine the ray direction from this position, I'll jump ahead a bit because we need some transformations to compute the ray direction. You can take a look at the transformation pipeline described in [Matrices and Transformations](MatricesAndTransformations.md) for more information.
 
 ### Calculating the ray direction from the camera
 
@@ -68,16 +74,23 @@ We can put these sequence transformations in dedicated functions with to help us
 
 ### Objects intersections
 
-Now that we have the ray direction and it's origin (it's the camera position), we can calculate intersections with other objects in the scene. Using the intersections formulas we saw in previous chapiters, we can test our ray tracer by hardcoding a few objects in hlsl. Each object is assigned a different color and we select the closest hit distance in case of multiple intersections. If nothing is intersected, we just return black color.
+Now that we have the ray direction and it's origin (it's the camera position), we can calculate intersections with other objects in the scene. Using the intersections formulas we saw in previous chapters, we can test our ray tracer by hardcoding a few objects in hlsl. Each object is assigned a different color and we select the closest hit distance in case of multiple intersections. If nothing is intersected, we just return black color.
 
 ![](Media/Recordings/Hardcoded%20Scene%2000.png)
 
-The result might not be impressive right now but there is no point in doing crazy stuff with primitives as our goal will be to render polygonal meshes with the path tracer in the next chapiters.
+The result might not be impressive right now but there is no point in doing crazy stuff with primitives as our goal will be to render polygonal meshes with the path tracer in the next chapters.
 
 You can check out the intersection functions in the [GeometryUtils.hlsl](https://github.com/alelievr/Modern-Rendering-Introduction/blob/master/ModernRenderer/assets/shaders/GeometryUtils.hlsl) source file.
+
+## Conclusion
+
+Ray tracing is a key technique for simulating light interactions in 3D rendering. Although it’s relatively simple to implement, its high computational cost makes it difficult to use in real-time applications. Path tracing builds on ray tracing by simulating light transport more accurately, but it comes with added complexity as well as performance challenges.
+
+In this course, we've covered the basics of ray tracing and path tracing, including the necessary transformations for calculating ray directions and basic intersection methods for geometric primitives. While the current implementation is simple, it sets the foundation for more complex scenes using polygonal meshes in the future.
 
 ## References
 
 - 📄 [Path tracing - Wikipedia](https://en.wikipedia.org/wiki/Path_tracing)
 - 📄 [Physically Based Rendering: From Theory to Implementation (4th Edition)](https://pbr-book.org/4ed/contents)
 - 📄 [2023 Path Tracing Paper - S. Steinberg (PDF)](https://ssteinberg.xyz/2023rtplt/2023_rtplt.pdf)
+- 🎥 [How does Ray Tracing Work in Video Games and Movies? - Branch Education](https://www.youtube.com/watch?v=iOlehM5kNSk)
