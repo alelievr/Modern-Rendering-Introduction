@@ -8,8 +8,6 @@ struct DrawRootConstants
 	uint32_t materialIndex;
 };
 
-bool useMeshShader = true;
-
 Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
 {
     this->device = device;
@@ -51,15 +49,15 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     std::shared_ptr<Program> compute_program = device->CreateProgram({ compute_test });
 
     // Compute stage allows to bind to every shader stages
-    BindKey drawRootConstant = { ShaderType::kCompute, ViewType::kConstantBuffer, 1, 0, 1, UINT32_MAX, true };
+    BindKey drawRootConstant = { ShaderType::kCompute, ViewType::kConstantBuffer, 1, 0, 2, UINT32_MAX, true };
     std::shared_ptr<BindingSetLayout> layout = RenderUtils::CreateLayoutSet(device, camera, { drawRootConstant });
     std::shared_ptr<BindingSetLayout> meshShaderLayout = RenderUtils::CreateLayoutSet(device, camera, { drawRootConstant });
     objectBindingSet = RenderUtils::CreateBindingSet(device, layout, camera, { { drawRootConstant, nullptr } });
     
-    BindKey PathTracerMainColorKey = { ShaderType::kCompute, ViewType::kRWTexture, 0, 0, 1, UINT32_MAX };
-    std::shared_ptr<BindingSetLayout> compute_layout = device->CreateBindingSetLayout({ camera.cameraDataKeyCompute, PathTracerMainColorKey });
+    BindKey pathTracerMainColorKey = { ShaderType::kCompute, ViewType::kRWTexture, 0, 0, 1, UINT32_MAX };
+    std::shared_ptr<BindingSetLayout> compute_layout = device->CreateBindingSetLayout({ camera.cameraDataKeyCompute, pathTracerMainColorKey });
     pathTracerBindingSet = device->CreateBindingSet(compute_layout);
-    pathTracerBindingSet->WriteBindings({ camera.cameraDataDescCompute, { PathTracerMainColorKey, mainColorTextureView } });
+    pathTracerBindingSet->WriteBindings({ camera.cameraDataDescCompute, { pathTracerMainColorKey, mainColorTextureView } });
 
 	// Create the load/store render pass setup
 	RenderPassDepthStencilDesc depthStencilDesc = {
@@ -183,19 +181,9 @@ void DrawScene(std::shared_ptr<CommandList> commandList, std::shared_ptr<Scene> 
 
             // Bind per-draw data, we only need an index, the rest is bindless
             dxCommandList->SetGraphicsConstant(0, materialIndex, 0);
+            dxCommandList->SetGraphicsConstant(0, r.mesh.poolIndex, 1);
 
-			// Draw mesh
-            if (useMeshShader)
-            {
-                commandList->DispatchMesh(r.mesh.meshletCount);
-            }
-            else
-            {
-                // Bind vertex buffer
-                r.mesh.BindBuffers(commandList);
-
-                commandList->DrawIndexed(r.mesh.indices.size(), 1, 0, 0, 0);
-            }
+            commandList->DispatchMesh(r.mesh.meshletCount);
 		}
     }
 }
@@ -205,7 +193,7 @@ void Renderer::RenderRasterization(std::shared_ptr<CommandList> commandList, std
     // TODO: clear render pass
 
     ClearDesc clear_desc = { { { 0.0, 0.2, 0.4, 1.0 } } }; // Clear Color
-    commandList->BindPipeline(useMeshShader ? objectMeshShaderPipeline : objectPipeline);
+    commandList->BindPipeline(objectMeshShaderPipeline);
     commandList->BindBindingSet(objectBindingSet);
     commandList->SetViewport(0, 0, appSize.width(), appSize.height());
     commandList->SetScissorRect(0, 0, appSize.width(), appSize.height());

@@ -9,13 +9,6 @@
 
 class Mesh
 {
-private:
-
-    void BuildAndUploadMeshletData(std::shared_ptr<Device> device);
-
-    template<typename T>
-    void AllocateVertexBufer(std::shared_ptr<Device> device, const std::vector<T>& data, ViewType viewType, gli::format format, std::shared_ptr<Resource>& resource, std::shared_ptr<View>& view);
-
 public:
     struct Vertex
     {
@@ -40,26 +33,12 @@ public:
     std::vector<uint8_t> meshletTriangles;
     size_t meshletCount;
 
-    std::shared_ptr<Resource> indexBuffer;
-    std::shared_ptr<Resource> vertexBuffer;
-    std::shared_ptr<Resource> meshletIndicesBuffer;
-    std::shared_ptr<Resource> meshletTrianglesBuffer;
-    std::shared_ptr<Resource> meshletsBuffer;
-
-    std::shared_ptr<View> vertexBufferView;
-    std::shared_ptr<View> meshletIndicesBufferView;
-    std::shared_ptr<View> meshletTrianglesBufferView;
-    std::shared_ptr<View> meshletsBufferView;
-
-    static std::vector<BindingDesc> meshletBufferBindingDescs;
-    static std::vector<BindKey> meshletBufferBindKeys;
+    int poolIndex;
 
 	Mesh() = default;
 	~Mesh() = default;
 
-    void UploadMeshData(std::shared_ptr<Device> device);
-
-    void BindBuffers(std::shared_ptr<CommandList> commandList) const;
+    void PrepareMeshletData(std::shared_ptr<Device> device);
 
     static std::vector<InputLayoutDesc> GetInputAssemblerLayout()
     {

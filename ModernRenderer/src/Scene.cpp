@@ -1,5 +1,6 @@
 #include "Scene.hpp"
 #include "ModelImporter.hpp"
+#include "MeshPool.hpp"
 
 void Scene::LoadSingleSphereScene(std::shared_ptr<Device> device, const Camera& camera)
 {
@@ -79,8 +80,9 @@ void Scene::UploadInstancesToGPU(std::shared_ptr<Device> device)
 	for (auto& instance : instances)
 	{
 		for (auto& p : instance.model.parts)
-		{
-			p.mesh.UploadMeshData(device);
-		}	
+			p.mesh.PrepareMeshletData(device);
 	}
+
+	// Allocate and upload the mesh pool to the GPU
+	MeshPool::AllocateMeshPoolBuffers(device);
 }

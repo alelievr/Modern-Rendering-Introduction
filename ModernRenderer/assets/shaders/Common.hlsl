@@ -15,6 +15,7 @@ cbuffer CameraData : register(b0, space0)
 cbuffer DrawData : register(b1, space0)
 {
     uint materialIndex;
+    uint meshPoolIndex;
 };
 
 struct MaterialData
@@ -115,4 +116,25 @@ float3 GetCameraRight()
 float3 GetCameraUp()
 {
     return -viewMatrix[1].xyz;
+}
+
+// https://www.shadertoy.com/view/dllSW7
+uint IntegerHash(uint x)
+{
+    x ^= x >> 15;
+    x ^= (x * x) | 1u;
+    x ^= x >> 17;
+    x *= 0x9E3779B9u;
+    x ^= x >> 13;
+    return x;
+}
+
+float3 GetRandomColor(uint seed)
+{
+    uint hashed = IntegerHash(seed);
+    return float3(
+        ((hashed >> 16) & 0xFF) / 255.0,
+        ((hashed >> 8) & 0xFF) / 255.0,
+        (hashed & 0xFF) / 255.0
+    );
 }

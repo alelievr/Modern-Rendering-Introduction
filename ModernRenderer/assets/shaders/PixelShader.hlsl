@@ -8,6 +8,8 @@ float4 main(MeshToFragment input) : SV_TARGET
     
     float4 albedo = SampleTextureLOD(material.albedoTextureIndex, linearRepeatSampler, uv, 0);
     
+    albedo.rgb = GetRandomColor(input.meshletIndex);
+    
     return albedo;
     
     //float3 positionRWS = TransformHClipToCameraRelativeWorld(input.pos);
