@@ -11,7 +11,7 @@ public:
     static unsigned meshCount;
 
     static std::vector<meshopt_Meshlet> meshlets;
-    static std::vector<uint32_t> meshletVertices;
+    static std::vector<uint32_t> meshletIndices;
     static std::vector<uint8_t> meshletTriangles;
     static std::vector<Mesh::Vertex> vertices;
 

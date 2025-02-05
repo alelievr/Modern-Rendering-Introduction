@@ -15,20 +15,21 @@ cbuffer CameraData : register(b0, space0)
 cbuffer DrawData : register(b1, space0)
 {
     uint materialIndex;
-    uint meshPoolIndex;
+    uint meshletOffset;
+    uint instanceOffset;
 };
+
+struct InstanceData
+{
+    float4x4 objectToWorld;
+};
+
+StructuredBuffer<InstanceData> instanceData : register(t2, space0);
 
 struct MaterialData
 {
     uint albedoTextureIndex;
 };
-
-// TODO
-// draw data will be in a structured buffer, not a cbuffer
-//cbuffer DrawData : register(b2, space0)
-//{
-//    float4x4 modelMatrix;
-//};
 
 // Bindless textures for materials
 Texture2D bindlessTextures[] : register(t, space1);

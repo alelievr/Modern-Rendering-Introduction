@@ -29,11 +29,11 @@ public:
 
     // Meshlet data
     std::vector<meshopt_Meshlet> meshlets;
-    std::vector<uint32_t> meshletVertices;
+    std::vector<uint32_t> meshletIndices;
     std::vector<uint8_t> meshletTriangles;
     size_t meshletCount;
 
-    int poolIndex;
+    int meshletOffset;
 
 	Mesh() = default;
 	~Mesh() = default;

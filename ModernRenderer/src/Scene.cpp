@@ -2,6 +2,11 @@
 #include "ModelImporter.hpp"
 #include "MeshPool.hpp"
 
+std::shared_ptr<Resource> Scene::instanceDataBuffer;
+std::shared_ptr<View> Scene::instanceDataView;
+std::vector<BindingDesc> Scene::bindingDescs;
+std::vector<BindKey> Scene::bindKeys;
+
 void Scene::LoadSingleSphereScene(std::shared_ptr<Device> device, const Camera& camera)
 {
 	name = L"SingleSphere";
@@ -13,8 +18,23 @@ void Scene::LoadSingleSphereScene(std::shared_ptr<Device> device, const Camera& 
 	instance.transform = glm::mat4(0.0f);
 
 	instances.push_back(instance);
+}
 
-	UploadInstancesToGPU(device);
+void Scene::LoadMultiObjectSphereScene(std::shared_ptr<Device> device, const Camera& camera)
+{
+	name = L"4 Sphere";
+
+	ModelImporter importer("assets/models/sphere.fbx", aiProcessPreset_TargetRealtime_Fast);
+	ModelImporter importer2("assets/models/Cube.fbx", aiProcessPreset_TargetRealtime_Fast);
+
+	ModelInstance instance;
+	instance.model = importer2.GetModel();
+	instance.transform = glm::mat4(0.0f);
+
+	instances.push_back(ModelInstance(importer.GetModel(), MatrixUtils::Translation(glm::vec3(-1, 0, -1))));
+	instances.push_back(ModelInstance(importer.GetModel(), MatrixUtils::Translation(glm::vec3(1, 0, -1))));
+	instances.push_back(ModelInstance(importer2.GetModel(), MatrixUtils::Translation(glm::vec3(-1, 0, 1))));
+	instances.push_back(ModelInstance(importer2.GetModel(), MatrixUtils::Translation(glm::vec3(1, 0, 1))));
 }
 
 void Scene::LoadSingleCubeScene(std::shared_ptr<Device> device, const Camera& camera)
@@ -28,8 +48,6 @@ void Scene::LoadSingleCubeScene(std::shared_ptr<Device> device, const Camera& ca
 	instance.transform = glm::mat4(0.0f);
 
 	instances.push_back(instance);
-
-	UploadInstancesToGPU(device);
 }
 
 void Scene::LoadSponzaScene(std::shared_ptr<Device> device, const Camera& camera)
@@ -43,8 +61,6 @@ void Scene::LoadSponzaScene(std::shared_ptr<Device> device, const Camera& camera
 	instance.transform = glm::mat4(0.0f);
 
 	instances.push_back(instance);
-
-	UploadInstancesToGPU(device);
 }
 
 void Scene::LoadChessScene(std::shared_ptr<Device> device, const Camera& camera)
@@ -65,7 +81,8 @@ std::shared_ptr<Scene> Scene::LoadHardcodedScene(std::shared_ptr<Device> device,
 	std::shared_ptr<Scene> scene = std::make_shared<Scene>();
 
 	//scene->LoadSingleCubeScene(device, camera);
-	scene->LoadSingleSphereScene(device, camera);
+	//scene->LoadSingleSphereScene(device, camera);
+	scene->LoadMultiObjectSphereScene(device, camera);
 	//scene->LoadChessScene(device, camera);
 
 	scene->UploadInstancesToGPU(device);
@@ -85,4 +102,42 @@ void Scene::UploadInstancesToGPU(std::shared_ptr<Device> device)
 
 	// Allocate and upload the mesh pool to the GPU
 	MeshPool::AllocateMeshPoolBuffers(device);
+}
+
+void Scene::UploadInstanceDataToGPU(std::shared_ptr<Device> device)
+{
+	std::vector<InstanceData> instanceData;
+	int index = 0;
+	for (auto& instance : instances)
+	{
+		InstanceData data;
+		data.objectToWorld = instance.transform;
+		instanceData.push_back(data);
+		instance.instanceDataOffset = index++;
+	}
+
+	instanceDataBuffer = device->CreateBuffer(BindFlag::kShaderResource | BindFlag::kCopyDest, sizeof(InstanceData) * instances.size());
+	instanceDataBuffer->CommitMemory(MemoryType::kDefault);
+	instanceDataBuffer->UpdateUploadBuffer(0, instanceData.data(), sizeof(InstanceData) * instances.size());
+	instanceDataBuffer->SetName("InstanceDataBuffer");
+
+	ViewDesc viewDesc = {};
+	viewDesc.view_type = ViewType::kStructuredBuffer;
+	viewDesc.dimension = ViewDimension::kBuffer;
+	viewDesc.buffer_size = sizeof(GPUMaterial) * instances.size();
+	viewDesc.structure_stride = sizeof(InstanceData);
+	instanceDataView = device->CreateView(instanceDataBuffer, viewDesc);
+
+	auto instanceDataMeshBindKey = BindKey{ ShaderType::kMesh, ViewType::kStructuredBuffer, 2, 0 };
+	auto instanceDataFragmentBindKey = BindKey{ ShaderType::kPixel, ViewType::kStructuredBuffer, 2, 0 };
+
+	bindingDescs = {
+		BindingDesc{ instanceDataMeshBindKey, instanceDataView },
+		BindingDesc{ instanceDataFragmentBindKey, instanceDataView },
+	};
+
+	bindKeys = {
+		instanceDataMeshBindKey,
+		instanceDataFragmentBindKey,
+	};
 }

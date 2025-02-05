@@ -27,12 +27,13 @@ StructuredBuffer<Meshlet> meshlets : register(t1, space4);
 Buffer<uint> meshletIndices : register(t2, space4);
 Buffer<uint> meshletTriangles : register(t3, space4);
 
-MeshToFragment GetVertexAttributes(uint meshletIndex, uint vertexIndex)
+MeshToFragment GetVertexAttributes(uint meshletIndex, uint vertexIndex, uint instanceID)
 {
     MeshToFragment vout;
     
     // Fetch mesh data from buffers
     VertexData vertex = vertexBuffer.Load(vertexIndex);
+    instanceData.Load(instanceOffset + instanceID);
     
     // TODO: model matrix to support object positions
     vertex.positionOS = GetCameraRelativePosition(vertex.positionOS);
@@ -53,10 +54,12 @@ MeshToFragment GetVertexAttributes(uint meshletIndex, uint vertexIndex)
 void main(
     uint threadId : SV_GroupThreadID,
     uint groupID : SV_GroupID,
+    uint groupIndex : SV_GroupIndex,
     out indices uint3 triangles[MAX_OUTPUT_PRIMITIVES],
     out vertices MeshToFragment vertices[MAX_OUTPUT_VERTICES])
 {
-    Meshlet meshlet = meshlets[groupID];
+    Meshlet meshlet = meshlets[groupID + meshletOffset];
+    uint instanceID = groupIndex / meshlet.vertexCount;
 
     SetMeshOutputCounts(meshlet.vertexCount, meshlet.triangleCount);
 
@@ -76,7 +79,7 @@ void main(
         uint vertexIndex = meshlet.vertexoffset + threadId;
         vertexIndex = meshletIndices[vertexIndex];
 
-        vertices[threadId] = GetVertexAttributes(groupID, vertexIndex);
+        vertices[threadId] = GetVertexAttributes(groupID, vertexIndex, instanceID);
         
         //float3 color = float3(
         //    float(gid & 1),

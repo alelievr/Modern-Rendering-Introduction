@@ -21,10 +21,10 @@ void Mesh::PrepareMeshletData(std::shared_ptr<Device> device)
 
     size_t max_meshlets = meshopt_buildMeshletsBound(indices.size(), max_vertices, max_triangles);
     meshlets.resize(max_meshlets);
-    meshletVertices.resize(max_meshlets * max_vertices);
+    meshletIndices.resize(max_meshlets * max_vertices);
     meshletTriangles.resize(max_meshlets * max_triangles * 3);
 
-    meshletCount = meshopt_buildMeshlets(meshlets.data(), meshletVertices.data(), meshletTriangles.data(), indices.data(),
+    meshletCount = meshopt_buildMeshlets(meshlets.data(), meshletIndices.data(), meshletTriangles.data(), indices.data(),
         indices.size(), &vertices[0].position.x, vertices.size(), sizeof(Mesh::Vertex), max_vertices, max_triangles, cone_weight);
 
     // TODO:
@@ -33,7 +33,7 @@ void Mesh::PrepareMeshletData(std::shared_ptr<Device> device)
     // Reize the meshlet data to the actual count
     const meshopt_Meshlet& last = meshlets[meshletCount - 1];
     meshlets.resize(meshletCount);
-    meshletVertices.resize(last.vertex_offset + last.vertex_count);
+    meshletIndices.resize(last.vertex_offset + last.vertex_count);
     meshletTriangles.resize(last.triangle_offset + ((last.triangle_count * 3 + 3) & ~3));
 
     // TODO: pack 3 meshelet indices (triangle) into a single uint 
@@ -60,5 +60,5 @@ void Mesh::PrepareMeshletData(std::shared_ptr<Device> device)
     //    }
     //}
 
-    poolIndex = MeshPool::PushNewMesh(this);
+    meshletOffset = MeshPool::PushNewMesh(this);
 }

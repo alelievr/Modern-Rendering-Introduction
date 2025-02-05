@@ -18,7 +18,7 @@ public:
 	static void AllocateVertexBufer(std::shared_ptr<Device> device, const std::vector<T>& data, ViewType viewType, gli::format format, const std::string& name, std::shared_ptr<Resource>& resource, std::shared_ptr<View>& view)
 	{
 		resource = device->CreateBuffer(BindFlag::kVertexBuffer | BindFlag::kCopyDest, sizeof(T) * data.size());
-		resource->CommitMemory(MemoryType::kUpload);
+		resource->CommitMemory(MemoryType::kUpload); // TODO: use the default memory type
 		resource->UpdateUploadBuffer(0, data.data(), sizeof(data.front()) * data.size());
 		resource->SetName(name);
 
