@@ -33,12 +33,14 @@ MeshToFragment GetVertexAttributes(uint meshletIndex, uint vertexIndex, uint ins
     
     // Fetch mesh data from buffers
     VertexData vertex = vertexBuffer.Load(vertexIndex);
-    instanceData.Load(instanceOffset + instanceID);
+    InstanceData instance = instanceData.Load(instanceOffset + instanceID);
     
-    // TODO: model matrix to support object positions
+    // Apply camera relative rendering
     vertex.positionOS = GetCameraRelativePosition(vertex.positionOS);
     
-    vout.positionCS = TransformCameraRelativeWorldToHClip(vertex.positionOS);
+    float3 positionWS = TransformObjectToWorld(vertex.positionOS, instance.objectToWorld);
+    
+    vout.positionCS = TransformCameraRelativeWorldToHClip(positionWS);
     vout.uv = vertex.uv;
     vout.meshletIndex = meshletIndex;
 
@@ -46,8 +48,8 @@ MeshToFragment GetVertexAttributes(uint meshletIndex, uint vertexIndex, uint ins
 }
 
 // must match meshlet generation limits
-#define MAX_OUTPUT_PRIMITIVES 124
 #define MAX_OUTPUT_VERTICES 64
+#define MAX_OUTPUT_PRIMITIVES 124
 
 [NumThreads(MAX_OUTPUT_PRIMITIVES, 1, 1)]
 [OutputTopology("triangle")]

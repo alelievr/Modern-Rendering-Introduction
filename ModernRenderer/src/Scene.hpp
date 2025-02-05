@@ -10,19 +10,17 @@ class ModelInstance
 {
 	public:
 	Model model;
-	glm::mat4 transform;
+	glm::mat4 transform = glm::mat4(1.0f);
 	int instanceDataOffset;
 
 	ModelInstance() = default;
-	ModelInstance(Model model, glm::mat4 transform) : model(model), transform(transform) {}
+	ModelInstance(Model model, glm::mat4 transform = glm::mat4(1.0f)) : model(model), transform(transform) {}
 	~ModelInstance() = default;
 };
 
 class Scene
 {
 private:
-	void UploadInstancesToGPU(std::shared_ptr<Device> device);
-
 	// Disable copies of scene
 	Scene(const Scene&);
 	Scene& operator=(const Scene&);
@@ -32,8 +30,9 @@ private:
 	void LoadSingleCubeScene(std::shared_ptr<Device> device, const Camera& camera);
 	void LoadSponzaScene(std::shared_ptr<Device> device, const Camera& camera);
 	void LoadChessScene(std::shared_ptr<Device> device, const Camera& camera);
+	void LoadStanfordBunnyScene(std::shared_ptr<Device> device, const Camera& camera);
 	
-	void UploadInstanceDataToGPU(std::shared_ptr<Device> device);
+	void UploadInstancesToGPU(std::shared_ptr<Device> device);
 
 public:
 

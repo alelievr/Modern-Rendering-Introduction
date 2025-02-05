@@ -12,12 +12,7 @@ void Scene::LoadSingleSphereScene(std::shared_ptr<Device> device, const Camera& 
 	name = L"SingleSphere";
 
 	ModelImporter importer("assets/models/sphere.fbx", aiProcessPreset_TargetRealtime_Fast);
-
-	ModelInstance instance;
-	instance.model = importer.GetModel();
-	instance.transform = glm::mat4(0.0f);
-
-	instances.push_back(instance);
+	instances.push_back(ModelInstance(importer.GetModel()));
 }
 
 void Scene::LoadMultiObjectSphereScene(std::shared_ptr<Device> device, const Camera& camera)
@@ -27,14 +22,10 @@ void Scene::LoadMultiObjectSphereScene(std::shared_ptr<Device> device, const Cam
 	ModelImporter importer("assets/models/sphere.fbx", aiProcessPreset_TargetRealtime_Fast);
 	ModelImporter importer2("assets/models/Cube.fbx", aiProcessPreset_TargetRealtime_Fast);
 
-	ModelInstance instance;
-	instance.model = importer2.GetModel();
-	instance.transform = glm::mat4(0.0f);
-
-	instances.push_back(ModelInstance(importer.GetModel(), MatrixUtils::Translation(glm::vec3(-1, 0, -1))));
-	instances.push_back(ModelInstance(importer.GetModel(), MatrixUtils::Translation(glm::vec3(1, 0, -1))));
-	instances.push_back(ModelInstance(importer2.GetModel(), MatrixUtils::Translation(glm::vec3(-1, 0, 1))));
-	instances.push_back(ModelInstance(importer2.GetModel(), MatrixUtils::Translation(glm::vec3(1, 0, 1))));
+	instances.push_back(ModelInstance(importer.GetModel(), transpose(MatrixUtils::Translation(glm::vec3(-1, 0, -1)))));
+	instances.push_back(ModelInstance(importer.GetModel(), transpose(MatrixUtils::Translation(glm::vec3(1, 0, -1)))));
+	instances.push_back(ModelInstance(importer2.GetModel(), transpose(MatrixUtils::Translation(glm::vec3(-1, 0, 1)))));
+	instances.push_back(ModelInstance(importer2.GetModel(), transpose(MatrixUtils::Translation(glm::vec3(1, 0, 1)))));
 }
 
 void Scene::LoadSingleCubeScene(std::shared_ptr<Device> device, const Camera& camera)
@@ -42,12 +33,7 @@ void Scene::LoadSingleCubeScene(std::shared_ptr<Device> device, const Camera& ca
 	name = L"SingleCube";
 
 	ModelImporter importer("assets/models/MeshShaderTestPlane.fbx", aiProcessPreset_TargetRealtime_Fast);
-
-	ModelInstance instance;
-	instance.model = importer.GetModel();
-	instance.transform = glm::mat4(0.0f);
-
-	instances.push_back(instance);
+	instances.push_back(ModelInstance(importer.GetModel()));
 }
 
 void Scene::LoadSponzaScene(std::shared_ptr<Device> device, const Camera& camera)
@@ -55,12 +41,7 @@ void Scene::LoadSponzaScene(std::shared_ptr<Device> device, const Camera& camera
 	name = L"Sponza";
 
 	ModelImporter importer("assets/models/Sponza/NewSponza_Main_glTF_003.gltf", 0);
-
-	ModelInstance instance;
-	instance.model = importer.GetModel();
-	instance.transform = glm::mat4(0.0f);
-
-	instances.push_back(instance);
+	instances.push_back(ModelInstance(importer.GetModel()));
 }
 
 void Scene::LoadChessScene(std::shared_ptr<Device> device, const Camera& camera)
@@ -68,12 +49,15 @@ void Scene::LoadChessScene(std::shared_ptr<Device> device, const Camera& camera)
 	name = L"Chess";
 
 	ModelImporter importer("assets/models/ABeautifulGame/glTF/ABeautifulGame.gltf", 0);
+	instances.push_back(ModelInstance(importer.GetModel()));
+}
 
-	ModelInstance instance;
-	instance.model = importer.GetModel();
-	instance.transform = glm::mat4(0.0f);
+void Scene::LoadStanfordBunnyScene(std::shared_ptr<Device> device, const Camera& camera)
+{
+	name = L"Stanford Bunny";
 
-	instances.push_back(instance);
+	ModelImporter importer("assets/models/stanford-bunny.fbx", aiProcessPreset_TargetRealtime_Fast);
+	instances.push_back(ModelInstance(importer.GetModel()));
 }
 
 std::shared_ptr<Scene> Scene::LoadHardcodedScene(std::shared_ptr<Device> device, Camera& camera)
@@ -83,11 +67,12 @@ std::shared_ptr<Scene> Scene::LoadHardcodedScene(std::shared_ptr<Device> device,
 	//scene->LoadSingleCubeScene(device, camera);
 	//scene->LoadSingleSphereScene(device, camera);
 	scene->LoadMultiObjectSphereScene(device, camera);
+	//scene->LoadStanfordBunnyScene(device, camera);
 	//scene->LoadChessScene(device, camera);
 
-	scene->UploadInstancesToGPU(device);
 	Texture::LoadAllTextures(device);
 	Material::AllocateMaterialBuffers(device);
+	scene->UploadInstancesToGPU(device);
 
 	return scene;
 }
@@ -102,10 +87,8 @@ void Scene::UploadInstancesToGPU(std::shared_ptr<Device> device)
 
 	// Allocate and upload the mesh pool to the GPU
 	MeshPool::AllocateMeshPoolBuffers(device);
-}
 
-void Scene::UploadInstanceDataToGPU(std::shared_ptr<Device> device)
-{
+	// Prepate and upload instance data
 	std::vector<InstanceData> instanceData;
 	int index = 0;
 	for (auto& instance : instances)
@@ -117,14 +100,14 @@ void Scene::UploadInstanceDataToGPU(std::shared_ptr<Device> device)
 	}
 
 	instanceDataBuffer = device->CreateBuffer(BindFlag::kShaderResource | BindFlag::kCopyDest, sizeof(InstanceData) * instances.size());
-	instanceDataBuffer->CommitMemory(MemoryType::kDefault);
+	instanceDataBuffer->CommitMemory(MemoryType::kUpload);
 	instanceDataBuffer->UpdateUploadBuffer(0, instanceData.data(), sizeof(InstanceData) * instances.size());
 	instanceDataBuffer->SetName("InstanceDataBuffer");
 
 	ViewDesc viewDesc = {};
 	viewDesc.view_type = ViewType::kStructuredBuffer;
 	viewDesc.dimension = ViewDimension::kBuffer;
-	viewDesc.buffer_size = sizeof(GPUMaterial) * instances.size();
+	viewDesc.buffer_size = sizeof(InstanceData) * instances.size();
 	viewDesc.structure_stride = sizeof(InstanceData);
 	instanceDataView = device->CreateView(instanceDataBuffer, viewDesc);
 

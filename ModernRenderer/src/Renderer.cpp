@@ -49,7 +49,7 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     std::shared_ptr<Program> compute_program = device->CreateProgram({ compute_test });
 
     // Compute stage allows to bind to every shader stages
-    BindKey drawRootConstant = { ShaderType::kCompute, ViewType::kConstantBuffer, 1, 0, 2, UINT32_MAX, true };
+    BindKey drawRootConstant = { ShaderType::kCompute, ViewType::kConstantBuffer, 1, 0, 3, UINT32_MAX, true };
     std::shared_ptr<BindingSetLayout> layout = RenderUtils::CreateLayoutSet(device, camera, { drawRootConstant });
     std::shared_ptr<BindingSetLayout> meshShaderLayout = RenderUtils::CreateLayoutSet(device, camera, { drawRootConstant });
     objectBindingSet = RenderUtils::CreateBindingSet(device, layout, camera, { { drawRootConstant, nullptr } });
