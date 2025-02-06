@@ -48,7 +48,7 @@ void Scene::LoadChessScene(std::shared_ptr<Device> device, const Camera& camera)
 {
 	name = L"Chess";
 
-	ModelImporter importer("assets/models/ABeautifulGame/glTF/ABeautifulGame.gltf", 0);
+	ModelImporter importer("assets/models/ABeautifulGame/glTF/ABeautifulGame.gltf", aiProcessPreset_TargetRealtime_Fast);
 	instances.push_back(ModelInstance(importer.GetModel()));
 }
 
@@ -66,9 +66,9 @@ std::shared_ptr<Scene> Scene::LoadHardcodedScene(std::shared_ptr<Device> device,
 
 	//scene->LoadSingleCubeScene(device, camera);
 	//scene->LoadSingleSphereScene(device, camera);
-	scene->LoadMultiObjectSphereScene(device, camera);
+	//scene->LoadMultiObjectSphereScene(device, camera);
 	//scene->LoadStanfordBunnyScene(device, camera);
-	//scene->LoadChessScene(device, camera);
+	scene->LoadChessScene(device, camera);
 
 	Texture::LoadAllTextures(device);
 	Material::AllocateMaterialBuffers(device);

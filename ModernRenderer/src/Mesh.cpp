@@ -27,8 +27,13 @@ void Mesh::PrepareMeshletData(std::shared_ptr<Device> device)
     meshletCount = meshopt_buildMeshlets(meshlets.data(), meshletIndices.data(), meshletTriangles.data(), indices.data(),
         indices.size(), (float*)positions.data(), positions.size(), sizeof(glm::vec3), maxVertices, maxTriangles, coneWeight);
 
-    // For some reason this is making holes in the geometry so we leave it disabled for now
-    // meshopt_optimizeMeshlet(meshletIndices.data(), meshletTriangles.data(), maxTriangles, maxVertices);
+    // TODO: test perfs of this
+    for (size_t i = 0; i < meshlets.size(); ++i)
+    {
+        const meshopt_Meshlet& meshlet = meshlets[i];
+
+        meshopt_optimizeMeshlet(&meshletIndices[meshlet.vertex_offset], &meshletTriangles[meshlet.triangle_offset], meshlet.triangle_count, meshlet.vertex_count);
+    }
 
     // Reize the meshlet data to the actual count
     const meshopt_Meshlet& last = meshlets[meshletCount - 1];

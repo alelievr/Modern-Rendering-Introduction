@@ -3,6 +3,7 @@
 #include "ModelImporter.hpp"
 #include "Material.hpp"
 #include "meshoptimizer.h"
+#include <corecrt_io.h>
 
 glm::vec3 AiVector3DToVec3(const aiVector3D& x)
 {
@@ -24,7 +25,18 @@ std::string ModelImporter::SplitFilename(const std::string& str)
 
 void ModelImporter::LoadModel(int flags)
 {
+    if (_access(path.c_str(), 4) == -1)
+    {
+        printf("Can't open 3D model at %s\n", path.c_str());
+        return;
+    }
+
     const aiScene* scene = m_import.ReadFile(path, flags);
+    if (scene == nullptr)
+    {
+        printf("Can't load 3D model at %s\n", path.c_str());
+        return;
+    }
     assert(scene && scene->mFlags != AI_SCENE_FLAGS_INCOMPLETE && scene->mRootNode);
 
     if (path.ends_with(".fbx"))
