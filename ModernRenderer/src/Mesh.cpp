@@ -7,19 +7,24 @@
 void Mesh::PrepareMeshletData(std::shared_ptr<Device> device)
 {
     size_t vertexCount = positions.size();
-    vertices.resize(vertexCount);
+    std::vector<Vertex> tmpVertices;
+    tmpVertices.resize(vertexCount);
     for (size_t i = 0; i < vertexCount; i++)
     {
-        vertices[i].position = positions[i];
-        vertices[i].normal = normals[i];
-        vertices[i].texcoord = texcoords[i];
-        vertices[i].tangent = tangents[i];
+        tmpVertices[i].position = positions[i];
+        tmpVertices[i].normal = normals[i];
+        tmpVertices[i].texcoord = texcoords[i];
+        tmpVertices[i].tangent = tangents[i];
     }
 
+    // Optimize for vertex cache
+    vertices.resize(vertexCount);
+    meshopt_optimizeVertexFetch(vertices.data(), indices.data(), indices.size(), tmpVertices.data(), vertexCount, sizeof(Vertex));
+
     // Process meshes to meshlets for the mesh shaders
-    const size_t maxVertices = 64;
-    const size_t maxTriangles = 124;
-    const float coneWeight = 0.0f; // not used for now
+    const size_t maxVertices = 128;
+    const size_t maxTriangles = 256;
+    const float coneWeight = 0.8f; // not used for now
 
     size_t max_meshlets = meshopt_buildMeshletsBound(indices.size(), maxVertices, maxTriangles);
     meshlets.resize(max_meshlets);
@@ -27,7 +32,7 @@ void Mesh::PrepareMeshletData(std::shared_ptr<Device> device)
     meshletTriangles.resize(max_meshlets * maxTriangles * 3);
 
     meshletCount = meshopt_buildMeshlets(meshlets.data(), meshletIndices.data(), meshletTriangles.data(), indices.data(),
-        indices.size(), (float*)positions.data(), positions.size(), sizeof(glm::vec3), maxVertices, maxTriangles, coneWeight);
+        indices.size(), (float*)vertices.data(), vertices.size(), sizeof(Vertex), maxVertices, maxTriangles, coneWeight);
 
     // TODO: test perfs of this
     for (size_t i = 0; i < meshlets.size(); ++i)

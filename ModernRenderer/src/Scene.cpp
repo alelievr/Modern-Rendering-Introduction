@@ -61,7 +61,7 @@ void Scene::LoadStanfordBunnyScene(std::shared_ptr<Device> device, const Camera&
 {
 	name = L"Stanford Bunny";
 
-	ModelImporter importer("assets/models/stanford-bunny.fbx", aiProcessPreset_TargetRealtime_Fast);
+	ModelImporter importer("assets/models/stanford-bunny.obj", aiProcessPreset_TargetRealtime_Fast);
 	instances.push_back(ModelInstance(importer.GetModel()));
 }
 
@@ -70,9 +70,9 @@ std::shared_ptr<Scene> Scene::LoadHardcodedScene(std::shared_ptr<Device> device,
 	std::shared_ptr<Scene> scene = std::make_shared<Scene>();
 
 	//scene->LoadSingleCubeScene(device, camera);
-	scene->LoadSingleSphereScene(device, camera);
+	//scene->LoadSingleSphereScene(device, camera);
 	//scene->LoadMultiObjectSphereScene(device, camera);
-	//scene->LoadStanfordBunnyScene(device, camera);
+	scene->LoadStanfordBunnyScene(device, camera);
 	//scene->LoadChessScene(device, camera);
 
 	Texture::LoadAllTextures(device);
