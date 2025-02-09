@@ -22,8 +22,8 @@ class Scene
 {
 private:
 	// Disable copies of scene
-	Scene(const Scene&);
-	Scene& operator=(const Scene&);
+	Scene(const Scene&) = delete;
+	Scene& operator=(const Scene&) = delete;
 
 	void LoadSingleSphereScene(std::shared_ptr<Device> device, const Camera& camera);
 	void LoadMultiObjectSphereScene(std::shared_ptr<Device> device, const Camera& camera);
@@ -34,7 +34,21 @@ private:
 	
 	void UploadInstancesToGPU(std::shared_ptr<Device> device);
 
+	void BuildRTAS(std::shared_ptr<Device> device);
+
 public:
+
+	Scene() = default;
+	~Scene() = default;
+
+	static std::shared_ptr<Resource> instanceDataBuffer;
+	static std::shared_ptr<View> instanceDataView;
+
+	static std::vector<BindingDesc> bindingDescs;
+	static std::vector<BindKey> bindKeys;
+
+	static BindKey accelerationStructureKey;
+	static BindingDesc accelerationStructureBinding;
 
 	// Keep in sync with InstanceData in common.hlsl
 	struct InstanceData
@@ -44,15 +58,11 @@ public:
 
 	std::vector<ModelInstance> instances;
 	std::wstring name;
-
-	static std::shared_ptr<Resource> instanceDataBuffer;
-	static std::shared_ptr<View> instanceDataView;
-
-	static std::vector<BindingDesc> bindingDescs;
-	static std::vector<BindKey> bindKeys;
-
-	Scene() = default;
-	~Scene() = default;
+	std::shared_ptr<View> tlasView;
+	std::shared_ptr<Resource> tlas;
+	std::shared_ptr<Resource> tlasBuffer;
+	std::shared_ptr<Resource> blasBuffer;
+	std::shared_ptr<Resource> rtInstanceDataBuffer;
 
 	static std::shared_ptr<Scene> LoadHardcodedScene(std::shared_ptr<Device> device, Camera& camera);
 };

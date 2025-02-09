@@ -21,6 +21,29 @@ std::shared_ptr<BindingSetLayout> RenderUtils::CreateLayoutSet(std::shared_ptr<D
 	return device->CreateBindingSetLayout(allBindings);
 }
 
+void RenderUtils::UploadBufferData(std::shared_ptr<Device> device, std::shared_ptr<Resource> buffer, const void* data, size_t size)
+{
+	std::shared_ptr<CommandQueue> queue = device->GetCommandQueue(CommandListType::kGraphics);
+	uint64_t fenceValue = 0;
+	std::shared_ptr<Fence> fence = device->CreateFence(fenceValue);
+
+	std::shared_ptr<Resource> uploadBuffer =
+		device->CreateBuffer(BindFlag::kCopySource, buffer->GetWidth());
+	uploadBuffer->CommitMemory(MemoryType::kUpload);
+	uploadBuffer->SetName("Upload Tmp Buffer");
+	uploadBuffer->UpdateUploadBuffer(0, data, size);
+
+	std::shared_ptr<CommandList> cmd = device->CreateCommandList(CommandListType::kGraphics);
+	cmd->ResourceBarrier({ { buffer, ResourceState::kCommon, ResourceState::kCopyDest } });
+	cmd->CopyBuffer(uploadBuffer, buffer, { { 0, 0, buffer->GetWidth() } });
+	cmd->ResourceBarrier({ { buffer, ResourceState::kCopyDest, ResourceState::kCommon } });
+	cmd->Close();
+
+	queue->ExecuteCommandLists({ cmd });
+	queue->Signal(fence, ++fenceValue);
+	fence->Wait(fenceValue);
+}
+
 std::shared_ptr<BindingSet> RenderUtils::CreateBindingSet(std::shared_ptr<Device> device, std::shared_ptr<BindingSetLayout> layout, const Camera& camera, const std::vector<BindingDesc>& descs)
 {
 	std::vector<BindingDesc> allBindings = descs;

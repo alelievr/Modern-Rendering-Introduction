@@ -20,6 +20,7 @@ public:
 
     std::string name;
 
+    // Mesh data
     std::vector<uint32_t> indices;
     std::vector<Vertex> vertices;
     std::vector<glm::vec3> positions;
@@ -33,12 +34,22 @@ public:
     std::vector<uint8_t> meshletTriangles;
     size_t meshletCount;
 
+    // Raytracing data
+    RaytracingASPrebuildInfo blasPrebuildInfo;
+    RaytracingGeometryDesc geometryDesc;
+    std::shared_ptr<Resource> rtVertexPositions;
+    std::shared_ptr<Resource> rtIndexBuffer;
+    std::shared_ptr<Resource> blas;
+    uint64_t blas_compacted_size;
+
     int meshletOffset;
 
 	Mesh() = default;
 	~Mesh() = default;
 
     void PrepareMeshletData(std::shared_ptr<Device> device);
+    void PrepareBLASData(std::shared_ptr<Device> device);
+    std::shared_ptr<Resource> CreateBLAS(std::shared_ptr<Device> device, std::shared_ptr<Resource> accelerationStructuresBuffer, uint64_t offset, std::shared_ptr<Resource> scratch);
 
     static std::vector<InputLayoutDesc> GetInputAssemblerLayout()
     {

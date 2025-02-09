@@ -11,7 +11,7 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include "GLFW/glfw3native.h"
 
-#define LOAD_RENDERDOC
+//#define LOAD_RENDERDOC
 
 int main(int argc, char* argv[])
 {
@@ -63,7 +63,11 @@ int main(int argc, char* argv[])
     std::array<uint64_t, swapchainTextureCount> fence_values = {};
     std::vector<std::shared_ptr<CommandList>> command_lists;
     for (uint32_t i = 0; i < swapchainTextureCount; ++i)
-        command_lists.emplace_back(device->CreateCommandList(CommandListType::kGraphics));
+    {
+        auto cmd = device->CreateCommandList(CommandListType::kGraphics);
+        cmd->SetName("Main Rendering");
+        command_lists.emplace_back(cmd);
+    }
 
     while (!app.PollEvents())
     {

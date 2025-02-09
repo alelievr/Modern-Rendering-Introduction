@@ -17,7 +17,7 @@ private:
     class Controls : InputEvents
     {
     public:
-		RendererMode rendererMode = RendererMode::Rasterization;
+		RendererMode rendererMode = RendererMode::PathTracing;
         bool screenshotNextFrame = false;
 
         Controls() {}
@@ -28,6 +28,7 @@ private:
 
     AppSize appSize = { 0, 0 };
     std::shared_ptr<Device> device;
+    Camera* camera;
 
     // Render passes
     std::shared_ptr<RenderPass> loadStoreColorRenderPass;
@@ -36,21 +37,31 @@ private:
     // Textures
     std::shared_ptr<Resource> mainColorTexture; // Store the color of the scene
     std::shared_ptr<Resource> mainDepthTexture; // Store the depth of the scene
+    std::shared_ptr<View> mainColorTextureView;
+
+    // Shader programs
+    std::shared_ptr<Program> pathTracingProgram;
+    std::shared_ptr<Program> meshShaderProgram;
+    std::shared_ptr<Shader> pathTracingLibrary;
+    std::shared_ptr<Shader> pathTracingHitLibrary;
+    std::shared_ptr<Shader> pathTracingCallableLibrary;
 
     // Rasterization resources
-    std::shared_ptr<Shader> objectVertexShader;
-    std::shared_ptr<Shader> objectFragmentShader;
-    std::shared_ptr<Pipeline> objectPipeline;
     std::shared_ptr<Pipeline> objectMeshShaderPipeline;
     std::shared_ptr<BindingSet> objectBindingSet;
 
-    // Path tracer resources
+    //// Path tracer resources
     std::shared_ptr<Pipeline> pathTracerPipeline;
-    std::shared_ptr<Shader> pathTracerComputeShader;
+    //std::shared_ptr<Shader> pathTracerComputeShader;
     std::shared_ptr<BindingSet> pathTracerBindingSet;
+    RayTracingShaderTables shaderTables = {};
 
     // FrameBuffers
     std::shared_ptr<Framebuffer> mainColorFrameBuffer;
+
+    void AllocateRenderTargets();
+    void CompileShaders();
+    void CreatePipelineObjects();
 
     void RenderRasterization(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, const Camera& camera, std::shared_ptr<Scene> scene);
     void RenderPathTracing(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, const Camera& camera, std::shared_ptr<Scene> scene);
