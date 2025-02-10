@@ -4,7 +4,11 @@ Mesh shaders are the modern way of writing shaders that perform the vertex trans
 
 ## Cluster & Meshlets
 
-The first step on how to understand mesh shaders is to explain the operation that are performed on the mesh data itself before sending it to the mesh shader.
+The first step on how to understand mesh shaders is to explain the operation that are performed on the mesh data itself before sending it to the mesh shader. Indeed, to achieve correct performances, we can't throw the mesh data directly as input of the mesh shader, the mesh need to be split in smaller parts called meshlets. Each meshlet is a group of triangles forming a patch on the surface of the mesh. In the image below, each colored patch represent a single meshlet:
+
+![](Media/Images/Stanford%20Bunny.png)
+
+You might notice that most of the meshlets generated are roughly the same size. This is the result of the meshlet generation algorithm trying to minimize the bounding volume of each meshlet while trying to maximize the [vertex reuse](https://interplayoflight.wordpress.com/2021/11/14/shaded-vertex-reuse-on-modern-gpus/) inside each meshlet. Minimizing the bounding volume will be important later on when implementing a meshlet culling algorithm that we'll see in a future chapter.
 
 ## The Graphics Pipeline
 
@@ -27,9 +31,9 @@ A Mesh shader reads it's data exactly like a compute shader, usually from buffer
 
 ### Limitations
 
-max output geometry per workgroup:
+In DirectX 12 max output geometry per workgroup:
 - 256 vertices
-- 128 triangles
+- 256 triangles
 
 ## Amplification Shaders
 
@@ -52,5 +56,6 @@ TODO: mesh optimizer + buffer setup + sample mesh shader in HLSL
 ## References
 
 - 📄 [From Vertex Shader to Mesh Shader - Mesh Shaders on AMD RDNA™ Graphics Cards](https://gpuopen.com/learn/mesh_shaders/mesh_shaders-from_vertex_shader_to_mesh_shader/)
+- 📄 [Mesh Shaders - DirectX-Specs](https://microsoft.github.io/DirectX-Specs/d3d/MeshShader.html)
 - 📄 [Introduction to Turing Mesh Shaders | NVIDIA Technical Blog](https://developer.nvidia.com/blog/introduction-turing-mesh-shaders/)
 - 🎥 [Mesh Shaders - The Future of Rendering](https://www.youtube.com/watch?v=3EMdMD1PsgY)
