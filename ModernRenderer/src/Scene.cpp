@@ -72,8 +72,8 @@ std::shared_ptr<Scene> Scene::LoadHardcodedScene(std::shared_ptr<Device> device,
 	//scene->LoadSingleCubeScene(device, camera);
 	//scene->LoadSingleSphereScene(device, camera);
 	//scene->LoadMultiObjectSphereScene(device, camera);
-	scene->LoadStanfordBunnyScene(device, camera);
-	//scene->LoadChessScene(device, camera);
+	//scene->LoadStanfordBunnyScene(device, camera);
+	scene->LoadChessScene(device, camera);
 
 	Texture::LoadAllTextures(device);
 	Material::AllocateMaterialBuffers(device);
@@ -84,12 +84,6 @@ std::shared_ptr<Scene> Scene::LoadHardcodedScene(std::shared_ptr<Device> device,
 
 void Scene::UploadInstancesToGPU(std::shared_ptr<Device> device)
 {
-	for (auto& instance : instances)
-	{
-		for (auto& p : instance.model.parts)
-			p.mesh.PrepareMeshletData(device);
-	}
-
 	// Allocate and upload the mesh pool to the GPU
 	MeshPool::AllocateMeshPoolBuffers(device);
 
@@ -134,9 +128,8 @@ void Scene::UploadInstancesToGPU(std::shared_ptr<Device> device)
 
 void Scene::BuildRTAS(std::shared_ptr<Device> device)
 {
-	auto& firstMesh = instances[0].model.parts[0].mesh;
-
-	firstMesh.PrepareBLASData(device);
+	for (auto mesh : MeshPool::meshes)
+		mesh.first->PrepareBLASData(device);
 
 	auto cmd = device->CreateCommandList(CommandListType::kGraphics);
 	cmd->SetName("TLAS Build Command List");
@@ -145,38 +138,48 @@ void Scene::BuildRTAS(std::shared_ptr<Device> device)
 	uint64_t fenceValue = 0;
 	std::shared_ptr<Fence> fence = device->CreateFence(fenceValue);
 
-	uint64_t blasSize = Align(firstMesh.blasPrebuildInfo.acceleration_structure_size, kAccelerationStructureAlignment);
+	uint64_t scratchSize = 0;
+	uint64_t blasSize = 0;
+	for (auto mesh : MeshPool::meshes)
+	{
+		blasSize += Align(mesh.first->blasPrebuildInfo.acceleration_structure_size, kAccelerationStructureAlignment);
+		scratchSize = std::max(scratchSize, mesh.first->blasPrebuildInfo.acceleration_structure_size);
+	}
+
     blasBuffer = device->CreateBuffer(BindFlag::kAccelerationStructure, blasSize);
     blasBuffer->CommitMemory(MemoryType::kDefault);
     blasBuffer->SetName("Bottom Level Acceleration Structures");
 	
-    const uint32_t bottom_count = 1;
-    auto tlas_prebuild_info = device->GetTLASPrebuildInfo(bottom_count, BuildAccelerationStructureFlags::kNone);
-	uint64_t tlasSize = Align(tlas_prebuild_info.acceleration_structure_size, kAccelerationStructureAlignment);
+    auto tlasPrebuildInfo = device->GetTLASPrebuildInfo(MeshPool::meshes.size(), BuildAccelerationStructureFlags::kNone);
+	uint64_t tlasSize = Align(tlasPrebuildInfo.acceleration_structure_size, kAccelerationStructureAlignment);
 	tlasBuffer = device->CreateBuffer(BindFlag::kAccelerationStructure, tlasSize);
 	tlasBuffer->CommitMemory(MemoryType::kDefault);
 	tlasBuffer->SetName("Top Level Acceleration Structures");
 
-	// TODO: scratch size is the max of all meshes
-	auto scratch = device->CreateBuffer(BindFlag::kRayTracing, std::max(firstMesh.blasPrebuildInfo.build_scratch_data_size,
-		tlas_prebuild_info.build_scratch_data_size));
+	scratchSize = std::max(scratchSize, tlasPrebuildInfo.build_scratch_data_size);
+	auto scratch = device->CreateBuffer(BindFlag::kRayTracing, scratchSize);
 	scratch->CommitMemory(MemoryType::kDefault);
 	scratch->SetName("scratch");
 
-	// TODO: offset when supporting multiple meshes
-	auto blas = firstMesh.CreateBLAS(device, blasBuffer, 0, scratch);
+	// Create BLAS for each mesh
+	uint64_t offset = 0;
+	for (auto mesh : MeshPool::meshes)
+	{
+		mesh.first->CreateBLAS(device, blasBuffer, offset, scratch);
+		offset = Align(offset + mesh.first->blas_compacted_size, kAccelerationStructureAlignment);
+	}
 
+	// Create instances for the TLAS
     std::vector<RaytracingGeometryInstance> rtInstances;
     for (const auto& instance : instances)
 	{
-		for (const auto& p : instance.model.parts)
+		for (auto& p : instance.model.parts)
 		{
-			RaytracingGeometryInstance& instance = rtInstances.emplace_back();
-			instance.transform = glm::mat3x4(1.0f); // TODO
-			instance.instance_offset = static_cast<uint32_t>(rtInstances.size() - 1);
-			instance.instance_mask = 0xff;
-			// TODO: map existing meshes to BLAS and move BLAS gen to mesh class
-			instance.acceleration_structure_handle = blas->GetAccelerationStructureHandle();
+			RaytracingGeometryInstance& rt = rtInstances.emplace_back();
+			rt.transform = glm::mat3x4(instance.transform);
+			rt.instance_offset = static_cast<uint32_t>(rtInstances.size() - 1);
+			rt.instance_mask = 0xff;
+			rt.acceleration_structure_handle = p.mesh->blas->GetAccelerationStructureHandle();
 		}
     }
 

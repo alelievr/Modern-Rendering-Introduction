@@ -27,7 +27,7 @@ StructuredBuffer<Meshlet> meshlets : register(t1, space4);
 Buffer<uint> meshletIndices : register(t2, space4);
 Buffer<uint> meshletTriangles : register(t3, space4);
 
-MeshToFragment GetVertexAttributes(uint meshletIndex, uint vertexIndex, uint instanceID)
+MeshToFragment LoadVertexAttributes(uint meshletIndex, uint vertexIndex, uint instanceID)
 {
     MeshToFragment vout;
     
@@ -43,15 +43,26 @@ MeshToFragment GetVertexAttributes(uint meshletIndex, uint vertexIndex, uint ins
     vout.positionCS = TransformCameraRelativeWorldToHClip(positionWS);
     vout.uv = vertex.uv;
     vout.meshletIndex = meshletIndex;
+    vout.normal = vertex.normal; // TODO: transform normal
 
     return vout;
 }
 
-// must match meshlet generation limits
-#define MAX_OUTPUT_VERTICES 64
-#define MAX_OUTPUT_PRIMITIVES 124
+uint3 LoadPrimitive(uint offset, uint threadId)
+{
+    // TODO: compation instead of 3 loads
+    return uint3(
+        meshletTriangles[offset + threadId * 3 + 0],
+        meshletTriangles[offset + threadId * 3 + 1],
+        meshletTriangles[offset + threadId * 3 + 2]
+    );
+}
 
-[NumThreads(MAX_OUTPUT_PRIMITIVES, 1, 1)]
+// must match meshlet generation limits
+#define MAX_OUTPUT_VERTICES 128
+#define MAX_OUTPUT_PRIMITIVES 256
+
+[NumThreads(128, 1, 1)]
 [OutputTopology("triangle")]
 void main(
     uint threadId : SV_GroupThreadID,
@@ -59,33 +70,26 @@ void main(
     uint groupIndex : SV_GroupIndex,
     out indices uint3 triangles[MAX_OUTPUT_PRIMITIVES],
     out vertices MeshToFragment vertices[MAX_OUTPUT_VERTICES])
+    // TODO: use primitive attributes to send meshlet ID to shaders
 {
     Meshlet meshlet = meshlets[groupID + meshletOffset];
     uint instanceID = groupIndex / meshlet.vertexCount;
 
     SetMeshOutputCounts(meshlet.vertexCount, meshlet.triangleCount);
 
-    if (threadId < meshlet.triangleCount)
+    for (uint i = 0; i < 2; ++i)
     {
-        uint vIdx0 = meshletTriangles[meshlet.triangleOffset + threadId * 3 + 0];
-        uint vIdx1 = meshletTriangles[meshlet.triangleOffset + threadId * 3 + 1];
-        uint vIdx2 = meshletTriangles[meshlet.triangleOffset + threadId * 3 + 2];
-        //uint vIdx0  = (packed >>  0) & 0xFF;
-        //uint vIdx1  = (packed >>  8) & 0xFF;
-        //uint vIdx2  = (packed >> 16) & 0xFF;
-        triangles[threadId] = uint3(vIdx0, vIdx1, vIdx2);
+        const uint primitiveId = threadId + i * 128;
+        if (primitiveId < meshlet.triangleCount)
+        {
+            triangles[primitiveId] = LoadPrimitive(meshlet.triangleOffset, primitiveId);
+        }
     }
-
+    
     if (threadId < meshlet.vertexCount)
     {
-        uint vertexIndex = meshlet.vertexoffset + threadId;
-        vertexIndex = meshletIndices[vertexIndex];
+        uint vertexIndex = meshletIndices[meshlet.vertexoffset + threadId];
 
-        vertices[threadId] = GetVertexAttributes(groupID, vertexIndex, instanceID);
-        
-        //float3 color = float3(
-        //    float(gid & 1),
-        //    float(gid & 3) / 4,
-        //    float(gid & 7) / 8);
+        vertices[threadId] = LoadVertexAttributes(groupID, vertexIndex, instanceID);
     }
 }

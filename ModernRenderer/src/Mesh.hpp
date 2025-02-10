@@ -46,8 +46,10 @@ public:
 
 	Mesh() = default;
 	~Mesh() = default;
+    Mesh(const Mesh&) = delete;
+    Mesh& operator=(const Mesh&) = delete;
 
-    void PrepareMeshletData(std::shared_ptr<Device> device);
+    void PrepareMeshletData();
     void PrepareBLASData(std::shared_ptr<Device> device);
     std::shared_ptr<Resource> CreateBLAS(std::shared_ptr<Device> device, std::shared_ptr<Resource> accelerationStructuresBuffer, uint64_t offset, std::shared_ptr<Resource> scratch);
 

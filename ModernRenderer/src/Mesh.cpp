@@ -4,7 +4,7 @@
 #include <Utilities/Common.h>
 #include "QueryHeap/DXRayTracingQueryHeap.h"
 
-void Mesh::PrepareMeshletData(std::shared_ptr<Device> device)
+void Mesh::PrepareMeshletData()
 {
     size_t vertexCount = positions.size();
     std::vector<Vertex> tmpVertices;
@@ -20,6 +20,10 @@ void Mesh::PrepareMeshletData(std::shared_ptr<Device> device)
     // Optimize for vertex cache
     vertices.resize(vertexCount);
     meshopt_optimizeVertexFetch(vertices.data(), indices.data(), indices.size(), tmpVertices.data(), vertexCount, sizeof(Vertex));
+
+    // To build the ray-tracing acceleration structure, we need the positions with the new order
+    for (int i = 0; i < vertexCount; i++)
+		positions[i] = vertices[i].position;
 
     // Process meshes to meshlets for the mesh shaders
     const size_t maxVertices = 128;
@@ -47,8 +51,6 @@ void Mesh::PrepareMeshletData(std::shared_ptr<Device> device)
     meshlets.resize(meshletCount);
     meshletIndices.resize(last.vertex_offset + last.vertex_count);
     meshletTriangles.resize(last.triangle_offset + ((last.triangle_count * 3 + 3) & ~3));
-
-    meshletOffset = MeshPool::PushNewMesh(this);
 }
 
 void Mesh::PrepareBLASData(std::shared_ptr<Device> device)
@@ -105,7 +107,7 @@ std::shared_ptr<Resource> Mesh::CreateBLAS(std::shared_ptr<Device> device, std::
     cmd->ResolveQueryData(queryHeap, 0, 1, blas_compacted_size_buffer, 0);
     
     cmd->UAVResourceBarrier(tmpBlas);
-    cmd->CopyAccelerationStructure(tmpBlas, blas, CopyAccelerationStructureMode::kCompact);
+    cmd->CopyAccelerationStructure(tmpBlas, blas, CopyAccelerationStructureMode::kClone);
     
     cmd->Close();
 

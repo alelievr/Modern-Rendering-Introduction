@@ -17,7 +17,7 @@ private:
     class Controls : InputEvents
     {
     public:
-		RendererMode rendererMode = RendererMode::Rasterization;
+		RendererMode rendererMode = RendererMode::PathTracing;
         bool screenshotNextFrame = false;
 
         Controls() {}

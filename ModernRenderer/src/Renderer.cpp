@@ -221,9 +221,9 @@ void DrawScene(std::shared_ptr<CommandList> commandList, std::shared_ptr<Scene> 
 
             // Bind per-draw data, we only need an index, the rest is bindless
             dxCommandList->SetGraphicsConstant(0, materialIndex, 0);
-            dxCommandList->SetGraphicsConstant(0, r.mesh.meshletOffset, 1);
+            dxCommandList->SetGraphicsConstant(0, r.mesh->meshletOffset, 1);
 
-            commandList->DispatchMesh(r.mesh.meshletCount);
+            commandList->DispatchMesh(r.mesh->meshletCount);
 		}
     }
 }

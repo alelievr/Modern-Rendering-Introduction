@@ -4,5 +4,6 @@ struct MeshToFragment
 {
     float4 positionCS : SV_POSITION;
     float2 uv : TEXCOORD0;
-    nointerpolation float meshletIndex : TEXCOORD1;
+    float3 normal : TEXCOORD1;
+    nointerpolation float meshletIndex : TEXCOORD2;
 };

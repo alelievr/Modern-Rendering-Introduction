@@ -12,6 +12,7 @@
 #include "GLFW/glfw3native.h"
 
 //#define LOAD_RENDERDOC
+//#define FORCE_BACKGROUND_BLACK
 
 int main(int argc, char* argv[])
 {
@@ -21,8 +22,10 @@ int main(int argc, char* argv[])
     AppBox app("ModernRenderer", settings);
     AppSize appSize = app.GetAppSize();
 
+#if defined(FORCE_BACKGROUND_BLACK)
     // Set window color back while waiting for the rest to load
     RenderUtils::SetBackgroundColor(app.GetWindow(), RGB(0, 0, 0));
+#endif
 
 #if defined(LOAD_RENDERDOC)
     // Loading renderdoc will diisable the validation layer, make sure there is no error before enabling it.

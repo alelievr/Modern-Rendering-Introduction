@@ -4,6 +4,7 @@
 #include "Material.hpp"
 #include "meshoptimizer.h"
 #include <corecrt_io.h>
+#include "MeshPool.hpp"
 
 glm::vec3 AiVector3DToVec3(const aiVector3D& x)
 {
@@ -117,8 +118,8 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, const glm::m
     float scale = 1;
     scene->mMetaData->Get("UnitScaleFactor", scale);
 
-    Mesh currentMesh = {};
-    currentMesh.name = mesh->mName.C_Str();
+    std::shared_ptr<Mesh> currentMesh = std::make_shared<Mesh>();
+    currentMesh->name = mesh->mName.C_Str();
     std::shared_ptr<Material> currentMaterial = Material::CreateMaterial();
     // Walk through each of the mesh's vertices
     for (uint32_t i = 0; i < mesh->mNumVertices; ++i)
@@ -162,10 +163,10 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, const glm::m
         else
             vertex.texcoord = glm::vec2(0.0f, 0.0f);
 
-        currentMesh.positions.push_back(vertex.position);
-        currentMesh.normals.push_back(vertex.normal);
-        currentMesh.texcoords.push_back(vertex.texcoord);
-        currentMesh.tangents.push_back(vertex.tangent);
+        currentMesh->positions.push_back(vertex.position);
+        currentMesh->normals.push_back(vertex.normal);
+        currentMesh->texcoords.push_back(vertex.texcoord);
+        currentMesh->tangents.push_back(vertex.tangent);
     }
     // Now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex
     // indices.
@@ -174,7 +175,7 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, const glm::m
         aiFace face = mesh->mFaces[i];
         // Retrieve all indices of the face and store them in the indices vector
         for (uint32_t j = 0; j < face.mNumIndices; ++j)
-            currentMesh.indices.push_back(face.mIndices[j]);
+            currentMesh->indices.push_back(face.mIndices[j]);
     }
 
     // Process materials
@@ -204,6 +205,9 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, const glm::m
         for (const auto& texture : textures)
             currentMaterial->AddTextureParameter(texture);
     }
+
+    currentMesh->PrepareMeshletData();
+    MeshPool::PushNewMesh(currentMesh);
 
     model.parts.push_back({ currentMesh, currentMaterial } );
 }

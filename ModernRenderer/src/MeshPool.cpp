@@ -1,7 +1,7 @@
 #include "MeshPool.hpp"
 #include "RenderUtils.hpp"
 
-unsigned MeshPool::meshCount = 0;
+std::unordered_map<std::shared_ptr<Mesh>, unsigned> MeshPool::meshes;
 
 std::vector<meshopt_Meshlet> MeshPool::meshlets;
 std::vector<uint32_t> MeshPool::meshletIndices;
@@ -21,11 +21,15 @@ std::shared_ptr<View> MeshPool::meshletsPoolView = nullptr;
 std::vector<BindingDesc> MeshPool::bindingDescs;
 std::vector<BindKey> MeshPool::bindKeys;
 
-unsigned MeshPool::PushNewMesh(const Mesh* mesh)
+unsigned MeshPool::PushNewMesh(std::shared_ptr<Mesh> mesh)
 {
     unsigned meshletOffset = meshlets.size();
 
-	meshCount++;
+    auto f = meshes.find(mesh);
+    if (f == meshes.end())
+        meshes.insert({ mesh, meshletOffset });
+	else
+		return f->second;
 
     // Append vertices to the pool, storing the index offset to update meshlet data
     int vertexOffset = vertices.size();
@@ -44,6 +48,8 @@ unsigned MeshPool::PushNewMesh(const Mesh* mesh)
         newMeshlet.triangle_offset += triangleOffset;
 		meshlets.push_back(newMeshlet);
 	}
+
+    mesh->meshletOffset = meshletOffset;
 
     return meshletOffset;
 }

@@ -4,11 +4,12 @@
 #include "Instance/Instance.h"
 #include "meshoptimizer.h"
 #include "Mesh.hpp"
+#include <unordered_set>
 
 class MeshPool
 {
 public:
-    static unsigned meshCount;
+    static std::unordered_map<std::shared_ptr<Mesh>, unsigned> meshes;
 
     static std::vector<meshopt_Meshlet> meshlets;
     static std::vector<uint32_t> meshletIndices;
@@ -28,6 +29,6 @@ public:
     static std::vector<BindingDesc> bindingDescs;
     static std::vector<BindKey> bindKeys;
 
-    static unsigned PushNewMesh(const Mesh* mesh);
+    static unsigned PushNewMesh(std::shared_ptr<Mesh> mesh);
     static void AllocateMeshPoolBuffers(std::shared_ptr<Device> device);
 };

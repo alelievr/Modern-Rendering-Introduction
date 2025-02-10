@@ -9,7 +9,7 @@ class Model
 public:
 	struct MaterialMeshPair
 	{
-		Mesh mesh;
+		std::shared_ptr<Mesh> mesh;
 		std::shared_ptr<Material> material;
 	};
 
