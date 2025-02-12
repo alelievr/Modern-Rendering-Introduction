@@ -1,0 +1,59 @@
+#pragma kernel CSMain
+
+RWTexture2D<float4> _Output;
+
+#pragma enable_d3d11_debug_symbols
+
+StructuredBuffer<float3> _AABBs;
+int _AABBCount;
+float3 _RayOrigin;
+
+struct AABB
+{
+    float3 min;
+    float3 max;
+};
+
+bool intersection(float3 origin, float3 invDir, AABB b)
+{
+    float tmin = -1e20, tmax = 1e20;
+
+    [unroll(3)]
+    for (int i = 0; i < 3; ++i)
+    {
+        float t1 = (b.min[i] - origin[i])*invDir[i];
+        float t2 = (b.max[i] - origin[i])*invDir[i];
+    
+        tmin = max(tmin, min(t1, t2));
+        tmax = min(tmax, max(t1, t2));
+    }
+
+    return tmax > max(tmin, 0.0);
+}
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float width, height;
+    _Output.GetDimensions(width, height);
+    float2 uv = float2(id.x / width, id.y / height);
+    // 90 degree fov
+    float3 dir = -normalize(float3(uv.x * 2 - 1, uv.y * 2 - 1, -1));
+
+    float t, u, v;
+    float hit = 0;
+
+    float3 p0 = _RayOrigin;
+    float3 p1 = rcp(dir);
+    for (int i = 0; i < _AABBCount; i++)
+    {
+        AABB aabb;
+        aabb.min = _AABBs[i * 2 + 0];
+        aabb.max = _AABBs[i * 2 + 1];
+        if (intersection(p0, p1, aabb))
+            hit++;
+    }
+
+    // _Output[id.xy] = float4(t, u, v, 1.0);
+    _Output[id.xy] = float4(hit / float(_AABBCount).xxx, 1);
+}
