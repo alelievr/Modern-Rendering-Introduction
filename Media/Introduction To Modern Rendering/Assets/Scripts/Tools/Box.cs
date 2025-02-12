@@ -17,13 +17,25 @@ public class Box : MonoBehaviour
 
     void OnEnable()
     {
-        // Clear all children
-        for (int i = 0; i < 100; i++)
+        if (Application.isPlaying)
         {
-            if (transform.childCount > 0)
-                DestroyImmediate(transform.GetChild(0).gameObject);
-            else
-                break;
+            for (int i = 0; i < transform.childCount; i++)
+            {
+                transform.GetChild(i).gameObject.SetActive(false);
+                Destroy(transform.GetChild(i).gameObject);
+
+            }
+        }
+        else
+        {
+            // Clear all children
+            for (int i = 0; i < 100; i++)
+            {
+                if (transform.childCount > 0)
+                    DestroyImmediate(transform.GetChild(0).gameObject);
+                else
+                    break;
+            }
         }
 
         lines.Clear();

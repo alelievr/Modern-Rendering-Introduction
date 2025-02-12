@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
 using UnityEditor.SceneManagement;
+#endif
 using UnityEngine.SceneManagement;
 using UnityEngine.Rendering;
 
@@ -23,13 +25,17 @@ public class RenderPipelineSetup : MonoBehaviour
         else
             GraphicsSettings.renderPipelineAsset = null;
 
+#if UNITY_EDITOR
         EditorSceneManager.sceneClosing -= ResetRenderPipeline;
         EditorSceneManager.sceneClosing += ResetRenderPipeline;
+#endif
     }
 
     void ResetRenderPipeline(Scene scene, bool removingScene)
     {
         GraphicsSettings.renderPipelineAsset = null;
+#if UNITY_EDITOR
         EditorSceneManager.sceneClosing -= ResetRenderPipeline;
+#endif
     }
 }
