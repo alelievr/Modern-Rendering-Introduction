@@ -71,9 +71,9 @@ std::shared_ptr<Scene> Scene::LoadHardcodedScene(std::shared_ptr<Device> device,
 
 	//scene->LoadSingleCubeScene(device, camera);
 	//scene->LoadSingleSphereScene(device, camera);
-	//scene->LoadMultiObjectSphereScene(device, camera);
+	scene->LoadMultiObjectSphereScene(device, camera);
 	//scene->LoadStanfordBunnyScene(device, camera);
-	scene->LoadChessScene(device, camera);
+	//scene->LoadChessScene(device, camera);
 
 	Texture::LoadAllTextures(device);
 	Material::AllocateMaterialBuffers(device);
@@ -177,7 +177,7 @@ void Scene::BuildRTAS(std::shared_ptr<Device> device)
 		{
 			RaytracingGeometryInstance& rt = rtInstances.emplace_back();
 			rt.transform = glm::mat3x4(instance.transform);
-			rt.instance_offset = static_cast<uint32_t>(rtInstances.size() - 1);
+			rt.instance_offset = 0; // This instance offset is used to determine the hit index of the shader table, TODO: multiple shader support
 			rt.instance_mask = 0xff;
 			rt.acceleration_structure_handle = p.mesh->blas->GetAccelerationStructureHandle();
 		}

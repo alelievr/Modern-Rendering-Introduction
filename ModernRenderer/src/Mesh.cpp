@@ -107,7 +107,7 @@ std::shared_ptr<Resource> Mesh::CreateBLAS(std::shared_ptr<Device> device, std::
     cmd->ResolveQueryData(queryHeap, 0, 1, blas_compacted_size_buffer, 0);
     
     cmd->UAVResourceBarrier(tmpBlas);
-    cmd->CopyAccelerationStructure(tmpBlas, blas, CopyAccelerationStructureMode::kClone);
+    cmd->CopyAccelerationStructure(tmpBlas, blas, CopyAccelerationStructureMode::kCompact);
     
     cmd->Close();
 
