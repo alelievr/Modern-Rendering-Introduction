@@ -5,6 +5,7 @@
 
 #include "Camera.hpp"
 #include "Model.hpp"
+#include "Sky.hpp"
 
 class ModelInstance
 {
@@ -63,6 +64,8 @@ public:
 	std::shared_ptr<Resource> tlasBuffer;
 	std::shared_ptr<Resource> blasBuffer;
 	std::shared_ptr<Resource> rtInstanceDataBuffer;
+
+	Sky sky;
 
 	static std::shared_ptr<Scene> LoadHardcodedScene(std::shared_ptr<Device> device, Camera& camera);
 };

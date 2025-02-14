@@ -3,6 +3,7 @@
 #include "Instance/Instance.h"
 #include "Camera.hpp"
 #include "Scene.hpp"
+#include "RenderPipeline.hpp"
 
 class Renderer
 {
@@ -29,6 +30,7 @@ private:
     AppSize appSize = { 0, 0 };
     std::shared_ptr<Device> device;
     Camera* camera;
+    std::shared_ptr<RenderPipeline> renderPipeline;
 
     // Render passes
     std::shared_ptr<RenderPass> loadStoreColorRenderPass;
@@ -38,6 +40,7 @@ private:
     std::shared_ptr<Resource> mainColorTexture; // Store the color of the scene
     std::shared_ptr<Resource> mainDepthTexture; // Store the depth of the scene
     std::shared_ptr<View> mainColorTextureView;
+    std::shared_ptr<View> mainDepthTextureView;
 
     // Shader programs
     std::shared_ptr<Program> pathTracingProgram;
@@ -48,7 +51,6 @@ private:
 
     // Rasterization resources
     std::shared_ptr<Pipeline> objectMeshShaderPipeline;
-    std::shared_ptr<BindingSet> objectBindingSet;
 
     //// Path tracer resources
     std::shared_ptr<Pipeline> pathTracerPipeline;

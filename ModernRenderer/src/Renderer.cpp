@@ -14,6 +14,8 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     AllocateRenderTargets();
     CompileShaders();
     CreatePipelineObjects();
+
+    renderPipeline = std::make_shared<RenderPipeline>(device, app.GetAppSize(), mainColorTexture, mainDepthTexture, mainColorTextureView, mainDepthTextureView);
 }
 
 Renderer::~Renderer()
@@ -34,11 +36,12 @@ void Renderer::AllocateRenderTargets()
     mainDepthTexture = device->CreateTexture(TextureType::k2D, BindFlag::kDepthStencil | BindFlag::kShaderResource, gli::format::FORMAT_D32_SFLOAT_S8_UINT_PACK64, 1, appSize.width(), appSize.height(), 1, 1);
     mainDepthTexture->CommitMemory(MemoryType::kDefault);
     mainDepthTexture->SetName("DepthTexture");
+    ViewDesc depth2DDesc = {};
+    depth2DDesc.view_type = ViewType::kDepthStencil;
+    depth2DDesc.dimension = ViewDimension::kTexture2D;
+    mainDepthTextureView = device->CreateView(mainDepthTexture, depth2DDesc);
 
     // Create the framebuffer
-    ViewDesc renderTarget2DDesc = {};
-    renderTarget2DDesc.view_type = ViewType::kRenderTarget;
-    renderTarget2DDesc.dimension = ViewDimension::kTexture2D;
     ViewDesc stencil2DDesc = {};
     stencil2DDesc.view_type = ViewType::kDepthStencil;
     stencil2DDesc.dimension = ViewDimension::kTexture2D;
@@ -47,8 +50,8 @@ void Renderer::AllocateRenderTargets()
     desc.render_pass = loadStoreColorRenderPass;
     desc.width = appSize.width();
     desc.height = appSize.height();
-    desc.colors = { device->CreateView(mainColorTexture, renderTarget2DDesc) };
-    desc.depth_stencil = device->CreateView(mainDepthTexture, stencil2DDesc);
+    desc.colors = { mainColorTextureView };
+    desc.depth_stencil = mainDepthTextureView;
     mainColorFrameBuffer = device->CreateFramebuffer(desc);
 }
 
@@ -92,12 +95,6 @@ void Renderer::CreatePipelineObjects()
     renderPassDesc.depth_stencil.depth_load_op = RenderPassLoadOp::kClear;
     renderPassDesc.depth_stencil.stencil_load_op = RenderPassLoadOp::kClear;
     clearColorRenderPass = device->CreateRenderPass(renderPassDesc);
-
-    // Compute stage allows to bind to every shader stages
-    BindKey drawRootConstant = { ShaderType::kCompute, ViewType::kConstantBuffer, 1, 0, 3, UINT32_MAX, true };
-    std::shared_ptr<BindingSetLayout> layout = RenderUtils::CreateLayoutSet(device, *camera, { drawRootConstant });
-    std::shared_ptr<BindingSetLayout> meshShaderLayout = RenderUtils::CreateLayoutSet(device, *camera, { drawRootConstant });
-    objectBindingSet = RenderUtils::CreateBindingSet(device, layout, *camera, { { drawRootConstant, nullptr } });
 
     GraphicsPipelineDesc meshShaderPipelineDesc = {
         meshShaderProgram,
@@ -182,6 +179,9 @@ void Renderer::UpdateCommandList(std::shared_ptr<CommandList> commandList, std::
     commandList->Reset();
     commandList->BeginEvent("RenderFrame");
 
+    commandList->SetViewport(0, 0, appSize.width(), appSize.height());
+    commandList->SetScissorRect(0, 0, appSize.width(), appSize.height());
+
 	if (controls.rendererMode == RendererMode::Rasterization)
 	{
 		RenderRasterization(commandList, backBuffer, camera, scene);
@@ -203,54 +203,13 @@ void Renderer::UpdateCommandList(std::shared_ptr<CommandList> commandList, std::
     commandList->Close();
 }
 
-void DrawScene(std::shared_ptr<CommandList> commandList, std::shared_ptr<Scene> scene)
-{
-    // Get the native command list to push constants directly to the commnand buffer.
-    // This allows to have a unique index per draw without having to bind a new constant buffer.
-    auto dxCommandList = (DXCommandList*)commandList.get();
-
-    // TODO: batch per materials to avoid pipeline switches & reduce CBuffer updates
-    for (auto& instance : scene->instances)
-    {
-        dxCommandList->SetGraphicsConstant(0, instance.instanceDataOffset, 2);
-
-        for (auto& r : instance.model.parts)
-		{
-            // TODO: mesh index when meshlets are supported
-            int materialIndex = r.material->materialIndex;
-
-            // Bind per-draw data, we only need an index, the rest is bindless
-            dxCommandList->SetGraphicsConstant(0, materialIndex, 0);
-            dxCommandList->SetGraphicsConstant(0, r.mesh->meshletOffset, 1);
-
-            commandList->DispatchMesh(r.mesh->meshletCount);
-		}
-    }
-}
-
 void Renderer::RenderRasterization(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, const Camera& camera, std::shared_ptr<Scene> scene)
 {
-    // TODO: clear render pass
-
-    ClearDesc clear_desc = { { { 0.0, 0.2, 0.4, 1.0 } } }; // Clear Color
-    commandList->BindPipeline(objectMeshShaderPipeline);
-    commandList->BindBindingSet(objectBindingSet);
-    commandList->SetViewport(0, 0, appSize.width(), appSize.height());
-    commandList->SetScissorRect(0, 0, appSize.width(), appSize.height());
-    commandList->ResourceBarrier({ { mainColorTexture, ResourceState::kCommon, ResourceState::kRenderTarget } });
-    commandList->ResourceBarrier({ { mainDepthTexture, ResourceState::kCommon, ResourceState::kDepthStencilWrite } });
-    commandList->BeginRenderPass(clearColorRenderPass, mainColorFrameBuffer, clear_desc);
-
-    DrawScene(commandList, scene);
-
-    commandList->EndRenderPass();
-    commandList->ResourceBarrier({ { mainColorTexture, ResourceState::kRenderTarget, ResourceState::kCommon } });
-    commandList->ResourceBarrier({ { mainDepthTexture, ResourceState::kDepthStencilWrite, ResourceState::kCommon } });
+    renderPipeline->Render(commandList, backBuffer, scene);
 }
 
 void Renderer::RenderPathTracing(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, const Camera& camera, std::shared_ptr<Scene> scene)
 {
-    // Dispatch compute to clear RT
     commandList->BindPipeline(pathTracerPipeline);
     commandList->BindBindingSet(pathTracerBindingSet);
     commandList->DispatchRays(shaderTables, appSize.width(), appSize.height(), 1);

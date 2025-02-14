@@ -5,6 +5,7 @@
 #include <Device/DXDevice.h>
 #include "RenderDoc.hpp"
 #include <filesystem>
+#include "RenderUtils.hpp"
 
 std::vector<std::shared_ptr<Texture>> Texture::textures;
 std::vector<BindingDesc> Texture::textureBufferBindings = {};
@@ -39,61 +40,6 @@ Texture::~Texture()
     textures.erase(std::remove(textures.begin(), textures.end(), instance), textures.end());
 }
 
-void UploadTextureData(const std::shared_ptr<Resource>& resource, const std::shared_ptr<Device>& device, uint32_t subresource, const void* data, int width, int height, int channels, int bytePerChannel)
-{
-    std::shared_ptr<CommandQueue> queue = device->GetCommandQueue(CommandListType::kGraphics);
-    int numBytes = width * height * channels * bytePerChannel;
-    int rowBytes = width * channels * bytePerChannel;
-
-    std::vector<BufferToTextureCopyRegion> regions;
-    auto& region = regions.emplace_back();
-    region.texture_mip_level = subresource % resource->GetLevelCount();
-    region.texture_array_layer = subresource / resource->GetLevelCount();
-    region.texture_extent.width = std::max<uint32_t>(1, resource->GetWidth() >> region.texture_mip_level);
-    region.texture_extent.height = std::max<uint32_t>(1, resource->GetHeight() >> region.texture_mip_level);
-    region.texture_extent.depth = 1;
-    region.buffer_row_pitch = rowBytes;
-    region.buffer_offset = 0;
-
-    auto upload_resource = device->CreateBuffer(BindFlag::kCopySource, numBytes);
-    upload_resource->CommitMemory(MemoryType::kUpload);
-    upload_resource->SetName("Tmp Texture Upload Buffer");
-    int bufferRowPitch = rowBytes;
-    int bufferDepthPitch = bufferRowPitch * height;
-    int srcRowPitch = rowBytes;
-    int srcDepthPitch = srcRowPitch * height;
-    int numRows = height;
-    int numSlices = region.texture_extent.depth;
-    upload_resource->UpdateUploadBufferWithTextureData(0, bufferRowPitch, bufferDepthPitch, data, srcRowPitch, srcDepthPitch,
-        numRows, numSlices);
-
-    std::shared_ptr<CommandList> cmd = device->CreateCommandList(CommandListType::kGraphics);
-
-    cmd->Reset();
-    cmd->BeginEvent("UploadTextureData");
-    
-    cmd->ResourceBarrier({ { resource, ResourceState::kCommon, ResourceState::kCopyDest } });
-    
-    cmd->CopyBufferToTexture(upload_resource, resource, regions);
-
-    cmd->ResourceBarrier({ { resource, ResourceState::kCopyDest, ResourceState::kCommon } });
-    
-    cmd->EndEvent();
-    cmd->Close();
-    queue->ExecuteCommandLists({ cmd });
-
-    std::shared_ptr<Fence> fence = device->CreateFence(0);
-    queue->Signal(fence, 1);
-    queue->Wait(fence, 1);
-    fence->Wait(1);
-
-    RenderDoc::EndFrameCapture();
-
-    auto d = (DXDevice*)device.get();
-    auto a = d->GetDevice();
-    auto h = a->GetDeviceRemovedReason();
-}
-
 void Texture::LoadAllTextures(std::shared_ptr<Device> device)
 {
     for (auto& texture : textures)
@@ -121,7 +67,7 @@ void Texture::LoadAllTextures(std::shared_ptr<Device> device)
         texture->resource->SetName(p.filename().string());
 
         // TODO: support HDR textures
-        UploadTextureData(texture->resource, device, 0, image, width, height, channels, 1);
+        RenderUtils::UploadTextureData(texture->resource, device, 0, image, width, height, channels, 1);
 
         // TODO: fenerate mipmaps
         //cmd->GenerateMipmaps(res);
@@ -139,11 +85,11 @@ void Texture::LoadAllTextures(std::shared_ptr<Device> device)
         if (texture->type != PBRTextureType::Albedo)
 			continue;
 
-        ViewDesc view_desc = {};
-        view_desc.bindless = true;
-        view_desc.dimension = ViewDimension::kTexture2D;
-        view_desc.view_type = ViewType::kTexture;
-        texture->shaderResourceView = device->CreateView(texture->resource, view_desc);
+        ViewDesc viewDesc = {};
+        viewDesc.bindless = true;
+        viewDesc.dimension = ViewDimension::kTexture2D;
+        viewDesc.view_type = ViewType::kTexture;
+        texture->shaderResourceView = device->CreateView(texture->resource, viewDesc);
         index++;
     }
 

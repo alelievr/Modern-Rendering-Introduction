@@ -75,6 +75,9 @@ std::shared_ptr<Scene> Scene::LoadHardcodedScene(std::shared_ptr<Device> device,
 	//scene->LoadStanfordBunnyScene(device, camera);
 	//scene->LoadChessScene(device, camera);
 
+	scene->sky.LoadHDRI(device, "assets/HDRIs/hdri/rogland_overcast_8k.hdr");
+	scene->sky.Initialize(&camera);
+
 	Texture::LoadAllTextures(device);
 	Material::AllocateMaterialBuffers(device);
 	scene->UploadInstancesToGPU(device);

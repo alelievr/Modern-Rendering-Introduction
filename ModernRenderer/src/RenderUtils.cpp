@@ -78,3 +78,52 @@ void RenderUtils::SetBackgroundColor(GLFWwindow* window, COLORREF color)
 	DeleteObject(brush);
 	ReleaseDC(hwnd, hdc);
 }
+
+void RenderUtils::UploadTextureData(const std::shared_ptr<Resource>& resource, const std::shared_ptr<Device>& device, uint32_t subresource, const void* data, int width, int height, int channels, int bytePerChannel)
+{
+	std::shared_ptr<CommandQueue> queue = device->GetCommandQueue(CommandListType::kGraphics);
+	int numBytes = width * height * channels * bytePerChannel;
+	int rowBytes = width * channels * bytePerChannel;
+
+	std::vector<BufferToTextureCopyRegion> regions;
+	auto& region = regions.emplace_back();
+	region.texture_mip_level = subresource % resource->GetLevelCount();
+	region.texture_array_layer = subresource / resource->GetLevelCount();
+	region.texture_extent.width = std::max<uint32_t>(1, resource->GetWidth() >> region.texture_mip_level);
+	region.texture_extent.height = std::max<uint32_t>(1, resource->GetHeight() >> region.texture_mip_level);
+	region.texture_extent.depth = 1;
+	region.buffer_row_pitch = rowBytes;
+	region.buffer_offset = 0;
+
+	auto upload_resource = device->CreateBuffer(BindFlag::kCopySource, numBytes);
+	upload_resource->CommitMemory(MemoryType::kUpload);
+	upload_resource->SetName("Tmp Texture Upload Buffer");
+	int bufferRowPitch = rowBytes;
+	int bufferDepthPitch = bufferRowPitch * height;
+	int srcRowPitch = rowBytes;
+	int srcDepthPitch = srcRowPitch * height;
+	int numRows = height;
+	int numSlices = region.texture_extent.depth;
+	upload_resource->UpdateUploadBufferWithTextureData(0, bufferRowPitch, bufferDepthPitch, data, srcRowPitch, srcDepthPitch,
+		numRows, numSlices);
+
+	std::shared_ptr<CommandList> cmd = device->CreateCommandList(CommandListType::kGraphics);
+
+	cmd->Reset();
+	cmd->BeginEvent("UploadTextureData");
+
+	cmd->ResourceBarrier({ { resource, ResourceState::kCommon, ResourceState::kCopyDest } });
+
+	cmd->CopyBufferToTexture(upload_resource, resource, regions);
+
+	cmd->ResourceBarrier({ { resource, ResourceState::kCopyDest, ResourceState::kCommon } });
+
+	cmd->EndEvent();
+	cmd->Close();
+	queue->ExecuteCommandLists({ cmd });
+
+	std::shared_ptr<Fence> fence = device->CreateFence(0);
+	queue->Signal(fence, 1);
+	queue->Wait(fence, 1);
+	fence->Wait(1);
+}
