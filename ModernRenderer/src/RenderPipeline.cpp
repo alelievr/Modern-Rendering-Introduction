@@ -3,11 +3,10 @@
 #include "RenderUtils.hpp"
 
 RenderPipeline::RenderPipeline(std::shared_ptr<Device> device, const AppSize& appSize,
-    std::shared_ptr<Camera> camera, std::shared_ptr<Resource> colorTexture,
-    std::shared_ptr<Resource> depthTexture, std::shared_ptr<View> colorTextureView,
-    std::shared_ptr<View> depthTextureView)
+    Camera& camera, std::shared_ptr<Resource> colorTexture, std::shared_ptr<View> colorTextureView,
+    std::shared_ptr<Resource> depthTexture, std::shared_ptr<View> depthTextureView)
 {
-    this->camera = camera;
+    this->camera = &camera;
     this->device = device;
     this->colorTexture = colorTexture;
     this->colorTextureView = colorTextureView;
@@ -15,7 +14,7 @@ RenderPipeline::RenderPipeline(std::shared_ptr<Device> device, const AppSize& ap
     this->depthTextureView = depthTextureView;
     this->appSize = appSize;
 
-    visibilityTexture = device->CreateTexture(TextureType::k2D, BindFlag::kRenderTarget | BindFlag::kUnorderedAccess | BindFlag::kShaderResource | BindFlag::kCopySource, gli::format::FORMAT_, 1, appSize.width(), appSize.height(), 1, 1);
+    visibilityTexture = device->CreateTexture(TextureType::k2D, BindFlag::kRenderTarget | BindFlag::kUnorderedAccess | BindFlag::kShaderResource | BindFlag::kCopySource, gli::format::FORMAT_R32_UINT_PACK32, 1, appSize.width(), appSize.height(), 1, 1);
     visibilityTexture->CommitMemory(MemoryType::kDefault);
     visibilityTexture->SetName("ColorTexture");
     ViewDesc outputTextureViewDesc = {};
@@ -25,9 +24,8 @@ RenderPipeline::RenderPipeline(std::shared_ptr<Device> device, const AppSize& ap
 
     // Compute stage allows to bind to every shader stages
     BindKey drawRootConstant = { ShaderType::kCompute, ViewType::kConstantBuffer, 1, 0, 3, UINT32_MAX, true };
-    std::shared_ptr<BindingSetLayout> layout = RenderUtils::CreateLayoutSet(device, *camera, { drawRootConstant });
-    std::shared_ptr<BindingSetLayout> meshShaderLayout = RenderUtils::CreateLayoutSet(device, *camera, { drawRootConstant });
-    objectBindingSet = RenderUtils::CreateBindingSet(device, layout, *camera, { { drawRootConstant, nullptr } });
+    objectLayoutSet = RenderUtils::CreateLayoutSet(device, camera, { drawRootConstant });
+    objectBindingSet = RenderUtils::CreateBindingSet(device, objectLayoutSet, camera, { { drawRootConstant, nullptr } });
 }
 
 void RenderPipeline::DrawOpaqueObjects(std::shared_ptr<CommandList> cmd, std::shared_ptr<BindingSet> set, std::shared_ptr<Pipeline> pipeline)
@@ -90,22 +88,22 @@ void RenderPipeline::RenderVisibility(std::shared_ptr<CommandList> cmd)
 
     if (!visibilityPipeline)
     {
-        ShaderDesc visibilityMeshShader = { MODERN_RENDERER_ASSETS_PATH "shaders/VisibilityPass.hlsl", "mesh", ShaderType::kMesh, "6_5" };
-        std::shared_ptr<Shader> visibilityMeshShader = device->CompileShader(visibilityMeshShader);
-        ShaderDesc visibilityFragmentShader = { MODERN_RENDERER_ASSETS_PATH "shaders/VisibilityPass.hlsl", "fragment", ShaderType::kMesh, "6_5" };
-        std::shared_ptr<Shader> visibilityMeshShader = device->CompileShader(visibilityFragmentShader);
+        ShaderDesc visibilityMeshShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/VisibilityPass.hlsl", "mesh", ShaderType::kMesh, "6_5" };
+        std::shared_ptr<Shader> visibilityMeshShader = device->CompileShader(visibilityMeshShaderDesc);
+        ShaderDesc visibilityFragmentShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/VisibilityPass.hlsl", "fragment", ShaderType::kMesh, "6_5" };
+        std::shared_ptr<Shader> visibilityFragmentShader = device->CompileShader(visibilityFragmentShaderDesc);
 
         visibilityProgram = device->CreateProgram({ visibilityMeshShader, visibilityFragmentShader });
 
         GraphicsPipelineDesc meshShaderPipelineDesc = {
             visibilityProgram,
-            layout,
+            objectLayoutSet,
             {},
-            clearColorRenderPass,
+            visibilityRenderPass,
         };
         meshShaderPipelineDesc.rasterizer_desc = { FillMode::kSolid, CullMode::kBack, 0 };
 
-        objectMeshShaderPipeline = device->CreateGraphicsPipeline(meshShaderPipelineDesc);
+        visibilityPipeline = device->CreateGraphicsPipeline(meshShaderPipelineDesc);
     }
 
     ClearDesc clearDesc = { { { 0.0, 0.2, 0.4, 1.0 } } }; // Clear Color
@@ -138,7 +136,7 @@ void RenderPipeline::Render(std::shared_ptr<CommandList> cmd, std::shared_ptr<Re
     // Forward opaque pass:
     // Transforms visibility information direclty into color
     // TODO: Gbuffer path
-    RenderForwardOpaque();
+    //RenderForwardOpaque();
 
     // TODO: transparency
 }

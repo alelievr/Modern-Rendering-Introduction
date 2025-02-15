@@ -15,7 +15,7 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     CompileShaders();
     CreatePipelineObjects();
 
-    renderPipeline = std::make_shared<RenderPipeline>(device, app.GetAppSize(), mainColorTexture, mainDepthTexture, mainColorTextureView, mainDepthTextureView);
+    renderPipeline = std::make_shared<RenderPipeline>(device, app.GetAppSize(), camera, mainColorTexture, mainColorTextureView, mainDepthTexture, mainDepthTextureView);
 }
 
 Renderer::~Renderer()
@@ -95,16 +95,6 @@ void Renderer::CreatePipelineObjects()
     renderPassDesc.depth_stencil.depth_load_op = RenderPassLoadOp::kClear;
     renderPassDesc.depth_stencil.stencil_load_op = RenderPassLoadOp::kClear;
     clearColorRenderPass = device->CreateRenderPass(renderPassDesc);
-
-    GraphicsPipelineDesc meshShaderPipelineDesc = {
-        meshShaderProgram,
-        layout,
-        {},
-        clearColorRenderPass,
-    };
-    meshShaderPipelineDesc.rasterizer_desc = { FillMode::kSolid, CullMode::kBack, 0 };
-
-    objectMeshShaderPipeline = device->CreateGraphicsPipeline(meshShaderPipelineDesc);
 
     BindKey pathTracerMainColorKey = { ShaderType::kLibrary, ViewType::kRWTexture, 0, 0, 1, UINT32_MAX };
     std::shared_ptr<BindingSetLayout> pathTracerLayout = device->CreateBindingSetLayout({ camera->cameraDataKeyCompute, pathTracerMainColorKey, Scene::accelerationStructureKey });

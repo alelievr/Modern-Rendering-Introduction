@@ -9,6 +9,12 @@ void Sky::LoadHDRI(std::shared_ptr<Device> device, const char* filepath)
     unsigned char* image = stbi_load(filepath, &width, &height, NULL, STBI_rgb_alpha);
     channels = 4;
 
+    if (image == nullptr)
+    {
+        printf("Failed to load HDRI Image: %s\n", filepath);
+        return;
+    }
+
     gli::format format = gli::FORMAT_RGBA16_UNORM_PACK16;
 
     // compute mip levels
@@ -30,7 +36,7 @@ void Sky::LoadHDRI(std::shared_ptr<Device> device, const char* filepath)
     viewDesc.view_type = ViewType::kTexture;
     hdriSkyTextureView = device->CreateView(hdriSkyTexture, viewDesc);
 
-    RenderUtils::UploadTextureData(hdriSkyTexture, device, 0, image, width, height, channels, 1);
+    RenderUtils::UploadTextureData(hdriSkyTexture, device, 0, image, width, height, channels, 2);
 
     // Load HDRI Sky shader
     std::shared_ptr<Shader> pixelMeshshader = device->CompileShader(
@@ -56,6 +62,8 @@ void Sky::LoadHDRI(std::shared_ptr<Device> device, const char* filepath)
 
 void Sky::Initialize(std::shared_ptr<Device> device, Camera* camera)
 {
+	this->device = device;
+
     BindKey bindKey = { ShaderType::kCompute, ViewType::kTexture, 0, 0 };
     BindingDesc bindingDesc = { bindKey, hdriSkyTextureView };
 
@@ -73,19 +81,31 @@ void Sky::Initialize(std::shared_ptr<Device> device, Camera* camera)
     skyPipeline = device->CreateGraphicsPipeline(skyPipelineDesc);
 }
 
-void Sky::Render(std::shared_ptr<CommandList> cmd, std::shared_ptr<Resource> colorBuffer, std::shared_ptr<Resource> depthBuffer)
+void Sky::Render(std::shared_ptr<CommandList> cmd, std::shared_ptr<Resource> colorTexture, std::shared_ptr<View> colorTextureView,
+    std::shared_ptr<Resource> depthTexture, std::shared_ptr<View> depthTextureView)
 {
+    if (!skyFramebuffer)
+    {
+        FramebufferDesc desc = {};
+        desc.render_pass = skyRenderPass;
+        desc.width = colorTexture->GetWidth();
+        desc.height = colorTexture->GetHeight();
+        desc.colors = { colorTextureView };
+        desc.depth_stencil = depthTextureView;
+        skyFramebuffer = device->CreateFramebuffer(desc);
+    }
+
     ClearDesc clearDesc = { { { 0.0, 0.2, 0.4, 1.0 } } }; // Clear Color
     cmd->BindPipeline(skyPipeline);
     cmd->BindBindingSet(skyBindingSet);
-    cmd->ResourceBarrier({ { colorBuffer, ResourceState::kCommon, ResourceState::kRenderTarget } });
-    cmd->ResourceBarrier({ { depthBuffer, ResourceState::kCommon, ResourceState::kDepthStencilWrite } });
-    cmd->BeginRenderPass(skyRenderPass, mainColorFrameBuffer, clearDesc);
+    cmd->ResourceBarrier({ { colorTexture, ResourceState::kCommon, ResourceState::kRenderTarget } });
+    cmd->ResourceBarrier({ { depthTexture, ResourceState::kCommon, ResourceState::kDepthStencilWrite } });
+    cmd->BeginRenderPass(skyRenderPass, skyFramebuffer, clearDesc);
 
     cmd->DrawIndexed(3, 1, 0, 0, 0);
 
     cmd->EndRenderPass();
-    cmd->ResourceBarrier({ { colorBuffer, ResourceState::kRenderTarget, ResourceState::kCommon } });
-    cmd->ResourceBarrier({ { depthBuffer, ResourceState::kDepthStencilWrite, ResourceState::kCommon } });
+    cmd->ResourceBarrier({ { colorTexture, ResourceState::kRenderTarget, ResourceState::kCommon } });
+    cmd->ResourceBarrier({ { depthTexture, ResourceState::kDepthStencilWrite, ResourceState::kCommon } });
     // TODO: render pass set, etc.
 }

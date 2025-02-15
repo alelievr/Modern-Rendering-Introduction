@@ -12,7 +12,7 @@ class ModelInstance
 	public:
 	Model model;
 	glm::mat4 transform = glm::mat4(1.0f);
-	int instanceDataOffset;
+	int instanceDataOffset = 0;
 
 	ModelInstance() = default;
 	ModelInstance(Model model, glm::mat4 transform = glm::mat4(1.0f)) : model(model), transform(transform) {}

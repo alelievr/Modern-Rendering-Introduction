@@ -49,12 +49,8 @@ private:
     std::shared_ptr<Shader> pathTracingHitLibrary;
     std::shared_ptr<Shader> pathTracingCallableLibrary;
 
-    // Rasterization resources
-    std::shared_ptr<Pipeline> objectMeshShaderPipeline;
-
-    //// Path tracer resources
+    // Path tracer resources
     std::shared_ptr<Pipeline> pathTracerPipeline;
-    //std::shared_ptr<Shader> pathTracerComputeShader;
     std::shared_ptr<BindingSet> pathTracerBindingSet;
     RayTracingShaderTables shaderTables = {};
 

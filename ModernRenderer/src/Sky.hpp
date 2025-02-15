@@ -2,6 +2,7 @@
 
 #include <stb_image.h>
 #include "Instance/Instance.h"
+#include "Camera.hpp"
 
 class Sky
 {
@@ -12,8 +13,7 @@ public:
 		//Procedural, // TODO
 	};
 
-	Sky();
-	~Sky();
+	std::shared_ptr<Device> device;
 
 	std::shared_ptr<Resource> hdriSkyTexture;
 	std::shared_ptr<View> hdriSkyTextureView;
@@ -22,9 +22,13 @@ public:
 	std::shared_ptr<Program> skyProgram;
 	std::shared_ptr<BindingSetLayout> skyLayout;
 	std::shared_ptr<BindingSet> skyBindingSet;
+	std::shared_ptr<Framebuffer> skyFramebuffer;
+
+	Sky() = default;
+	~Sky() = default;
 
 	void LoadHDRI(std::shared_ptr<Device> device, const char* filepath);
 	void Initialize(std::shared_ptr<Device> device, Camera* camera);
 
-	void Render(std::shared_ptr<CommandList> cmd, std::shared_ptr<Resource> colorBuffer, std::shared_ptr<Resource> depthBuffer);
+	void Render(std::shared_ptr<CommandList> cmd, std::shared_ptr<Resource> colorTexture, std::shared_ptr<View> colorTextureView, std::shared_ptr<Resource> depthTexture, std::shared_ptr<View> depthTextureView);
 };
