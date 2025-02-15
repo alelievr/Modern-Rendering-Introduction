@@ -6,7 +6,7 @@ void Sky::LoadHDRI(std::shared_ptr<Device> device, const char* filepath)
 {
     int width, height, channels;
     // TODO: handle textures with less than 4 channels
-    unsigned char* image = stbi_load(filepath, &width, &height, NULL, STBI_rgb_alpha);
+    float* image = stbi_loadf(filepath, &width, &height, NULL, STBI_rgb_alpha);
     channels = 4;
 
     if (image == nullptr)
@@ -15,7 +15,7 @@ void Sky::LoadHDRI(std::shared_ptr<Device> device, const char* filepath)
         return;
     }
 
-    gli::format format = gli::FORMAT_RGBA16_UNORM_PACK16;
+    gli::format format = gli::FORMAT_RGBA16_SFLOAT_PACK16;
 
     // compute mip levels
     int mipCount = std::floor(std::log2(std::max(width, height))) + 1;
