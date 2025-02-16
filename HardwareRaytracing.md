@@ -21,3 +21,4 @@ Now that we understand how ray tracing work, let's take a look at how we cna lev
 - https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html
 - https://nvpro-samples.github.io/vk_raytracing_tutorial_KHR
 - https://github.com/GPSnoopy/RayTracingInVulkan
+- https://nvpro-samples.github.io/vk_mini_path_tracer/index.html
