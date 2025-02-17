@@ -1,52 +1,75 @@
+---
+title: Table Of Content
+author: Antoine Lelievre 
+category: Modern Rendering
+layout: post
+order: 42
+---
+
 # chapters
 
+## Fundamentals
 - Introduction [complete]
 - Renderer Design [complete]
 - Realtime Computer Graphics [complete]
 - The meaning of PBR [complete]
 - Programming Environment [complete]
+
+## Math for 3D
 - The 3D Euclidean space [complete]
 - Vectors [complete]
 - Simple Camera [complete]
-- GPU Architecture [complete]
-- Compute Shaders [complete]
 - Plane intersection [complete]
 - Sphere intersection [kinda complete]
 - Box / AABB intersection
 - Triangle intersection [complete]
-- Ray Tracing [complete]
-- Hardware Ray Tracing [started]
 - Matrices + transformations [complete]
+- Integrals in Rendering
+
+## Authoring
 - Meshes [complete]
-- Mesh Shaders [started]
-- Rasterization [complete]
-- The Render Pipeline [complete]
-- Bindless Bindings [complete]
 - Material [complete]
 - Texturing [complete]
-- Aliasing and Filtering
-- Integrals in Rendering
+
+## Render Pipeline
+- GPU Architecture [complete]
+- Compute Shaders [complete]
+- Ray Tracing [complete]
+- Hardware Ray Tracing [started]
+- Mesh Shaders [started]
+- Rasterization [complete]
+- Bindless Bindings [complete]
+- The Render Pipeline [complete]
+
+## Materials
+- Surface Roughness
+- BRDF / BSDF
+- Furnace Test
+
+## Lighting
 - The Rendering Equation
 - Environment Lights
 - Directional Lights
 - Punctual Lights
-- Roughness
-- BRDF / BSDF
-- Furnace Test
-- HDR and Tone Mapping
-- Shading?
 - Shadow Maps
-- Depth Buffer
-- Frustum Culling
-- Occlusion Culling
+
+## Transparency
 - Transparency
 - Participating Media (Fog)
-- Emissive
+
+## Colors
 - Color spaces & Perception
 - Color grading in post process
+- HDR and Tone Mapping
+
+## Optimization Techniques
+- Frustum Culling
+- Occlusion Culling
+
+## Miscellaneous
+- Aliasing and Filtering
 
 ## Maybe
-
 - Advanced PBR Camera
 - Bloom
 - Depth Of Field

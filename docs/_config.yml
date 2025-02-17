@@ -21,9 +21,12 @@
 title: Introduction To Modern Rendering 
 email: 
 description: >- # this means to ignore newlines until "baseurl:"
-  Write an awesome description for your new site here. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
+ This course teaches the fundamentals of real-time rendering, covering rasterization,
+ ray tracing, physically based rendering, and GPU architecture.
+ You'll learn essential math, lighting techniques, and performance considerations
+ while building a simple rendering engine. Designed for programmers interested in graphics,
+ it provides a solid foundation for modern rendering techniques without focusing
+ on specific graphics APIs.
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: alelievr
@@ -59,3 +62,50 @@ url: https://modern-rendering.github.io
 
 # Theme config:
 syntax_highlighter_style: monokai
+
+toc:
+    enabled: true
+    h_min: 1
+    h_max: 3
+
+collections:
+  articles:
+    output: true
+    permalink: /:collection/:path/
+    sort_by: order
+
+ordered_collections:
+  - articles
+
+defaults:
+  - scope:
+      path: ""
+      type: articles
+    values:
+      layout: post
+
+exclude:
+  - _drafts
+
+# Categories configuration
+categories_order:
+  - name: "Fundamentals"
+    id: Fundamentals
+  - name: "Math for 3D"
+    id: Math3D
+  - name: "Authoring"
+    id: Authoring
+  - name: "Render Pipeline"
+    id: RenderPipeline 
+  - name: "Materials"
+    id: Materials
+  - name: "Lighting"
+    id: Lighting
+  - name: "Transparency"
+    id: Transparency
+  - name: "Colors"
+    id: Colors
+  - name: "Optimization Techniques"
+    id: OptimizationTechniques
+  - name: "Miscellaneous"
+    id: Miscellaneous
