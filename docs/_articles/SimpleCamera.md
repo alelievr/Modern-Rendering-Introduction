@@ -6,8 +6,6 @@ category: Math3D
 layout: post
 ---
 
-# Camera
-
 In 3D, a camera is a virtual object that transform a 3D scene into a 2D image, exactly like real-life camera works. This operation of going from a 3D space to 2D is called a projection so we can say that the 3D world gets projected to a screen. This is a process that should feel very intuitive as we're used to handle cameras as they became so common in mobile phones.
 
 ## Let's build a camera

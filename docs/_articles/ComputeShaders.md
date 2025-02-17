@@ -6,8 +6,6 @@ category: RenderPipeline
 layout: post
 ---
 
-# Compute Shaders
-
 A shader is a very lightweight program that runs on the GPU, it is designed to be spawned quickly from CPU commands such as dozens or hundreds of different shaders runs every frame. Shader are designed to work exclusively with the resources of GPU, so in term of feature set it's a lot more restricted than CPU programs (for example you cannot allocate memory on the GPU, you cannot access files on the disk, etc.).
 
 ## Different types of shaders

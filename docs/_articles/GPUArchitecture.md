@@ -6,8 +6,6 @@ category: RenderPipeline
 layout: post
 ---
 
-# GPU Architecture
-
 Modern GPUs are massively parallel and allow to run tens of thousands of threads at the same time, so it is crucial to keep in mind that we need to dispatch a large amount of tasks each time we want to execute something to avoid wasting GPU. Luckily the workload of rendering an image can be easily divided by each texel of the resulting image, for reference in a full HD image, there is a bit more than 2 million texels (1920 x 1080) so it'll be plenty of work to fill the GPU.
 
 ## Dedicated Hardware

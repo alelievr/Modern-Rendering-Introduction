@@ -6,8 +6,6 @@ category: Math3D
 layout: post
 ---
 
-# Sphere - Ray Intersection
-
 The intersection between a ray and a sphere can lead to no intersection, one intersection or two if the ray pass through the sphere.
 
 Intersecting a sphere for the rendering in path tracing is not necessarily useful in itself (even though right now we can use it to populate some objects in our scene for the path tracer) but it'll also be useful later on to accelerate some algorithm. For example a sphere can be used to represent a proxy that encapsulate a complex 3D object, intersecting the sphere first allow to know quickly if the ray is likely to intersect the 3D model. This is known as a [bounding sphere](https://en.wikipedia.org/wiki/Bounding_sphere).

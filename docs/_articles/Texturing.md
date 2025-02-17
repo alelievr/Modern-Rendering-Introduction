@@ -6,8 +6,6 @@ category: Authoring
 layout: post
 ---
 
-# Texturing
-
 Texturing or [Texture Mapping](https://en.wikipedia.org/wiki/Texture_mapping) is very important in rendering, it's so important that GPUs have dedicated hardware to read, filter and decompress those textures on the fly. A texture can contain any kind of data, while it is most used to store a standardized set of material attributes, it can also be used for anything else, even storing animations. Texture mapping is the process of taking a texture and applying on a mesh in a certain way. You can also see the texture mapping system as an indirection used to fetch the surface data of the object.
 
 ## UV Mapping
@@ -20,7 +18,7 @@ This [Sample](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-gr
 
 Because UV coordinates are embedded in the mesh, the texture is often authored specifically for that mesh unless other meshes share the same UV layout. An example of UV layout that can be shared is for **tileable textures**, where the texture is designed to be seamlessly repeated across a surface. In this case, the UV coordinates of the mesh extend beyond the usual `[0,1]` range, allowing the texture to wrap continuously without visible seams. This technique is commonly used for materials like brick walls, floors, and fabrics, where a single texture can cover large areas without distortion. To break the effect of repetition, shaders can also modify the UV coordinates dynamically through [Procedural Mapping](Texturing.md#procedural-mapping).
 
-![](Media/Recordings/Texturing%20-%20UV.gif)
+![](/assets/Recordings/Texturing%20-%20UV.gif)
 
 ### UDIM Mapping
 
@@ -44,7 +42,7 @@ Planar mapping is a simple technique that consists of generating UV coordinates 
 
 Here's a visualization of how a texture, represented by the transparent plane, gets projected onto the sphere. Note that on the sides of the projection, severe stretching artifacts occur—this is one of the limitations of this technique.  
 
-![](Media/Recordings/Texturing%20-%20Planar%20Mapping.gif)  
+![](/assets/Recordings/Texturing%20-%20Planar%20Mapping.gif)  
 
 **Tri-planar mapping** extends this concept by projecting the texture from three axes instead of just one. These three axes are often aligned with the world-space basis, and having three projections instead of one allows the shader to dynamically choose the least distorted projection. This is typically done by using the surface normal to determine which projection to apply. By blending between multiple projections, stretching artifacts are eliminated at the cost of additional computations.  
 
@@ -54,7 +52,7 @@ You can learn more about this projection technique in this video: [I Explored Tr
 
 This technique is designed to break the visual repetition that occurs when tiling a texture over a large area, such as a terrain.
 
-[![](Media/Images/Hextiling.gif)](https://github.com/mmikk/hextile-demo)
+[![](/assets/Images/Hextiling.gif)](https://github.com/mmikk/hextile-demo)
 
 It works by generating small UV patches in a hexagonal shape and arbitrarily rotating them to break the repetition. It works particularly well with textures that contain organic elements, which are not organized in a pattern easily recognizable by the human eye.
 

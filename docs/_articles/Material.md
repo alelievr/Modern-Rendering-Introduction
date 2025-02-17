@@ -6,8 +6,6 @@ category: Authoring
 layout: post
 ---
 
-# Material
-
 In real-time computer graphics, a **Material** is an object that contains the various properties needed to render a surface. These properties can include textures, colors, numbers, etc. They usually map directly to the data used in shaders to render the objects, which is why most materials also reference a shader capable of reading the material data. Most 3D engines now provide the ability to create new shaders and use materials to store values for these shaders to render a particular object.
 
 For example, if we take an opaque object with a simple PBR shader that takes albedo, normals, metallic, and roughness as inputs, the material could store values for those inputs as follows:
@@ -26,7 +24,7 @@ Materials can be categorized into three distinct parts. Let's take a look at the
 
 | Unity | Blender |
 | --- | --- |
-| ![](Media/Images/HDRP_Unlit.png) | ![](Media/Images/Blender_Unlit.png) |
+| ![](/assets/Images/HDRP_Unlit.png) | ![](/assets/Images/Blender_Unlit.png) |
 
 > Example of an unlit material in Unity HDRP and Blender.
 
@@ -38,7 +36,7 @@ Another interesting use case for unlit materials is when using pre-computed ligh
 
 | Unity | Blender |
 | --- | --- |
-| ![](Media/Images/HDRP_Lit.png) | ![](Media/Images/Blender_Lit.png) |
+| ![](/assets/Images/HDRP_Lit.png) | ![](/assets/Images/Blender_Lit.png) |
 
 > Example of a standard lit material in Unity HDRP and Blender.
 
@@ -57,7 +55,7 @@ Lit materials and their parametrization is a complex topic that we will explore 
 
 | Unity | Blender |
 | --- | --- |
-| ![](Media/Images/HDRP_Volume.png) | ![](Media/Images/Blender_Volume.png) |
+| ![](/assets/Images/HDRP_Volume.png) | ![](/assets/Images/Blender_Volume.png) |
 
 > Example of a volume material in Unity HDRP and Blender.
 
@@ -77,7 +75,7 @@ Depending on the use case, even some gameplay logic or reaction to environment c
 
 | Unity | Blender |
 | --- | --- |
-| ![](Media/Images/Unity_ShaderGraph.png) | ![](Media/Images/Blender_ShaderEditor.png) |
+| ![](/assets/Images/Unity_ShaderGraph.png) | ![](/assets/Images/Blender_ShaderEditor.png) |
 
 > Example of a shader/material editors in Unity HDRP and Blender.
 
@@ -89,7 +87,7 @@ It is worth noting that the logic of a material graph is often decoupled from th
 
 ### Material Layering
 
-[![](Media/Images/MaterialLayering.png)](https://unity3d.com/files/solutions/photogrammetry/Unity-Photogrammetry-Workflow-Layered-Shader_v2.pdf)
+[![](/assets/Images/MaterialLayering.png)](https://unity3d.com/files/solutions/photogrammetry/Unity-Photogrammetry-Workflow-Layered-Shader_v2.pdf)
 
 > Example of a layered material in Unity HDRP with 3 different surfaces.
 

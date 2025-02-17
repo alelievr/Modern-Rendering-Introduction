@@ -6,8 +6,6 @@ category: RenderPipeline
 layout: post
 ---
 
-# Ray Tracing
-
 Ray tracing is a technique that involves computing the intersection between a ray and a geometric primitive, such as a triangle or a sphere. This method is widely used in various rendering algorithms and provides a straightforward way to simulate how light interacts with objects in a scene.
 
 In fact ray tracing is often the first step when learning to make 3D renders because you can easily achieve compelling results with a few lines of code. This simplicity comes at with a very high performance cost, which makes it hard to use in real-time applications.
@@ -84,7 +82,7 @@ We can put these sequence transformations in dedicated functions with to help us
 
 Now that we have the ray direction and it's origin (it's the camera position), we can calculate intersections with other objects in the scene. Using the intersections formulas we saw in previous chapters, we can test our ray tracer by hardcoding a few objects in hlsl. Each object is assigned a different color and we select the closest hit distance in case of multiple intersections. If nothing is intersected, we just return black color.
 
-![](Media/Recordings/Hardcoded%20Scene%2000.png)
+![](/assets/Recordings/Hardcoded%20Scene%2000.png)
 
 The result might not be impressive right now but there is no point in doing crazy stuff with primitives as our goal will be to render polygonal meshes with the path tracer in the next chapters.
 

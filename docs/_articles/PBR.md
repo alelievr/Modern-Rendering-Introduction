@@ -6,9 +6,7 @@ category: Fundamentals
 layout: post
 ---
 
-# Physically Based Rendering
-
-[![Zero Day: https://developer.nvidia.com/orca/beeple-zero-day](Media/Images/ZeroDayMeasureOne_1.png)](https://developer.nvidia.com/orca/beeple-zero-day)
+[![Zero Day: https://developer.nvidia.com/orca/beeple-zero-day](/assets/Images/ZeroDayMeasureOne_1.png)](https://developer.nvidia.com/orca/beeple-zero-day)
 
 Physically based rendering (PBR) is a method for rendering virtual content using equations derived from real-world observations. It often targets photorealistic rendering but PBR can also be used for stylized rendering when more artistic control is given.
 

@@ -6,8 +6,6 @@ category: Math3D
 layout: post
 ---
 
-# Matrices and Transformations
-
 In computer graphics, matrices are a very useful tool, they are represented by a table of values or a vector of vector. I recommend reading [Matrix Multiplication from 3Blue1Brown](https://www.3blue1brown.com/lessons/matrix-multiplication) before tackling this chapter to understand well the effect of combining matrices together and performing several transformation at the same time. They are extensively used to facilitate the computation of objects position, rotation and scale in the 3D world.
 
 We'll mostly use 2x2, 3x3 and 4x4 square matrices in this chapter, they are the most used type of matrices in computer graphics.
@@ -39,7 +37,7 @@ a_6 & a_7 & a_8
 
 You've probably noticed that the numbers on the diagonal (top left corner to bottom right) are unchanged when we use the two different matrix formats. This is because the row major matrix is the transpose of the column major matrix (and vice versa). Indeed transposing a matrix allows to move back and forth between column and row major formats, you can see this operation as the matrix rotating around it's diagonal.
 
-![](Media/Recordings/Matrix%2000%20Transpose.gif)
+![](/assets/Recordings/Matrix%2000%20Transpose.gif)
 
 In this course, we'll be using row major matrices which is the default in DirectX. This means that we'll be using the pre-multiplication order where the value to transform is placed on the left side of the operand.
 
@@ -77,7 +75,7 @@ $$
 
 If you observe closely the result, we see that the $w$ component of $v$ is a factor of the translation of the matrix. Simply setting is to 1 in the vector before performing the multiplication will make sure that we translate our position vector by exactly the amount inside the translation matrix. Note that we can ignore the $w$ component after performing the multiplication because we only need the 3 dimensions for our resulting position.
 
-![](Media/Recordings/Matrix%2001.gif)
+![](/assets/Recordings/Matrix%2001.gif)
 
 ## Rotation
 
@@ -87,7 +85,7 @@ Let's start by describing what kind of rotation our matrix will perform. The rot
 
 To understand how it works, let's see how to rotate an object around a single axis. The object in the example is going to be a point represented by a 3D vector and the axis will be the red X axis. The purple arrow was added to help visualize the motion.
 
-![](Media/Recordings/Matrix%2003%20Rotation-Point.gif)
+![](/assets/Recordings/Matrix%2003%20Rotation-Point.gif)
 
 The first thing to notive is that the X coordinate isn't affected by a rotation on the X axis, this is similar for the rotation on Y and Z axies and gives us a hit about the matrix we need to do this rotation: some part of the matrix will have the property of the identity matrix so that when the position is multiplied by the matrix, it's X axis is unchanged.
 
@@ -133,7 +131,7 @@ $$
 
 And this is the final form of the rotation matrix on the $X$ axis, if we apply the same logic to the $Y$ and $Z$ axises, we end up with 3 matrices describing the rotation of any angle on the 3 axises of the standard basis. In 3D we often multiply these 3 matrices together to be able to rotate a position in any direction.
 
-![](Media/Recordings/Matrix%2002%20Rotation.gif)
+![](/assets/Recordings/Matrix%2002%20Rotation.gif)
 
 > Note that to rotate a direction, we usually convert the matrix to a 3x3 by removing the bottom row and right column. This is because 4x4 matrices usually encodes multiple transformation at the same time (rotation, translation, scale) and we don't want any translation when rotating a direction (remember a direction is a vector that always start from the origin).
 
@@ -174,7 +172,7 @@ s & 0 & 0 & 0 \\
 \end{bmatrix}
 $$
 
-![](Media/Recordings/Matrix%2003%20Scale.gif)
+![](/assets/Recordings/Matrix%2003%20Scale.gif)
 
 This is called uniform scaling, because the scaling of the object doesn't affect it's overall shape. There is also non-uniform scaling that allows stretching more in certain axises than others:
 
@@ -187,7 +185,7 @@ s_x & 0 & 0 & 0 \\
 \end{bmatrix}
 $$
 
-![](Media/Recordings/Matrix%2003%20Non%20Uniform%20Scale.gif)
+![](/assets/Recordings/Matrix%2003%20Non%20Uniform%20Scale.gif)
 
 ## Projection Matrices
 
@@ -205,13 +203,13 @@ Homogeneous Clip space (or HCLIP for short) is represented by a 4 component vect
 
 Having the CLip space boundary defined by a single value means that it can be represented as a cube centered on the origin. In fact the projection matrix actually transforms the frustum shape into a box with $2*w$ as edge size.
 
-![](Media/Recordings/Matrix%2004%20Frustum%20To%20Box.gif)
+![](/assets/Recordings/Matrix%2004%20Frustum%20To%20Box.gif)
 
 Unlike the translation, rotation or scaling matrix, this transformation actually warps space itself so everything that was in the frustum shape will end-up inside the box. This is the cause of the deformation caused by the perspective (objects appear smaller as they get farther and skewed when they get close to the border of the frustum).
 
 You can see this in action with this animation. Look at how the objects are morphing while following the deformation of the perspective transform. In the bottom left corner, is a view filmed with a camera without perspective, it allows to get a better look at the deformation occurring here.
 
-![](Media/Recordings/Matrix%2005%20Perspective%20Deformation.gif)
+![](/assets/Recordings/Matrix%2005%20Perspective%20Deformation.gif)
 
 So how do we calculate this $w$ value? Let's think about the simplest case where the frustum view have a FoV of 90 degrees and the aspect ratio is squared (vertical FoV = horizontal FoV). To transform this shape into a box what we can do is set the value of $w$ to be equal to the value of $z$. when the $x$ and $y$ coordinates gets divided by $z$ it "flattens" the frustum into a box.
 
@@ -240,7 +238,7 @@ $$
 
 Now that we have a working matrix for a fixed angle, we need to make it work with any FoV between $]0, 180[$ degrees. There is actually a very simple way to handle that, we already know that the z coordinate is not affected by perspective, only the X and Y are, so the two cells of the matrix that we'll change are the two $1$ in the diagonal of the matrix. If  you remember the previous chapter, these numbers are analog to the scale matrix, in fact this scaling the space on the X and Y axises is the simplest solution to handle an arbitrary FoV. With no scale (a value of 1), the FoV is 90 degrees. The smaller the FoV is, the lower the scaling value needs to be to stretch the space accordingly, and vice versa. at FoV 180 degree, the scaling value reaches infinity, that's why this value is excluded from the range of possible FoVs, similarly at 0 FoV, nothing is visible so it's excluded as well.
 
-![](Media/Recordings/Matrix%2006%20FoV.gif)
+![](/assets/Recordings/Matrix%2006%20FoV.gif)
 
 We can calculate the scaling factor needed with trigonometry rules by forming a square triangle between the camera origin and the far plane.
 
@@ -288,7 +286,7 @@ The matrix inverse is a really nice operation, you can see this operation as the
 
 The transformation pipeline in 3D is a series of transformation, usually applied by matrix multiplications that has the purpose to transform a 3D object into 2D surface on a screen.
 
-![](Media/Recordings/Matrix%20Transformation%20Pipeline.png)
+![](/assets/Recordings/Matrix%20Transformation%20Pipeline.png)
 
 ## Camera Relative Rendering
 

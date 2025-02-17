@@ -6,8 +6,6 @@ category: Fundamentals
 layout: post
 ---
 
-# Realtime Computer Graphics
-
 First, I'd like to say a few words about computer graphics, and specifically real-time rendering.
 Real-time graphics leverage the power of hardware acceleration, particularly through GPUs, and employ various approximations and simplifications to optimize the rendering process. It is a field that is at the crossroad of programming, art and physics with a strong emphasis on optimization due to the extreme workloads the graphic pipeline handles.
 

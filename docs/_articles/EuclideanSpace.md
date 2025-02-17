@@ -6,8 +6,6 @@ category: Math3D
 layout: post
 ---
 
-# The Euclidean Space
-
 Imagine a space that perfectly reflects our intuitive understanding of the real world – a space where straight lines are the shortest paths between two points, and distances are measured exactly as we expect. This, in essence, is 3D Euclidean space.
 
 In this course we'll exclusively look at 2D and 3D Euclidean spaces. The 3D space is mainly used represent the virtual world of a scene containing some objects. This is what we call the "World Space" where each object can be identified with a unique position.  
@@ -23,11 +21,11 @@ In this course we'll exclusively look at 2D and 3D Euclidean spaces. The 3D spac
 
 It's worth noting that the we'll be using the Cartesian coordinate system, it establishes an origin point (0, 0, 0) where three axes, X, Y, and Z, intersect at right angles (same in 2D but without the Z axis). These axes become the foundation for specifying the location of every object in our virtual world as every point in space can be reached by combining these 3 axises. 
 
-![](Media/Recordings/Euclidean%20Space%2002.gif)
+![](/assets/Recordings/Euclidean%20Space%2002.gif)
 
 The last thing missing we need to choose before starting to place objects into our space is the handedness, this mean in which direction our axises points. Imagine your right hand with your thumb pointing along the X-axis, your index finger along the Y-axis (pointing upwards), and your middle finger curled along the Z-axis. This configuration defines the positive direction for each axis.
 
-![Handedness](Media/Images/handedness.png) (source: [Bevy documentation](https://bevy-cheatbook.github.io/fundamentals/coords.html))
+![Handedness](/assets/Images/handedness.png) (source: [Bevy documentation](https://bevy-cheatbook.github.io/fundamentals/coords.html))
 
 For this course we'll adopt the left-handed Y-up convention but you can use whichever you prefer as long as you're not mixing conventions during transformations operations.
 

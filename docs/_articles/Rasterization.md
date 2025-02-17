@@ -6,8 +6,6 @@ category: RenderPipeline
 layout: post
 ---
 
-# Rasterization
-
 Rasterization is probably one of the most known and used part of the GPU, this is an essential step when rendering polygonal meshes to the screen. Generally when we talk about rasterization on the GPU we mean to talk about the process of transforming arbitrary geometry into pixels on screen, while this is definition is not wrong, it lacks precision as there are underlying steps that are important to have a good idea of what rasterization is.
 
 > Note that for the sake of clarity I'll only talk about how the rasterizer work in a Discrete GPU. If you're interested in learning how rasterization work with different architectures like TBRD check out [GPU architecture types explained
@@ -15,13 +13,13 @@ Rasterization is probably one of the most known and used part of the GPU, this i
 
 Let's take a look at a diagram representing all the steps happening during rasterization of a simple shader. Note that the order of some steps can change depending on the graphics API or GPU but the overall layout remains similar.
 
-![](Media/Images/SimpleRasterization.png)
+![](/assets/Images/SimpleRasterization.png)
 
 We'll try to explain each step of the diagram in the following sections, but before, something important to keep in mind is that the number of steps in the rasterization pipeline can change depending on the feature used inside the fragment shader. The image above describe the simplest case of a shader that only writes color data and doens't use [discard](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-discard) instructions.
 
 For reference, here's what the pipeline could look like if we take in account depth write and discard operations:
 
-![](Media/Images/Rasterization.png)
+![](/assets/Images/Rasterization.png)
 
 As you can see it's quite a bit more complex and it doesn't include all the cases, we could add MSAA, alpha coverage, VRS, etc.
 
@@ -29,7 +27,7 @@ As you can see it's quite a bit more complex and it doesn't include all the case
 
 The process of rasterization in itself is simple, it consist in converting a series of 2D shapes into pixels. In our case these shapes represent the transformed data from the mesh shaders and the final pixels represent the output image that we want to render. You can see this process as overlaying a grid of the same size as the output image on top of the geometry and then calculating the color of the triangle only if it intersect with the center of each cell.
 
-![](Media/Recordings/Rasterization.gif)
+![](/assets/Recordings/Rasterization.gif)
 
 In a sense you can see this process as turning the input geometry which has infinite resolution (linear) into a finite resolution matching the output image. This process is called [Discretization](https://en.wikipedia.org/wiki/Discretization) and introducing the infamous aliasing that you've probably seen countless times in video games or graphic apps. We'll see that in more details in the following chapter when dealing with textures.
 
@@ -66,7 +64,7 @@ This step removes any non-visible triangles, it helps improving the performance 
 To determine which side the triangle is facing, we use the winding order or winding direction.
 It indicates the rotation direction in which the vertices are arranged to form the triangle. Usually this order is automatically chosen by the 3D modeling software exporting the mesh. There is a rasterizer state that you can configure to adapt to the winding order of the meshes, you can either set it to **Clockwise** or **Counter Clockwise**.
 
-![](Media/Recordings/TriangleIntersection%2004%20Face%20Culling.gif)
+![](/assets/Recordings/TriangleIntersection%2004%20Face%20Culling.gif)
 
 ## Coarse/Tile Rasterization
 
@@ -84,7 +82,7 @@ Now that we know which tile passed the tests, it means that a part of the triang
 
 From this point, the granularity of the work is per pixel.
 
-![](Media/Recordings/Rasterization%20-%20Fine.gif)
+![](/assets/Recordings/Rasterization%20-%20Fine.gif)
 
 ### Fill Mode
 
@@ -98,7 +96,7 @@ When rendering polygons using the rasterizer tou can also specify a **Fill Mode*
 
 Stencil Testing is an important feature of the GPU, it's purpose is to discard pixels (early out the rasterization) to optimize the rendering of an object. It is mainly used to perform special effects such as having an object visible only behind another one or making objects disappear when the camera gets close to see through them.
 
-![](Media/Recordings/Rasterization%20-%20Stencil.gif)
+![](/assets/Recordings/Rasterization%20-%20Stencil.gif)
 
 In order to early out those pixels, the stencil test reads the value of the **Stencil Buffer**, this texture contains 8 bit per pixel of data. This data is then compared with a fixed value to evaluate if the stencil test passes or fails.
 
@@ -150,7 +148,7 @@ Depth Testing is probably one of the most used feature of the rasterizer. It's p
 
 Without Depth Test | With Depth Test
 --- | ---
-![](Media/Recordings/Rasterization%20-%20NoDepth.gif) | ![](Media/Recordings/Rasterization%20-%20Depth.gif)
+![](/assets/Recordings/Rasterization%20-%20NoDepth.gif) | ![](/assets/Recordings/Rasterization%20-%20Depth.gif)
 
 To make sure that the objects are occluded, we use another texture called **Depth Buffer**, this texture stores the depth (not distance) of each pixel on the screen. To check if a new pixel is occluded or not, we just have to compare the depth inside the texture and the depth of the new pixel, if it's larger, then the pixel is discarded as it's occluded and if it's lower, then the pixel can proceed to the following stages of rasterization.
 
@@ -178,7 +176,7 @@ Every attribute (data contained in each vertex) passed to the input of the fragm
 This blending is performed through interpolation using the [barycentric coordinates](https://en.wikipedia.org/wiki/Barycentric_coordinate_system) of the triangle.
 This interpolation ensures a smooth transition of attributes such as position, color, UVs, and more across the surface of the triangle.
 
-![](Media/Recordings/TriangleIntersection%2001.gif)
+![](/assets/Recordings/TriangleIntersection%2001.gif)
 
 This interpolation can be controlled using [Interpolation Modifiers](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-struct#interpolation-modifiers-introduced-in-shader-model-4), they control how values from the mesh vertices are interpolated and even allows disabling interpolation if needed.
 
@@ -200,7 +198,7 @@ One particularity of the rasterizer is that the minimum unit it can process is n
 
 Having the guarantee that at least 4 adjacent pixels are being processed at the same time is neat as it allows to do calculation between the values of those pixels. This is what the [ddx](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-ddx) and [ddy](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-ddy) instructions do, these instruction calculate the rate of change of the value passed in parameter and are essential for texture filtering. We'll see them more in detail in the chapter about filtering and texturing.
 
-![](Media/Recordings/Rasterization%20-%20Quads.gif)
+![](/assets/Recordings/Rasterization%20-%20Quads.gif)
 
 As you can see in this animation, there are quite a few helper pixels dispatched by the GPU (shown in red). This triangle is particularly small if you consider that each cell of the grid is a pixel on screen, but in this particular case, we can see that 50% of the fragment shader invoked by the GPU are only dedicated to helping the computation of the other half. This is one of the main reason why small triangles are inefficient on modern GPUs and that we see more and more software rasterizers bypassing this limitation.
 

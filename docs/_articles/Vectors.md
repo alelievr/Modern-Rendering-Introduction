@@ -6,8 +6,6 @@ category: Math3D
 layout: post
 ---
 
-# Vectors
-
 In 3D we use vectors to store information about a particular object in space. Vectors are composed of several components, each of these component hold a single value. The number of components in a vector is identical to the number of dimensions we're working with, so in 3D we'll use 3 component vectors and in 2D 2 component vectors.
 
 The most intuitive information we can put in a vector is position, we simply write down the coordinate in space of the position following the order of the axis X, Y and Z.
@@ -16,13 +14,13 @@ $$a=(2, 4, -3), b=(-1, 0, 4),...$$
 
 // TODO: reduce point count and add the same color as the one in the image below
 
-![](Media/Recordings/Vectors%2000.png)
+![](/assets/Recordings/Vectors%2000.png)
 
 Another way of thinking about these coordinates is how they represent an arrow in space starting from the origin (0, 0, 0) and going towards the point, in this view the tip of the arrows ends exactly on the coordinate of the vector. This representation of vectors is useful to help visualize what happens when we transform a vector (for example adding two vectors).
 
 This arrow based representation of vectors especially make sense when we represent directions using vectors. A direction is a normalized vector which means that it's length is always 1, this property makes some calculation a lot easier as we'll see in the next chapters. Another way of thinking about direction vectors is that the tip of the arrow is always on the surface of a sphere (or a circle in 2D).
 
-![](Media/Recordings/Vectors%2001.gif)
+![](/assets/Recordings/Vectors%2001.gif)
 
 There are 3 special direction vectors in euclidian space that forms the basis of the space. These are the direction vectors aligned with the main axises of the space:
 $$\hat{i} = (1, 0, 0)$$

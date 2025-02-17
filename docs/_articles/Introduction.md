@@ -6,8 +6,6 @@ category: Fundamentals
 layout: post
 ---
 
-# Introduction to Modern Rendering
-
 Welcome to the introduction to modern rendering! This course will cover everything you need to build a simple rendering engine while leveraging recent hardware capabilities.
 
 To make things simpler, we won't discuss the details of a specific graphics API like D3D12 or Vulkan. Instead, all examples and source code will use the [FlyCube](https://github.com/andrejnau/FlyCube) library. This will allow us to focus on designing a good renderer without worrying too much about the low-level driver interactions of the GPU.

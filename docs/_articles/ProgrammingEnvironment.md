@@ -6,8 +6,6 @@ category: Fundamentals
 layout: post
 ---
 
-# Programming Environment
-
 In this chapter we'll spend a bit of time exploring the offering of IDE, debuggers and profilers available to you when making a 3D application. Unlike programming languages on the CPU that have a very broad offering of products to develop in lots of different languages, there are fewer GPU languages and even fewer IDEs that well support these languages.
 
 ## Shading Languages
