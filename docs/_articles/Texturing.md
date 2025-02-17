@@ -69,6 +69,6 @@ By understanding the various methods available, you can choose the best approach
 - 📄 [Texture mapping - Wikipedia](https://en.wikipedia.org/wiki/Texture_mapping)
 - 📄 [UV mapping - Wikipedia](https://en.wikipedia.org/wiki/UV_mapping)
 - 📄 [Texture Mapping Solutions - Autodesk](https://www.autodesk.com/solutions/texture-mapping)
-- 📄 [UDIM Workflow - Modo | Foundry](https://learn.foundry.com/modo/content/help/pages/uving/udim_workflow.html)
+- 📄 [UDIM Workflow - Modo - Foundry](https://learn.foundry.com/modo/content/help/pages/uving/udim_workflow.html)
 - 📄 [Ptex: Per-face Texture Mapping for Production Rendering - Disney](https://media.disneyanimation.com/technology/opensource/ptex/ptex-slides.pdf)
 - 📄 [HexTile Demo - GitHub](https://github.com/mmikk/hextile-demo)

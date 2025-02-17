@@ -74,9 +74,6 @@ collections:
     permalink: /:collection/:path/
     sort_by: order
 
-ordered_collections:
-  - articles
-
 defaults:
   - scope:
       path: ""

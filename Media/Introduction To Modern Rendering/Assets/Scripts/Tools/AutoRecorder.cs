@@ -71,7 +71,7 @@ public class AutoRecorder : MonoBehaviour
 
     RecorderSettings CreateRecorder()
     {
-        var mediaOutputFolder = Path.Combine(Application.dataPath, "..", "..", "Recordings");
+        var mediaOutputFolder = Path.Combine(Application.dataPath, "..", "..", "..", "docs", "assets", "Recordings");
 
         switch (mode)
         {

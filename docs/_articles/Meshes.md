@@ -49,8 +49,8 @@ Notice that the color of the arrow here reprensents the value of the normal vect
 <table>
   <tr><th>Suzanne</th><th>Lucy</th></tr>
   <tr>
-    <td><img src="Media/Recordings/Meshes%2001.png"  alt="2D" width = 100% height = 100% ></td>
-    <td><img src="Media/Recordings/Meshes%2002.png"  alt="3D" width = 100% height = 100% ></td>
+    <td><img src="/assets/Recordings/Meshes%2001.png"  alt="2D" width = 100% height = 100% ></td>
+    <td><img src="/assets/Recordings/Meshes%2002.png"  alt="3D" width = 100% height = 100% ></td>
   </tr>
 </table>
 
@@ -87,8 +87,8 @@ It may not be obvious from this image but the direction of the tangent and bitan
 <table>
   <tr><th>X</th><th>Y</th></tr>
   <tr>
-    <td><img src="Media/Recordings/Meshes%2009.png"  alt="3D" width = 100% height = 100% ></td>
-    <td><img src="Media/Recordings/Meshes%2008.png"  alt="2D" width = 100% height = 100% ></td>
+    <td><img src="/assets/Recordings/Meshes%2009.png"  alt="3D" width = 100% height = 100% ></td>
+    <td><img src="/assets/Recordings/Meshes%2008.png"  alt="2D" width = 100% height = 100% ></td>
   </tr>
 </table>
 
