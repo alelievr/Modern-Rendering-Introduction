@@ -1,3 +1,11 @@
+---
+title: "The Render Pipeline"
+order: 80
+author: Antoine Lelievre
+category: RenderPipeline 
+layout: post
+---
+
 # The Render Pipeline
 
 Now that we know how to render objects using the GPU, we'll look at the different steps needed to render a complete scene with various graphics features like transparency, shadows, fog, etc. This list of steps is called the **Render Pipeline**, which essentially describes all the processes needed to compose the final image on your screen. Each step in the render pipeline is often referred to as a **Render Pass**, and the render pipeline can then be organized as a list of passes, each playing a different role in the rendering process.

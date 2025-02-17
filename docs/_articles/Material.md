@@ -1,3 +1,11 @@
+---
+title: "Material"
+order: 20
+author: Antoine Lelievre
+category: Authoring 
+layout: post
+---
+
 # Material
 
 In real-time computer graphics, a **Material** is an object that contains the various properties needed to render a surface. These properties can include textures, colors, numbers, etc. They usually map directly to the data used in shaders to render the objects, which is why most materials also reference a shader capable of reading the material data. Most 3D engines now provide the ability to create new shaders and use materials to store values for these shaders to render a particular object.

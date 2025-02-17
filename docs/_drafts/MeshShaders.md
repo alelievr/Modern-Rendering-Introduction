@@ -1,3 +1,11 @@
+---
+title: "Mesh Shaders"
+order: 50
+author: Antoine Lelievre
+category: RenderPipeline 
+layout: post
+---
+
 # Mesh Shaders
 
 Mesh shaders are the modern way of writing shaders that perform the vertex transformation. If implemented correctly, they are faster than the legacy vertex shaders and offer a lot more flexibility in term of data layout for the meshes. On the other size it is more complicated to setup than vertex shaders and there are less examples or tutorials that explain well how to get started on mesh shaders.

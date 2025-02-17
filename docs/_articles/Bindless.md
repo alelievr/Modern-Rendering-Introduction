@@ -1,3 +1,11 @@
+---
+title: "Bindless Bindings"
+order: 70
+author: Antoine Lelievre
+category: RenderPipeline 
+layout: post
+---
+
 # Bindless Bindings
 
 Bindless rendering is an approach that simplifies resource management between the CPU and shaders. To fully understand the benefits of bindless rendering, we first need to explore the concept of bindings.

@@ -1,3 +1,11 @@
+---
+title: "Physically Based Rendering"
+order: 40
+author: Antoine Lelievre
+category: Fundamentals 
+layout: post
+---
+
 # Physically Based Rendering
 
 [![Zero Day: https://developer.nvidia.com/orca/beeple-zero-day](Media/Images/ZeroDayMeasureOne_1.png)](https://developer.nvidia.com/orca/beeple-zero-day)

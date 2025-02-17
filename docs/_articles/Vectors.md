@@ -1,3 +1,11 @@
+---
+title: "Vectors"
+order: 20
+author: Antoine Lelievre
+category: Math3D 
+layout: post
+---
+
 # Vectors
 
 In 3D we use vectors to store information about a particular object in space. Vectors are composed of several components, each of these component hold a single value. The number of components in a vector is identical to the number of dimensions we're working with, so in 3D we'll use 3 component vectors and in 2D 2 component vectors.

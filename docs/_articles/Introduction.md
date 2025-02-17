@@ -1,3 +1,11 @@
+---
+title: "Introduction"
+order: 10
+author: Antoine Lelievre
+category: Fundamentals 
+layout: post
+---
+
 # Introduction to Modern Rendering
 
 Welcome to the introduction to modern rendering! This course will cover everything you need to build a simple rendering engine while leveraging recent hardware capabilities.

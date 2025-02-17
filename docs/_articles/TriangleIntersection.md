@@ -1,3 +1,11 @@
+---
+title: "Triangle Intersection"
+order: 70
+author: Antoine Lelievre
+category: Math3D 
+layout: post
+---
+
 # Triangle intersection
 
 Intersecting a line and a triangle is the most complex and most useful function we'll see in this course. Most of the 3D models we'll render are made of thousands to millions of triangles so it's very important to have a fast triangle intersection algorithm.

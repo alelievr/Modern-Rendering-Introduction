@@ -1,3 +1,11 @@
+---
+title: "Ray Tracing"
+order: 30
+author: Antoine Lelievre
+category: RenderPipeline 
+layout: post
+---
+
 # Ray Tracing
 
 Ray tracing is a technique that involves computing the intersection between a ray and a geometric primitive, such as a triangle or a sphere. This method is widely used in various rendering algorithms and provides a straightforward way to simulate how light interacts with objects in a scene.

@@ -1,3 +1,11 @@
+---
+title: "Matrices and Transformations"
+order: 80
+author: Antoine Lelievre
+category: Math3D 
+layout: post
+---
+
 # Matrices and Transformations
 
 In computer graphics, matrices are a very useful tool, they are represented by a table of values or a vector of vector. I recommend reading [Matrix Multiplication from 3Blue1Brown](https://www.3blue1brown.com/lessons/matrix-multiplication) before tackling this chapter to understand well the effect of combining matrices together and performing several transformation at the same time. They are extensively used to facilitate the computation of objects position, rotation and scale in the 3D world.

@@ -1,3 +1,11 @@
+---
+title: "Rasterization"
+order: 60
+author: Antoine Lelievre
+category: RenderPipeline 
+layout: post
+---
+
 # Rasterization
 
 Rasterization is probably one of the most known and used part of the GPU, this is an essential step when rendering polygonal meshes to the screen. Generally when we talk about rasterization on the GPU we mean to talk about the process of transforming arbitrary geometry into pixels on screen, while this is definition is not wrong, it lacks precision as there are underlying steps that are important to have a good idea of what rasterization is.

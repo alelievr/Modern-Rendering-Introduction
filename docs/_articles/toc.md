@@ -1,9 +1,10 @@
 ---
 title: Table Of Content
 author: Antoine Lelievre 
-category: Modern Rendering
+category: Fundamentals
 layout: post
 order: 42
+hidden: true
 ---
 
 # chapters

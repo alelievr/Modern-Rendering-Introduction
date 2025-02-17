@@ -1,3 +1,11 @@
+---
+title: "Realtime Computer Graphics"
+order: 30
+author: Antoine Lelievre
+category: Fundamentals 
+layout: post
+---
+
 # Realtime Computer Graphics
 
 First, I'd like to say a few words about computer graphics, and specifically real-time rendering.

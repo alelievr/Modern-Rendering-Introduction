@@ -1,3 +1,11 @@
+---
+title: "Renderer Design"
+order: 20
+author: Antoine Lelievre
+category: Fundamentals 
+layout: post
+---
+
 # Renderer Design
 
 The goal of a renderer is to take a 3D scene as input and output a 2D image representing a view of this 3D scene from a certain angle. Generally, renderers are integrated with other piece of software like an editor to create and modify the 3D scene. They can also be part of a more complex system like a game engine with many components running in parallel (physic simulation, audio, gameplay, rendering, etc.). 

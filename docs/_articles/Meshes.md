@@ -1,3 +1,11 @@
+---
+title: "Meshes"
+order: 10
+author: Antoine Lelievre
+category: Authoring 
+layout: post
+---
+
 # Meshes
 
 A mesh is an object that contains a collection of data describing a set of polygonal surfaces. More specifically in this course we'll refer as Mesh a list of data representing a list of triangles forming a 3D object.

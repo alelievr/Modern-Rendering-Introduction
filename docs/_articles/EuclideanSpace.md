@@ -1,3 +1,11 @@
+---
+title: "The Euclidean Space"
+order: 10
+author: Antoine Lelievre
+category: Math3D 
+layout: post
+---
+
 # The Euclidean Space
 
 Imagine a space that perfectly reflects our intuitive understanding of the real world – a space where straight lines are the shortest paths between two points, and distances are measured exactly as we expect. This, in essence, is 3D Euclidean space.

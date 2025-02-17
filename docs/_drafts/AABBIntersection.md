@@ -1,3 +1,11 @@
+---
+title: "AABB Intersection"
+order: 60
+author: Antoine Lelievre
+category: Math3D 
+layout: post
+---
+
 # AABB Intersection
 
 An Axis Aligned Bounding Box is a [bounding volume](https://en.wikipedia.org/wiki/Bounding_volume) represented by a box that has no rotation relative to the origin of the space. In the image below, you can see that each line of the boxes are parallel to one of the basis vectors.

@@ -1,3 +1,11 @@
+---
+title: "Sphere Intersection"
+order: 60
+author: Antoine Lelievre
+category: Math3D 
+layout: post
+---
+
 # Sphere - Ray Intersection
 
 The intersection between a ray and a sphere can lead to no intersection, one intersection or two if the ray pass through the sphere.
