@@ -106,3 +106,9 @@ categories_order:
     id: OptimizationTechniques
   - name: "Miscellaneous"
     id: Miscellaneous
+
+# Add footer configuration
+footer:
+  copyright: ""
+  links:
+  allow_override: true

@@ -86,5 +86,5 @@ Note that in a compute shader we can read and write to the same coordinate in th
 ## References
 
 - 📄 [Calcul générique sur processeur graphique — Wikipédia](https://fr.wikipedia.org/wiki/General-purpose_processing_on_graphics_processing_units)
-- 📄 [Compute Shader Overview - Win32 apps | Microsoft Learn](https://learn.microsoft.com/en-us/windows/win32/direct3d11/direct3d-11-advanced-stages-compute-shader)
+- 📄 [Compute Shader Overview - Win32 apps - Microsoft Learn](https://learn.microsoft.com/en-us/windows/win32/direct3d11/direct3d-11-advanced-stages-compute-shader)
 - 🎥 [Getting Started with Compute Shaders in Unity - YouTube](https://www.youtube.com/watch?v=eDLilzy2mq0)

@@ -331,4 +331,4 @@ For more information about, you can check out [LookMaNoMatrices](https://enkimut
 - 📄 [Projection Matrix Introduction - Scratchapixel](https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/projection-matrix-introduction.html)
 - 📄 [Multiplicative inverse - Wikipedia](https://en.wikipedia.org/wiki/Multiplicative_inverse)
 - 📄 [The Direct3D Transformation Pipeline - Microsoft Learn](https://learn.microsoft.com/en-us/windows/win32/dxtecharts/the-direct3d-transformation-pipeline)
-- 📄 [Viewports and Clipping - Direct3D 9 | Microsoft Learn](https://learn.microsoft.com/en-us/windows/win32/direct3d9/viewports-and-clipping)
+- 📄 [Viewports and Clipping - Direct3D 9 - Microsoft Learn](https://learn.microsoft.com/en-us/windows/win32/direct3d9/viewports-and-clipping)

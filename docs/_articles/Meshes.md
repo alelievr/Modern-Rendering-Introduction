@@ -153,5 +153,5 @@ Meshes are the foundation of 3D modeling and rendering, offering a versatile str
 - 📄 [List of common 3D test models - Wikipedia](https://en.wikipedia.org/wiki/List_of_common_3D_test_models)
 - 📄 [List of common 3D test models - Github](https://github.com/alecjacobson/common-3d-test-models)
 - 📄 [glTF Sample Assets - Khronos Group](https://github.com/KhronosGroup/glTF-Sample-Assets)
-- 📄 [Texture Coordinates - Direct3D 9 | Microsoft Learn](https://learn.microsoft.com/en-us/windows/win32/direct3d9/texture-coordinates)
+- 📄 [Texture Coordinates - Direct3D 9 - Microsoft Learn](https://learn.microsoft.com/en-us/windows/win32/direct3d9/texture-coordinates)
 - 📄 [FBX - Wikipedia](https://en.wikipedia.org/wiki/FBX)

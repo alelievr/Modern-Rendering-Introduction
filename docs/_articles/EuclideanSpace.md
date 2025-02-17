@@ -35,4 +35,4 @@ With this foundational understanding of Euclidean space in hand, we're now equip
 
 - 📄 [Cartesian coordinate system - Wikipedia](https://en.wikipedia.org/wiki/Cartesian_coordinate_system)
 - 📄 [Euclidean space - Wikipedia](https://en.wikipedia.org/wiki/Euclidean_space)
-- 📄 [Coordinate Systems (Direct3D 9) - Win32 apps | Microsoft Learn](https://learn.microsoft.com/en-us/windows/win32/direct3d9/coordinate-systems)
+- 📄 [Coordinate Systems (Direct3D 9) - Win32 apps - Microsoft Learn](https://learn.microsoft.com/en-us/windows/win32/direct3d9/coordinate-systems)
