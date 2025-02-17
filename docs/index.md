@@ -5,4 +5,4 @@
 layout: home
 ---
 
-TODO!
+Welcome to the Modern Rendering Introduction course! 
