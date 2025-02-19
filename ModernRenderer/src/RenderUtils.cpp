@@ -5,19 +5,34 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include "GLFW/glfw3native.h"
 
-std::shared_ptr<BindingSetLayout> RenderUtils::CreateLayoutSet(std::shared_ptr<Device> device, const Camera& camera, const std::vector<BindKey>& keys)
+std::shared_ptr<BindingSetLayout> RenderUtils::CreateLayoutSet(std::shared_ptr<Device> device, const Camera& camera, const std::vector<BindKey>& keys, const int flags)
 {
 	// Add bindless textures and material datas
 	std::vector<BindKey> allBindings = keys;
-	allBindings.emplace_back(camera.cameraDataKeyVertex);
-	allBindings.emplace_back(camera.cameraDataKeyFragment);
-	allBindings.emplace_back(camera.cameraDataKeyMesh);
-	allBindings.emplace_back(camera.cameraDataKeyAmplification);
-	allBindings.emplace_back(Material::materialBufferBindKey);
-	allBindings.insert(allBindings.end(), MeshPool::bindKeys.begin(), MeshPool::bindKeys.end());
-	allBindings.insert(allBindings.end(), Scene::bindKeys.begin(), Scene::bindKeys.end());
-	for (const auto& textureKeys : Texture::textureBufferBindKeys)
-		allBindings.emplace_back(textureKeys);
+	
+	if (flags & CameraData)
+	{
+		allBindings.emplace_back(camera.cameraDataKeyVertex);
+		allBindings.emplace_back(camera.cameraDataKeyFragment);
+		allBindings.emplace_back(camera.cameraDataKeyMesh);
+		allBindings.emplace_back(camera.cameraDataKeyAmplification);
+	}
+
+	if (flags & MaterialBuffers)
+		allBindings.emplace_back(Material::materialBufferBindKey);
+
+	if (flags & MeshPool)
+		allBindings.insert(allBindings.end(), MeshPool::bindKeys.begin(), MeshPool::bindKeys.end());
+	
+	if (flags & SceneInstances)
+		allBindings.insert(allBindings.end(), Scene::bindKeys.begin(), Scene::bindKeys.end());
+
+	if (flags & TextureList)
+	{
+		for (const auto& textureKeys : Texture::textureBufferBindKeys)
+			allBindings.emplace_back(textureKeys);
+	}
+
 	return device->CreateBindingSetLayout(allBindings);
 }
 
@@ -44,19 +59,31 @@ void RenderUtils::UploadBufferData(std::shared_ptr<Device> device, std::shared_p
 	fence->Wait(fenceValue);
 }
 
-std::shared_ptr<BindingSet> RenderUtils::CreateBindingSet(std::shared_ptr<Device> device, std::shared_ptr<BindingSetLayout> layout, const Camera& camera, const std::vector<BindingDesc>& descs)
+std::shared_ptr<BindingSet> RenderUtils::CreateBindingSet(std::shared_ptr<Device> device, std::shared_ptr<BindingSetLayout> layout, const Camera& camera, const std::vector<BindingDesc>& descs, const int flags)
 {
 	std::vector<BindingDesc> allBindings = descs;
 
-	allBindings.emplace_back(camera.cameraDataDescVertex);
-	allBindings.emplace_back(camera.cameraDataDescFragment);
-	allBindings.emplace_back(camera.cameraDataDescMesh);
-	allBindings.emplace_back(camera.cameraDataDescAmplification);
-	allBindings.emplace_back(Material::materialBufferBinding);
-	allBindings.insert(allBindings.end(), MeshPool::bindingDescs.begin(), MeshPool::bindingDescs.end());
-	allBindings.insert(allBindings.end(), Scene::bindingDescs.begin(), Scene::bindingDescs.end());
-	for (const auto& textureBindings : Texture::textureBufferBindings)
-		allBindings.emplace_back(textureBindings);
+	if (flags & CameraData)
+	{
+		allBindings.emplace_back(camera.cameraDataDescVertex);
+		allBindings.emplace_back(camera.cameraDataDescFragment);
+		allBindings.emplace_back(camera.cameraDataDescMesh);
+		allBindings.emplace_back(camera.cameraDataDescAmplification);
+	}
+	if (flags & MaterialBuffers)
+		allBindings.emplace_back(Material::materialBufferBinding);
+	
+	if (flags & MeshPool)
+		allBindings.insert(allBindings.end(), MeshPool::bindingDescs.begin(), MeshPool::bindingDescs.end());
+
+	if (flags & SceneInstances)
+		allBindings.insert(allBindings.end(), Scene::bindingDescs.begin(), Scene::bindingDescs.end());
+
+	if (flags & TextureList)
+	{
+		for (const auto& textureBindings : Texture::textureBufferBindings)
+			allBindings.emplace_back(textureBindings);
+	}
 
 	auto set = device->CreateBindingSet(layout);
 	set->WriteBindings(allBindings);

@@ -10,9 +10,19 @@
 class RenderUtils
 {
 public:
-	static std::shared_ptr<BindingSetLayout> CreateLayoutSet(std::shared_ptr<Device> device, const Camera& camera, const std::vector<BindKey>& keys);
+	enum BindingFlags
+	{
+		TextureList = 1 << 0,
+		MeshPool = 1 << 1,
+		CameraData = 1 << 2,
+		MaterialBuffers = 1 << 3,
+		SceneInstances = 1 << 4,
+		All = ~0,
+	};
+
+	static std::shared_ptr<BindingSetLayout> CreateLayoutSet(std::shared_ptr<Device> device, const Camera& camera, const std::vector<BindKey>& keys, const int flags);
 	static void UploadBufferData(std::shared_ptr<Device> device, std::shared_ptr<Resource> buffer, const void* data, size_t size);
-	static std::shared_ptr<BindingSet> CreateBindingSet(std::shared_ptr<Device> device, std::shared_ptr<BindingSetLayout> layout, const Camera& camera, const std::vector<BindingDesc>& descs);
+	static std::shared_ptr<BindingSet> CreateBindingSet(std::shared_ptr<Device> device, std::shared_ptr<BindingSetLayout> layout, const Camera& camera, const std::vector<BindingDesc>& descs, const int flags);
 	static void SetBackgroundColor(GLFWwindow* window, COLORREF color);
 	static void UploadTextureData(const std::shared_ptr<Resource>& resource, const std::shared_ptr<Device>& device, uint32_t subresource, const void* data, int width, int height, int channels, int bytePerChannel);
 

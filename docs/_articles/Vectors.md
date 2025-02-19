@@ -35,12 +35,15 @@ Note that vectors are not limited to storing position and direction data, they c
 
 I highly recommend watching this excellent series of video to build up your intuition about vectors and other mathematical tools related to linear algebra: [Essence of linear algebra](https://www.youtube.com/watch?v=fNk_zzaMoSs&list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab). There is also a text version along with some good interactive exercises if you prefer reading: https://www.3blue1brown.com/topics/linear-algebra
 
-If you would like something more mathemacical oriented, then I recommend reading [immersivemath](https://immersivemath.com/ila/index.html), it has amazing interactive illustrations and goes more deeply into the mathematical equations of linear algebra.
+If you would like something more math oriented, then I recommend reading [immersivemath](https://immersivemath.com/ila/index.html), it has amazing interactive illustrations and goes more deeply into the mathematical equations of linear algebra.
 
 There is also a very complete book about mathematics in computer graphics: [Mathematics for 3D Game Programming and Computer Graphics](https://canvas.projekti.info/ebooks/Mathematics%20for%203D%20Game%20Programming%20and%20Computer%20Graphics,%20Third%20Edition.pdf), it's quite old but the mathematical foundations behind graphics rendering hasn't changed so it's still a very good reference.
+
+Another amazing reference is the book [The Nature Of Code](https://natureofcode.com/). It offers a captivating exploration of various algorithms and simulations, presenting them in an accessible and engaging way. It also serves as an excellent introduction to foundational concepts like vectors, making it a valuable resource for beginners!
 
 ## References
 
 - 🎥 [Essence of Linear Algebra - YouTube](https://www.youtube.com/watch?v=fNk_zzaMoSs&list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab)
 - 📄 [Linear Algebra - 3Blue1Brown](https://www.3blue1brown.com/topics/linear-algebra)
 - 📄 [Interactive Linear Algebra - ImmersiveMath](https://immersivemath.com/ila/index.html)
+- 📄 [Vectors - The Nature Of Code](https://natureofcode.com/vectors/)

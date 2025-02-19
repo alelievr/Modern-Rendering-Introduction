@@ -40,9 +40,9 @@ void Sky::LoadHDRI(std::shared_ptr<Device> device, const char* filepath)
 
     // Load HDRI Sky shader
     std::shared_ptr<Shader> pixelMeshshader = device->CompileShader(
-        { MODERN_RENDERER_ASSETS_PATH "shaders/Sky.hlsl", "mesh", ShaderType::kPixel, "6_5" });
+        { MODERN_RENDERER_ASSETS_PATH "shaders/Sky.hlsl", "mesh", ShaderType::kMesh, "6_5" });
     std::shared_ptr<Shader> meshShader = device->CompileShader(
-        { MODERN_RENDERER_ASSETS_PATH "shaders/Sky.hlsl", "fragment", ShaderType::kMesh, "6_5" });
+        { MODERN_RENDERER_ASSETS_PATH "shaders/Sky.hlsl", "fragment", ShaderType::kPixel, "6_5" });
     skyProgram = device->CreateProgram({ meshShader, pixelMeshshader });
 
     // Create Render pass
@@ -64,11 +64,11 @@ void Sky::Initialize(std::shared_ptr<Device> device, Camera* camera)
 {
 	this->device = device;
 
-    BindKey bindKey = { ShaderType::kCompute, ViewType::kTexture, 0, 0 };
+    BindKey bindKey = { ShaderType::kCompute, ViewType::kTexture, 0, 4 };
     BindingDesc bindingDesc = { bindKey, hdriSkyTextureView };
 
-    skyLayout = RenderUtils::CreateLayoutSet(device, *camera, { bindKey });
-    skyBindingSet = RenderUtils::CreateBindingSet(device, skyLayout, *camera, { bindingDesc });
+    skyLayout = RenderUtils::CreateLayoutSet(device, *camera, { bindKey }, RenderUtils::CameraData | RenderUtils::TextureList);
+    skyBindingSet = RenderUtils::CreateBindingSet(device, skyLayout, *camera, { bindingDesc }, RenderUtils::CameraData | RenderUtils::TextureList);
 
     GraphicsPipelineDesc skyPipelineDesc = {
         skyProgram,
@@ -77,6 +77,7 @@ void Sky::Initialize(std::shared_ptr<Device> device, Camera* camera)
         skyRenderPass,
     };
     skyPipelineDesc.rasterizer_desc = { FillMode::kSolid, CullMode::kBack, 0 };
+    skyPipelineDesc.depth_stencil_desc = { true, ComparisonFunc::kLessEqual, false };
 
     skyPipeline = device->CreateGraphicsPipeline(skyPipelineDesc);
 }
@@ -102,7 +103,8 @@ void Sky::Render(std::shared_ptr<CommandList> cmd, std::shared_ptr<Resource> col
     cmd->ResourceBarrier({ { depthTexture, ResourceState::kCommon, ResourceState::kDepthStencilWrite } });
     cmd->BeginRenderPass(skyRenderPass, skyFramebuffer, clearDesc);
 
-    cmd->DrawIndexed(3, 1, 0, 0, 0);
+    // Fullscreen dispatch mesh
+    cmd->DispatchMesh(1);
 
     cmd->EndRenderPass();
     cmd->ResourceBarrier({ { colorTexture, ResourceState::kRenderTarget, ResourceState::kCommon } });

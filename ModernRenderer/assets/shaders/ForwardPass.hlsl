@@ -1,6 +1,6 @@
 #include "Common.hlsl"
 
-Texture2D<float4> _SkyTextureLatLong : register(t0, space4);
+Texture2D<uint> _VisibilityTexture : register(t0, space4);
 
 struct MeshToFragment
 {
@@ -26,6 +26,7 @@ void mesh(
     uint groupIndex : SV_GroupIndex,
     out indices uint3 triangles[1],
     out vertices MeshToFragment vertices[3])
+    // TODO: use primitive attributes to send meshlet ID to shaders
 {
     SetMeshOutputCounts(3, 1);
     
@@ -35,17 +36,12 @@ void mesh(
     vertices[2] = GetFullscreenTriangleVertex(2);
 }
 
-float4 fragment(MeshToFragment input) : SV_TARGET
+float4 fragment(MeshToFragment input) : SV_TARGET0
 {
-    return float4(1, 1, 0, 1);
-    MaterialData material = LoadMaterialData(materialIndex);
-    float3 positionRWS = TransformHClipToCameraRelativeWorld(input.positionCS);
-    float3 dir = -normalize(positionRWS);
+    uint visibilityData = _VisibilityTexture.Load(uint3(input.positionCS.xy, 0));
     
-    // Encode direction to 2D latlong coordinates
-    float2 uv = DirectionToLatLongCoordinate(dir);
+    uint materialID, meshletID, triangleID;
+    DecodeVisibility(visibilityData, materialID, meshletID, triangleID);
     
-    float4 skyColor = _SkyTextureLatLong.SampleLevel(linearRepeatSampler, uv, 0);
-    
-    return skyColor;
+    return float4(triangleID / 255.0, 0, 1, 1);
 }

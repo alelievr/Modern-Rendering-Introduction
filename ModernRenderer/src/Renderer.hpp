@@ -18,7 +18,7 @@ private:
     class Controls : InputEvents
     {
     public:
-		RendererMode rendererMode = RendererMode::PathTracing;
+		RendererMode rendererMode = RendererMode::Rasterization;
         bool screenshotNextFrame = false;
 
         Controls() {}
@@ -40,6 +40,7 @@ private:
     std::shared_ptr<Resource> mainColorTexture; // Store the color of the scene
     std::shared_ptr<Resource> mainDepthTexture; // Store the depth of the scene
     std::shared_ptr<View> mainColorTextureView;
+    std::shared_ptr<View> mainColorRenderTargetView;
     std::shared_ptr<View> mainDepthTextureView;
 
     // Shader programs
