@@ -18,14 +18,16 @@ RenderPipeline::RenderPipeline(std::shared_ptr<Device> device, const AppSize& ap
     visibilityTexture->CommitMemory(MemoryType::kDefault);
     visibilityTexture->SetName("ColorTexture");
     ViewDesc outputTextureViewDesc = {};
-    outputTextureViewDesc.view_type = ViewType::kRWTexture;
+    outputTextureViewDesc.view_type = ViewType::kRenderTarget;
     outputTextureViewDesc.dimension = ViewDimension::kTexture2D;
+    visibilityRenderTargetView = device->CreateView(visibilityTexture, outputTextureViewDesc);
+    outputTextureViewDesc.view_type = ViewType::kTexture;
     visibilityTextureView = device->CreateView(visibilityTexture, outputTextureViewDesc);
 
     // Compute stage allows to bind to every shader stages
     BindKey drawRootConstant = { ShaderType::kCompute, ViewType::kConstantBuffer, 1, 0, 3, UINT32_MAX, true };
-    objectLayoutSet = RenderUtils::CreateLayoutSet(device, camera, { drawRootConstant });
-    objectBindingSet = RenderUtils::CreateBindingSet(device, objectLayoutSet, camera, { { drawRootConstant, nullptr } });
+    objectLayoutSet = RenderUtils::CreateLayoutSet(device, camera, { drawRootConstant }, RenderUtils::All);
+    objectBindingSet = RenderUtils::CreateBindingSet(device, objectLayoutSet, camera, { { drawRootConstant, nullptr } }, RenderUtils::All);
 }
 
 void RenderPipeline::DrawOpaqueObjects(std::shared_ptr<CommandList> cmd, std::shared_ptr<BindingSet> set, std::shared_ptr<Pipeline> pipeline)
@@ -80,7 +82,7 @@ void RenderPipeline::RenderVisibility(std::shared_ptr<CommandList> cmd)
         desc.render_pass = visibilityRenderPass;
         desc.width = appSize.width();
         desc.height = appSize.height();
-        desc.colors = { visibilityTextureView };
+        desc.colors = { visibilityRenderTargetView };
         desc.depth_stencil = depthTextureView;
 
         visibilityFrameBuffer = device->CreateFramebuffer(desc);
@@ -90,7 +92,7 @@ void RenderPipeline::RenderVisibility(std::shared_ptr<CommandList> cmd)
     {
         ShaderDesc visibilityMeshShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/VisibilityPass.hlsl", "mesh", ShaderType::kMesh, "6_5" };
         std::shared_ptr<Shader> visibilityMeshShader = device->CompileShader(visibilityMeshShaderDesc);
-        ShaderDesc visibilityFragmentShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/VisibilityPass.hlsl", "fragment", ShaderType::kMesh, "6_5" };
+        ShaderDesc visibilityFragmentShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/VisibilityPass.hlsl", "fragment", ShaderType::kPixel, "6_5" };
         std::shared_ptr<Shader> visibilityFragmentShader = device->CompileShader(visibilityFragmentShaderDesc);
 
         visibilityProgram = device->CreateProgram({ visibilityMeshShader, visibilityFragmentShader });
@@ -120,6 +122,81 @@ void RenderPipeline::RenderVisibility(std::shared_ptr<CommandList> cmd)
     cmd->ResourceBarrier({ { depthTexture, ResourceState::kDepthStencilWrite, ResourceState::kCommon } });
 }
 
+void RenderPipeline::RenderForwardOpaque(std::shared_ptr<CommandList> cmd)
+{
+    if (!forwardRenderPass)
+    {
+        RenderPassDepthStencilDesc depthStencilDesc = {
+            gli::FORMAT_D32_SFLOAT_S8_UINT_PACK64,
+            RenderPassLoadOp::kLoad, RenderPassStoreOp::kStore,
+            RenderPassLoadOp::kLoad, RenderPassStoreOp::kStore
+        };
+        RenderPassColorDesc colorDesc = { gli::FORMAT_RGBA8_UNORM_PACK8, RenderPassLoadOp::kLoad, RenderPassStoreOp::kStore };
+        RenderPassDesc renderPassDesc = {
+            { colorDesc },
+            depthStencilDesc
+        };
+        forwardRenderPass = device->CreateRenderPass(renderPassDesc);
+    }
+
+    if (!forwardFrameBuffer)
+    {
+        FramebufferDesc desc = {};
+        desc.render_pass = forwardRenderPass;
+        desc.width = appSize.width();
+        desc.height = appSize.height();
+        desc.colors = { colorTextureView };
+        desc.depth_stencil = depthTextureView;
+
+        forwardFrameBuffer = device->CreateFramebuffer(desc);
+    }
+
+    if (!forwardLayoutSet)
+    {
+        // Compute stage allows to bind to every shader stages
+        BindKey drawRootConstant = { ShaderType::kCompute, ViewType::kConstantBuffer, 1, 0, 3, UINT32_MAX, true };
+        BindKey visibilityTexture = { ShaderType::kPixel, ViewType::kTexture, 0, 4 };
+        forwardLayoutSet = RenderUtils::CreateLayoutSet(device, *camera, { drawRootConstant, visibilityTexture }, RenderUtils::All);
+        forwardBindingSet = RenderUtils::CreateBindingSet(device, forwardLayoutSet, *camera, { { drawRootConstant, nullptr }, { visibilityTexture, visibilityTextureView } }, RenderUtils::All);
+    }
+
+    if (!forwardPipeline)
+    {
+        ShaderDesc forwardMeshShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/ForwardPass.hlsl", "mesh", ShaderType::kMesh, "6_5" };
+        std::shared_ptr<Shader> forwardMeshShader = device->CompileShader(forwardMeshShaderDesc);
+        ShaderDesc forwardFragmentShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/ForwardPass.hlsl", "fragment", ShaderType::kPixel, "6_5" };
+        std::shared_ptr<Shader> forwardFragmentShader = device->CompileShader(forwardFragmentShaderDesc);
+
+        forwardProgram = device->CreateProgram({ forwardMeshShader, forwardFragmentShader });
+
+        GraphicsPipelineDesc meshShaderPipelineDesc = {
+            forwardProgram,
+            forwardLayoutSet,
+            {},
+            forwardRenderPass,
+        };
+        meshShaderPipelineDesc.rasterizer_desc = { FillMode::kSolid, CullMode::kBack, 0 };
+
+        forwardPipeline = device->CreateGraphicsPipeline(meshShaderPipelineDesc);
+    }
+
+    ClearDesc clearDesc = { { { 0.0, 0.2, 0.4, 1.0 } } }; // Clear Color
+    cmd->ResourceBarrier({ { colorTexture, ResourceState::kCommon, ResourceState::kRenderTarget } });
+    cmd->ResourceBarrier({ { depthTexture, ResourceState::kCommon, ResourceState::kDepthStencilWrite} });
+
+    cmd->BeginRenderPass(forwardRenderPass, forwardFrameBuffer, clearDesc);
+
+    // Draw fullscreen forward pass
+    cmd->BindPipeline(forwardPipeline);
+    cmd->BindBindingSet(forwardBindingSet);
+    cmd->DispatchMesh(1);
+
+    cmd->EndRenderPass();
+
+    cmd->ResourceBarrier({ { colorTexture, ResourceState::kRenderTarget, ResourceState::kCommon } });
+    cmd->ResourceBarrier({ { depthTexture, ResourceState::kDepthStencilWrite, ResourceState::kCommon } });
+}
+
 void RenderPipeline::Render(std::shared_ptr<CommandList> cmd, std::shared_ptr<Resource> backBuffer, std::shared_ptr<Scene> scene)
 {
 	this->scene = scene;
@@ -136,7 +213,10 @@ void RenderPipeline::Render(std::shared_ptr<CommandList> cmd, std::shared_ptr<Re
     // Forward opaque pass:
     // Transforms visibility information direclty into color
     // TODO: Gbuffer path
-    //RenderForwardOpaque();
+    RenderForwardOpaque(cmd);
+
+    // Render sky where no opaque objects are visible
+    scene->sky.Render(cmd, colorTexture, colorTextureView, depthTexture, depthTextureView);
 
     // TODO: transparency
 }

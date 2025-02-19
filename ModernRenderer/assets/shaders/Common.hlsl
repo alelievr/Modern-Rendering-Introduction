@@ -1,5 +1,11 @@
 #pragma once
 
+#define PI          3.14159265358979323846
+#define INV_PI      0.31830988618379067154
+#define HALF_PI     1.57079632679489661923
+#define LOG2_E      1.44269504088896340736
+#define PI_DIV_FOUR 0.78539816339744830961
+
 cbuffer CameraData : register(b0, space0)
 {
     float4x4 viewMatrix;
@@ -149,12 +155,48 @@ float3 GetRandomColor(uint seed)
 // v0 = (-1, -1, 1), v1 = (3, -1, 1), v2 = (-1, 3, 1).
 float2 GetFullScreenTriangleTexCoord(uint vertexID)
 {
-    return float2((vertexID << 1) & 2, 1.0 - (vertexID & 2));
+    return float2((vertexID << 1) & 2, (vertexID & 2));
 }
 
 float4 GetFullScreenTriangleVertexPosition(uint vertexID, float z = 1)
 {
     // note: the triangle vertex position coordinates are x2 so the returned UV coordinates are in range -1, 1 on the screen.
-    float2 uv = float2((vertexID << 1) & 2, vertexID & 2);
+    float2 uv = float2(vertexID & 2, (vertexID << 1) & 2);
     return float4(uv * 2.0 - 1.0, z, 1.0);
+}
+
+float2 DirectionToLatLongCoordinate(float3 unDir)
+{
+    float3 dir = normalize(unDir);
+    // coordinate frame is (-Z, X) meaning negative Z is primary axis and X is secondary axis.
+    return float2(1.0 - 0.5 * INV_PI * atan2(dir.x, -dir.z), asin(dir.y) * INV_PI + 0.5);
+}
+
+float3 LatlongToDirectionCoordinate(float2 coord)
+{
+    float theta = coord.y * PI;
+    float phi = (coord.x * 2.f * PI - PI * 0.5f);
+
+    float cosTheta = cos(theta);
+    float sinTheta = sqrt(1.0 - min(1.0, cosTheta * cosTheta));
+    float cosPhi = cos(phi);
+    float sinPhi = sin(phi);
+
+    float3 direction = float3(sinTheta * cosPhi, cosTheta, sinTheta * sinPhi);
+    direction.xy *= -1.0;
+    return direction;
+}
+
+uint EncodeVisibility(uint materialID, uint meshletID, uint triangleID)
+{
+    return (materialID & 0xFF)
+        | ((meshletID & 0xFFFF) << 8)
+        | ((triangleID & 0xFF) << 24);
+}
+
+void DecodeVisibility(uint visibility, out uint materialID, out uint meshletID, out uint triangleID)
+{
+    materialID = visibility & 0xFF;
+    meshletID = (visibility >> 8) & 0xFFFF;
+    triangleID = visibility >> 24;
 }

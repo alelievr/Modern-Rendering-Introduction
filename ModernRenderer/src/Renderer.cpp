@@ -15,7 +15,7 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     CompileShaders();
     CreatePipelineObjects();
 
-    renderPipeline = std::make_shared<RenderPipeline>(device, app.GetAppSize(), camera, mainColorTexture, mainColorTextureView, mainDepthTexture, mainDepthTextureView);
+    renderPipeline = std::make_shared<RenderPipeline>(device, app.GetAppSize(), camera, mainColorTexture, mainColorRenderTargetView, mainDepthTexture, mainDepthTextureView);
 }
 
 Renderer::~Renderer()
@@ -32,6 +32,8 @@ void Renderer::AllocateRenderTargets()
     outputTextureViewDesc.view_type = ViewType::kRWTexture;
     outputTextureViewDesc.dimension = ViewDimension::kTexture2D;
     mainColorTextureView = device->CreateView(mainColorTexture, outputTextureViewDesc);
+    outputTextureViewDesc.view_type = ViewType::kRenderTarget;
+    mainColorRenderTargetView = device->CreateView(mainColorTexture, outputTextureViewDesc);
 
     mainDepthTexture = device->CreateTexture(TextureType::k2D, BindFlag::kDepthStencil | BindFlag::kShaderResource, gli::format::FORMAT_D32_SFLOAT_S8_UINT_PACK64, 1, appSize.width(), appSize.height(), 1, 1);
     mainDepthTexture->CommitMemory(MemoryType::kDefault);
@@ -50,7 +52,7 @@ void Renderer::AllocateRenderTargets()
     desc.render_pass = loadStoreColorRenderPass;
     desc.width = appSize.width();
     desc.height = appSize.height();
-    desc.colors = { mainColorTextureView };
+    desc.colors = { mainColorRenderTargetView };
     desc.depth_stencil = mainDepthTextureView;
     mainColorFrameBuffer = device->CreateFramebuffer(desc);
 }

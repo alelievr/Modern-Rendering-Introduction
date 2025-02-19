@@ -1,16 +1,19 @@
 #include "Common.hlsl"
 #include "MeshUtils.hlsl"
 
+Texture2D<uint> _VisibilityTexture : register(t0, space4);
+
+// TODO
 struct VisibilityMeshToFragment
 {
     float4 positionCS : SV_Position;
-    nointerpolation uint packedVisibilityData : TEXCOORD0;
+    // UV?
 };
 
-[NumThreads(128, 1, 1)]
+[NumThreads(1, 1, 1)]
 [OutputTopology("triangle")]
 void mesh(
-    uint threadID : SV_GroupThreadID,
+    uint threadId : SV_GroupThreadID,
     uint groupID : SV_GroupID,
     uint groupIndex : SV_GroupIndex,
     out indices uint3 triangles[MAX_OUTPUT_PRIMITIVES],
@@ -25,27 +28,31 @@ void mesh(
 
     for (uint i = 0; i < 2; ++i)
     {
-        const uint primitiveId = threadID + i * 128;
+        const uint primitiveId = threadId + i * 128;
         if (primitiveId < meshlet.triangleCount)
         {
             triangles[primitiveId] = LoadPrimitive(meshlet.triangleOffset, primitiveId);
         }
     }
     
-    if (threadID < meshlet.vertexCount)
+    if (threadId < meshlet.vertexCount)
     {
-        uint vertexIndex = meshletIndices[meshlet.vertexoffset + threadID];
+        uint vertexIndex = meshletIndices[meshlet.vertexoffset + threadId];
         MeshToFragment vertex = LoadVertexAttributes(groupID, vertexIndex, instanceID);
         VisibilityMeshToFragment vout;
         
         vout.positionCS = vertex.positionCS;
-        vout.packedVisibilityData = EncodeVisibility(materialIndex, meshletIndex, threadID);
 
-        vertices[threadID] = vout;
+        vertices[threadId] = vout;
     }
 }
 
-uint fragment(VisibilityMeshToFragment input) : SV_TARGET0
+float4 fragment(VisibilityMeshToFragment input) : SV_TARGET0
 {
-    return input.packedVisibilityData;
+    uint visibilityData = _VisibilityTexture.Load(uint3(input.positionCS.xy, 0));
+    
+    uint materialID, meshletID, triangleID;
+    DecodeVisibility(visibilityData, materialID, meshletID, triangleID);
+    
+    return float4(triangleID / 255.0, 0, 1, 1);
 }
