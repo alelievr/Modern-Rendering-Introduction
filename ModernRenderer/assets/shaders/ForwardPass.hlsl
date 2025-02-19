@@ -1,14 +1,22 @@
 #include "Common.hlsl"
-#include "MeshUtils.hlsl"
 
 Texture2D<uint> _VisibilityTexture : register(t0, space4);
 
-// TODO
-struct VisibilityMeshToFragment
+struct MeshToFragment
 {
-    float4 positionCS : SV_Position;
-    // UV?
+    float4 positionCS : SV_POSITION;
+    float2 uv : TEXCOORD0;
 };
+
+MeshToFragment GetFullscreenTriangleVertex(uint id)
+{
+    MeshToFragment v;
+    
+    v.positionCS = GetFullScreenTriangleVertexPosition(id);
+    v.uv = GetFullScreenTriangleTexCoord(id);
+
+    return v;
+}
 
 [NumThreads(1, 1, 1)]
 [OutputTopology("triangle")]
@@ -16,38 +24,19 @@ void mesh(
     uint threadId : SV_GroupThreadID,
     uint groupID : SV_GroupID,
     uint groupIndex : SV_GroupIndex,
-    out indices uint3 triangles[MAX_OUTPUT_PRIMITIVES],
-    out vertices VisibilityMeshToFragment vertices[MAX_OUTPUT_VERTICES])
+    out indices uint3 triangles[1],
+    out vertices MeshToFragment vertices[3])
     // TODO: use primitive attributes to send meshlet ID to shaders
 {
-    uint meshletIndex = groupID + meshletOffset;
-    Meshlet meshlet = meshlets[meshletIndex];
-    uint instanceID = groupIndex / meshlet.vertexCount;
-
-    SetMeshOutputCounts(meshlet.vertexCount, meshlet.triangleCount);
-
-    for (uint i = 0; i < 2; ++i)
-    {
-        const uint primitiveId = threadId + i * 128;
-        if (primitiveId < meshlet.triangleCount)
-        {
-            triangles[primitiveId] = LoadPrimitive(meshlet.triangleOffset, primitiveId);
-        }
-    }
+    SetMeshOutputCounts(3, 1);
     
-    if (threadId < meshlet.vertexCount)
-    {
-        uint vertexIndex = meshletIndices[meshlet.vertexoffset + threadId];
-        MeshToFragment vertex = LoadVertexAttributes(groupID, vertexIndex, instanceID);
-        VisibilityMeshToFragment vout;
-        
-        vout.positionCS = vertex.positionCS;
-
-        vertices[threadId] = vout;
-    }
+    triangles[0] = uint3(0, 1, 2);
+    vertices[0] = GetFullscreenTriangleVertex(0);
+    vertices[1] = GetFullscreenTriangleVertex(1);
+    vertices[2] = GetFullscreenTriangleVertex(2);
 }
 
-float4 fragment(VisibilityMeshToFragment input) : SV_TARGET0
+float4 fragment(MeshToFragment input) : SV_TARGET0
 {
     uint visibilityData = _VisibilityTexture.Load(uint3(input.positionCS.xy, 0));
     

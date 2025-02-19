@@ -68,7 +68,7 @@ void RenderPipeline::RenderVisibility(std::shared_ptr<CommandList> cmd)
             RenderPassLoadOp::kClear, RenderPassStoreOp::kStore,
             RenderPassLoadOp::kClear, RenderPassStoreOp::kStore
         };
-        RenderPassColorDesc visibilityDesc = { gli::FORMAT_R32_UINT_PACK32, RenderPassLoadOp::kDontCare, RenderPassStoreOp::kStore };
+        RenderPassColorDesc visibilityDesc = { gli::FORMAT_R32_UINT_PACK32, RenderPassLoadOp::kClear, RenderPassStoreOp::kStore };
         RenderPassDesc renderPassDesc = {
             { visibilityDesc },
             depthStencilDesc
@@ -176,6 +176,7 @@ void RenderPipeline::RenderForwardOpaque(std::shared_ptr<CommandList> cmd)
             forwardRenderPass,
         };
         meshShaderPipelineDesc.rasterizer_desc = { FillMode::kSolid, CullMode::kBack, 0 };
+        meshShaderPipelineDesc.depth_stencil_desc = { true, ComparisonFunc::kAlways, false };
 
         forwardPipeline = device->CreateGraphicsPipeline(meshShaderPipelineDesc);
     }
