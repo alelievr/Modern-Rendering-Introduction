@@ -91,9 +91,9 @@ void RenderPipeline::RenderVisibility(std::shared_ptr<CommandList> cmd)
     if (!visibilityPipeline)
     {
         ShaderDesc visibilityMeshShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/VisibilityPass.hlsl", "mesh", ShaderType::kMesh, "6_5" };
-        std::shared_ptr<Shader> visibilityMeshShader = device->CompileShader(visibilityMeshShaderDesc);
+        visibilityMeshShader = device->CompileShader(visibilityMeshShaderDesc);
         ShaderDesc visibilityFragmentShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/VisibilityPass.hlsl", "fragment", ShaderType::kPixel, "6_5" };
-        std::shared_ptr<Shader> visibilityFragmentShader = device->CompileShader(visibilityFragmentShaderDesc);
+        visibilityFragmentShader = device->CompileShader(visibilityFragmentShaderDesc);
 
         visibilityProgram = device->CreateProgram({ visibilityMeshShader, visibilityFragmentShader });
 

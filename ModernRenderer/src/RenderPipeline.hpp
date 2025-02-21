@@ -26,6 +26,8 @@ private:
 	std::shared_ptr<Framebuffer> visibilityFrameBuffer;
 	std::shared_ptr<Pipeline> visibilityPipeline;
 	std::shared_ptr<Program> visibilityProgram;
+	std::shared_ptr<Shader> visibilityMeshShader;
+	std::shared_ptr<Shader> visibilityFragmentShader;
 
 	// Forward Render Pass resources
 	std::shared_ptr<RenderPass> forwardRenderPass;
