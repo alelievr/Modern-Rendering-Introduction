@@ -159,7 +159,7 @@ void Renderer::Controls::OnKey(int key, int action)
 			rendererMode = (RendererMode)!(bool)rendererMode;
 	}
 
-    if (key == GLFW_KEY_F12)
+    if (key == GLFW_KEY_F11 || key == GLFW_KEY_F12)
     {
         if (action == GLFW_PRESS)
             RenderDoc::EnqueueCaptureNextFrame();
