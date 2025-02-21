@@ -37,7 +37,6 @@ void mesh(
 
 float4 fragment(MeshToFragment input) : SV_TARGET
 {
-    return float4(1, 1, 0, 1);
     MaterialData material = LoadMaterialData(materialIndex);
     float3 positionRWS = TransformHClipToCameraRelativeWorld(input.positionCS);
     float3 dir = -normalize(positionRWS);
@@ -47,5 +46,5 @@ float4 fragment(MeshToFragment input) : SV_TARGET
     
     float4 skyColor = _SkyTextureLatLong.SampleLevel(linearRepeatSampler, uv, 0);
     
-    return skyColor;
+    return float4(skyColor.rgb, 1);
 }

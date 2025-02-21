@@ -16,7 +16,7 @@ RenderPipeline::RenderPipeline(std::shared_ptr<Device> device, const AppSize& ap
 
     visibilityTexture = device->CreateTexture(TextureType::k2D, BindFlag::kRenderTarget | BindFlag::kUnorderedAccess | BindFlag::kShaderResource | BindFlag::kCopySource, gli::format::FORMAT_R32_UINT_PACK32, 1, appSize.width(), appSize.height(), 1, 1);
     visibilityTexture->CommitMemory(MemoryType::kDefault);
-    visibilityTexture->SetName("ColorTexture");
+    visibilityTexture->SetName("Visibility Texture");
     ViewDesc outputTextureViewDesc = {};
     outputTextureViewDesc.view_type = ViewType::kRenderTarget;
     outputTextureViewDesc.dimension = ViewDimension::kTexture2D;
