@@ -182,28 +182,8 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, const glm::m
     if (mesh->mMaterialIndex >= 0)
     {
         aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
-        aiString name;
-        if (mat->Get(AI_MATKEY_NAME, name) == AI_SUCCESS)
-        {
-            currentMaterial->name = name.C_Str();
-        }
 
-        std::vector<std::shared_ptr<Texture>> textures;
-        // map_Kd
-        LoadMaterialTextures(mat, aiTextureType_DIFFUSE, PBRTextureType::Albedo, textures);
-        // map_bump
-        LoadMaterialTextures(mat, aiTextureType_NORMALS, PBRTextureType::Normal, textures);
-        // map_Ns
-        LoadMaterialTextures(mat, aiTextureType_SHININESS, PBRTextureType::Roughness, textures);
-        // map_Ks
-        LoadMaterialTextures(mat, aiTextureType_SPECULAR, PBRTextureType::Metalness, textures);
-        // map_d
-        //LoadMaterialTextures(mat, aiTextureType_OPACITY, PBRTextureType::kOpacity, textures);
-
-        FindSimilarTextures(currentMaterial->name, textures);
-
-        for (const auto& texture : textures)
-            currentMaterial->AddTextureParameter(texture);
+        ReadAIMaterialProperties(mat, currentMaterial);
     }
 
     currentMesh->PrepareMeshletData();
@@ -215,10 +195,10 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, const glm::m
 void ModelImporter::FindSimilarTextures(const std::string& mat_name, std::vector<std::shared_ptr<Texture>>& textures)
 {
     static std::pair<std::string, PBRTextureType> texture_types[] = {
-        { "albedo", PBRTextureType::Albedo },        { "_albedo", PBRTextureType::Albedo },
-        { "_Albedo", PBRTextureType::Albedo },       { "_color", PBRTextureType::Albedo },
-        { "_diff", PBRTextureType::Albedo },         { "_diffuse", PBRTextureType::Albedo },
-        { "_BaseColor", PBRTextureType::Albedo },    { "_nmap", PBRTextureType::Normal },
+        { "albedo", PBRTextureType::BaseColor },        { "_albedo", PBRTextureType::BaseColor },
+        { "_Albedo", PBRTextureType::BaseColor },       { "_color", PBRTextureType::BaseColor },
+        { "_diff", PBRTextureType::BaseColor },         { "_diffuse", PBRTextureType::BaseColor },
+        { "_BaseColor", PBRTextureType::BaseColor },    { "_nmap", PBRTextureType::Normal },
         { "normal", PBRTextureType::Normal },        { "_normal", PBRTextureType::Normal },
         { "_Normal", PBRTextureType::Normal },       { "_rough", PBRTextureType::Roughness },
         { "roughness", PBRTextureType::Roughness },  { "_roughness", PBRTextureType::Roughness },
@@ -233,15 +213,15 @@ void ModelImporter::FindSimilarTextures(const std::string& mat_name, std::vector
         used.insert(cur_texture->type);
     }
 
-    if (!used.count(PBRTextureType::Albedo)) {
+    if (!used.count(PBRTextureType::BaseColor)) {
         for (auto& ext : { ".dds", ".png", ".jpg" }) {
             std::string cur_path = directory + "/textures/" + mat_name + "_albedo" + ext;
             if (std::ifstream(cur_path).good()) {
-                textures.push_back(Texture::GetOrCreate(PBRTextureType::Albedo, cur_path));
+                textures.push_back(Texture::GetOrCreate(PBRTextureType::BaseColor, cur_path));
             }
             cur_path = directory + "/" + "albedo" + ext;
             if (std::ifstream(cur_path).good()) {
-                textures.push_back(Texture::GetOrCreate(PBRTextureType::Albedo, cur_path));
+                textures.push_back(Texture::GetOrCreate(PBRTextureType::BaseColor, cur_path));
             }
         }
     }
@@ -294,4 +274,42 @@ void ModelImporter::LoadMaterialTextures(aiMaterial* mat,
 
         textures.push_back(Texture::GetOrCreate(type, texture_path));
     }
+}
+
+void ModelImporter::ReadAIMaterialProperties(aiMaterial* mat, std::shared_ptr<Material> currentMaterial)
+{
+    aiString name;
+    if (mat->Get(AI_MATKEY_NAME, name) == AI_SUCCESS)
+    {
+        currentMaterial->name = name.C_Str();
+    }
+
+    // Handle PBR properties:
+    float glossynessFactor;
+    auto specularWorkflow = mat->Get(AI_MATKEY_GLOSSINESS_FACTOR, glossynessFactor);
+    currentMaterial->specularWorkflow = specularWorkflow == AI_SUCCESS;
+
+    if (currentMaterial->specularWorkflow)
+    {
+        printf("Specular workflow not yet supported: %s\n", currentMaterial->name.c_str());
+    }
+
+    mat->Get(AI_MATKEY_BASE_COLOR, currentMaterial->baseColor);
+    mat->Get(AI_MATKEY_METALLIC_FACTOR, currentMaterial->metalness);
+    mat->Get(AI_MATKEY_ROUGHNESS_FACTOR, currentMaterial->roughness);
+    mat->Get(AI_MATKEY_COLOR_SPECULAR, currentMaterial->specularColor);
+
+    // Handle textures:
+    std::vector<std::shared_ptr<Texture>> textures;
+    LoadMaterialTextures(mat, aiTextureType_DIFFUSE, PBRTextureType::BaseColor, textures);
+    LoadMaterialTextures(mat, aiTextureType_NORMALS, PBRTextureType::Normal, textures);
+    LoadMaterialTextures(mat, aiTextureType_DIFFUSE_ROUGHNESS, PBRTextureType::Roughness, textures);
+    LoadMaterialTextures(mat, aiTextureType_METALNESS, PBRTextureType::Metalness, textures);
+    LoadMaterialTextures(mat, aiTextureType_AMBIENT_OCCLUSION, PBRTextureType::AmbientOcclusion, textures);
+    //LoadMaterialTextures(mat, aiTextureType_OPACITY, PBRTextureType::kOpacity, textures);
+
+    FindSimilarTextures(currentMaterial->name, textures);
+
+    for (const auto& texture : textures)
+        currentMaterial->AddTextureParameter(texture);
 }

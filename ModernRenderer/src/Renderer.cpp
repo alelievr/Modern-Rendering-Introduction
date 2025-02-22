@@ -107,7 +107,7 @@ void Renderer::CreatePipelineObjects()
     std::vector<RayTracingShaderGroup> groups;
     groups.push_back({ RayTracingShaderGroupType::kGeneral, pathTracingLibrary->GetId("ray_gen") });
     groups.push_back({ RayTracingShaderGroupType::kGeneral, pathTracingLibrary->GetId("miss") });
-    groups.push_back({ RayTracingShaderGroupType::kTrianglesHitGroup, 0, pathTracingHitLibrary->GetId("closest_red") });
+    groups.push_back({ RayTracingShaderGroupType::kTrianglesHitGroup, 0, pathTracingHitLibrary->GetId("Hit") });
     groups.push_back({ RayTracingShaderGroupType::kTrianglesHitGroup, 0, pathTracingHitLibrary->GetId("closest_green") });
     groups.push_back({ RayTracingShaderGroupType::kGeneral, pathTracingCallableLibrary->GetId("callable") });
     pathTracerPipeline = device->CreateRayTracingPipeline({ pathTracingProgram, pathTracerLayout, groups });

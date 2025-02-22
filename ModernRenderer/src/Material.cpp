@@ -20,7 +20,35 @@ std::shared_ptr<Material> Material::CreateMaterial()
 
 void Material::AddTextureParameter(std::shared_ptr<Texture> texture)
 {
-	parameters.push_back({ texture->path, MaterialParameterType::Texture, texture });
+	switch (texture->type)
+	{
+		case PBRTextureType::BaseColor:
+			baseColorTexture = texture;
+			break;
+		case PBRTextureType::Normal:
+			normalTexture = texture;
+			break;
+		case PBRTextureType::Metalness:
+			metalnessTexture = texture;
+			break;
+		case PBRTextureType::Roughness:
+			roughnessTexture = texture;
+			break;
+		case PBRTextureType::SpecularColor:
+			specularColorTexture = texture;
+			break;
+		case PBRTextureType::AmbientOcclusion:
+			ambientOcclusion = texture;
+			break;
+	}
+}
+
+static int GetTextureBindlessIndex(std::shared_ptr<Texture> texture)
+{
+	if (texture == nullptr)
+		return -1;
+
+	return texture->shaderResourceView->GetDescriptorId();
 }
 
 void Material::AllocateMaterialBuffers(std::shared_ptr<Device> device)
@@ -29,19 +57,15 @@ void Material::AllocateMaterialBuffers(std::shared_ptr<Device> device)
 	for (auto material : instances)
 	{
 		GPUMaterial gpuMaterial;
-		gpuMaterial.albedoTextureIndex = -1;
-
-		for (auto& parameter : material->parameters)
-		{
-			if (parameter.type == MaterialParameterType::Texture)
-			{
-				if (parameter.textureValue->type == PBRTextureType::Albedo)
-				{
-					gpuMaterial.albedoTextureIndex = parameter.textureValue->shaderResourceView->GetDescriptorId();
-					printf("Albedo texture index: %d\n", gpuMaterial.albedoTextureIndex);
-				}
-			}
-		}
+		
+		gpuMaterial.baseColor = material->baseColor;
+		gpuMaterial.baseColorTextureIndex = GetTextureBindlessIndex(material->baseColorTexture);
+		gpuMaterial.metalness = material->metalness;
+		gpuMaterial.metalnessTextureIndex = GetTextureBindlessIndex(material->metalnessTexture);
+		gpuMaterial.diffuseRoughness = material->roughness;
+		gpuMaterial.diffuseRoughnessTextureIndex = GetTextureBindlessIndex(material->roughnessTexture);
+		gpuMaterial.normalTextureIndex = GetTextureBindlessIndex(material->normalTexture);
+		gpuMaterial.ambientOcclusionTextureIndex = GetTextureBindlessIndex(material->ambientOcclusion);
 
 		material->materialIndex = index++;
 		materialBuffer.push_back(gpuMaterial);
@@ -86,28 +110,25 @@ void Material::AllocateMaterialBuffers(std::shared_ptr<Device> device)
 
 bool Material::Compare(const std::shared_ptr<Material>& a, const std::shared_ptr<Material>& b)
 {
-	if (a->parameters.size() != b->parameters.size())
+	if (!a || !b)
 		return false;
 
-	std::sort(a->parameters.begin(), a->parameters.end(), [](const MaterialParameter& a, const MaterialParameter& b) { return a.name < b.name; });
-	std::sort(b->parameters.begin(), b->parameters.end(), [](const MaterialParameter& a, const MaterialParameter& b) { return a.name < b.name; });
+	if (a->name != b->name) return false;
 
-	// Check all parameters
-	for (int i = 0; i < a->parameters.size(); ++i)
-	{
-		if (a->parameters[i].name != b->parameters[i].name)
-			return false;
-		if (a->parameters[i].type != b->parameters[i].type)
-			return false;
-		if (a->parameters[i].textureValue != b->parameters[i].textureValue)
-			return false;
-		if (a->parameters[i].float4Value != b->parameters[i].float4Value)
-			return false;
-		if (a->parameters[i].floatValue != b->parameters[i].floatValue)
-			return false;
-		if (a->parameters[i].intValue != b->parameters[i].intValue)
-			return false;
-	}
+	if (a->specularWorkflow != b->specularWorkflow) return false;
+	if (a->baseColor != b->baseColor) return false;
+	if (a->metalness != b->metalness) return false;
+	if (a->roughness != b->roughness) return false;
+	if (a->specularColor != b->specularColor) return false;
+	if (a->materialIndex != b->materialIndex) return false;
+
+	// Textures are de-duplicated so it should work
+	if (a->baseColorTexture != b->baseColorTexture) return false;
+	if (a->metalnessTexture != b->metalnessTexture) return false;
+	if (a->roughnessTexture != b->roughnessTexture) return false;
+	if (a->specularColorTexture != b->specularColorTexture) return false;
+	if (a->normalTexture != b->normalTexture) return false;
+	if (a->ambientOcclusion != b->ambientOcclusion) return false;
 
 	return true;
 }

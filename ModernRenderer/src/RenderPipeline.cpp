@@ -58,6 +58,11 @@ void RenderPipeline::DrawOpaqueObjects(std::shared_ptr<CommandList> cmd, std::sh
     }
 }
 
+void RenderPipeline::MeshletFrustumCulling(std::shared_ptr<CommandList> cmd)
+{
+
+}
+
 void RenderPipeline::RenderVisibility(std::shared_ptr<CommandList> cmd)
 {
     if (!visibilityRenderPass)
@@ -202,6 +207,7 @@ void RenderPipeline::Render(std::shared_ptr<CommandList> cmd, std::shared_ptr<Re
 {
 	this->scene = scene;
 
+    MeshletFrustumCulling(cmd);
     // TODO: frustum culling
 
     // Visibility pass:

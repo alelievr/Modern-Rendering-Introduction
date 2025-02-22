@@ -8,7 +8,7 @@
 
 enum class PBRTextureType
 {
-	Albedo,
+	BaseColor,
 	Normal,
 	Roughness,
 	SpecularColor,

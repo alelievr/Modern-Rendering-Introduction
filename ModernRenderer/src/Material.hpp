@@ -14,20 +14,38 @@ enum class MaterialParameterType
 	Int,
 };
 
+// Keep in sync with MaterialData in Common.hlsl
 struct GPUMaterial
 {
-	int albedoTextureIndex;
-};
+	// Base layer
+	// float baseWeight;
+	glm::vec3 baseColor;
+	int baseColorTextureIndex;
+	float metalness;
+	int metalnessTextureIndex;
+	float diffuseRoughness;
+	int diffuseRoughnessTextureIndex;
 
-struct MaterialParameter
-{
-	std::string name;
-	MaterialParameterType type;
+	// Specular layer
+	// TODO
+	//float specularWeight;
+	//glm::vec3 specularColor;
+	//int specularColorTextureIndex;
+	//float specularRoughness;
+	//float specularRoughnessAnisotropy;
+	//float specularIOR;
 
-	std::shared_ptr<Texture> textureValue;
-	glm::vec4 float4Value;
-	float floatValue;
-	int intValue;
+	// TODO: Transmission, Coat, Fuzz, Emission and Thin-Film
+
+	// Geometry
+	int normalTextureIndex;
+	int ambientOcclusionTextureIndex;
+	//float opacity; // TODO: transparency
+	// Coat normal?
+
+	// Extra padding to ensure the struct is aligned on 16 bytes
+	int padding0;
+	int padding1;
 };
 
 class Material
@@ -40,7 +58,26 @@ public:
 	static BindingDesc materialBufferBinding;
 	static BindKey materialBufferBindKey;
 
-	std::vector<MaterialParameter> parameters;
+	// Base data
+	bool specularWorkflow = false;
+	std::shared_ptr<Texture> baseColorTexture = nullptr;
+	glm::vec3 baseColor = glm::vec3(0.8, 0.8, 0.8);
+	std::shared_ptr<Texture> metalnessTexture = nullptr;
+	float metalness = 0;
+	std::shared_ptr<Texture> roughnessTexture = nullptr;
+	float roughness = 0.5f;
+	
+	// TODO: Transmission, SSS, Coat, Fuzz, Emission and Thin-Film
+
+	// Specular workflow data
+	std::shared_ptr<Texture> specularColorTexture = nullptr;
+	glm::vec3 specularColor = glm::vec3(0.8, 0.8, 0.8);
+
+	// Geometry data
+	std::shared_ptr<Texture> normalTexture = nullptr;
+	std::shared_ptr<Texture> ambientOcclusion = nullptr;
+	// Heightmap, etc.
+
 	std::string name;
 	int materialIndex;
 

@@ -38,9 +38,11 @@ public:
     RaytracingASPrebuildInfo blasPrebuildInfo;
     RaytracingGeometryDesc geometryDesc;
     std::shared_ptr<Resource> rtVertexPositions;
+    std::shared_ptr<Resource> rtVertexData;
     std::shared_ptr<Resource> rtIndexBuffer;
     std::shared_ptr<Resource> blas;
-    uint64_t blas_compacted_size;
+    uint64_t blasCompactedSize;
+    unsigned blasIndex;
 
     int meshletOffset;
 

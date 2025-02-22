@@ -32,9 +32,22 @@ struct InstanceData
 
 StructuredBuffer<InstanceData> instanceData : register(t2, space0);
 
+// Keep in sync with GPUMaterial in Material.hpp
 struct MaterialData
 {
-    uint albedoTextureIndex;
+    float3 baseColor;
+    int baseColorTextureIndex;
+    
+    float metalness;
+    int metalnessTextureIndex;
+    float diffuseRoughness;
+    int diffuseRoughnessTextureIndex;
+    
+    int normalTextureIndex;
+    int ambientOcclusionTextureIndex;
+    
+    int padding0;
+    int padding1;
 };
 
 // Bindless textures for materials
@@ -199,4 +212,14 @@ void DecodeVisibility(uint visibility, out uint materialID, out uint meshletID, 
     materialID = visibility & 0xFF;
     meshletID = (visibility >> 8) & 0xFFFF;
     triangleID = visibility >> 24;
+}
+
+float3 BarycentricInterpolation(float3 v0, float3 v1, float3 v2, float2 bary)
+{
+    return v0 * (1 - bary.x - bary.y) + v1 * bary.x + v2 * bary.y;
+}
+
+float2 BarycentricInterpolation(float2 v0, float2 v1, float2 v2, float2 bary)
+{
+    return v0 * (1 - bary.x - bary.y) + v1 * bary.x + v2 * bary.y;
 }

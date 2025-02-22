@@ -55,11 +55,20 @@ void Mesh::PrepareMeshletData()
 
 void Mesh::PrepareBLASData(std::shared_ptr<Device> device)
 {
-    // upload first mesh data
+    // upload vertex positions for the BLAS
     rtVertexPositions = device->CreateBuffer(BindFlag::kVertexBuffer | BindFlag::kCopyDest, positions.size() * sizeof(positions[0]));
     rtVertexPositions->CommitMemory(MemoryType::kDefault);
     rtVertexPositions->SetName("RT Vertex Positions: " + name);
     RenderUtils::UploadBufferData(device, rtVertexPositions, positions.data(), positions.size() * sizeof(positions[0]));
+    // upload vertex data for hit shader attribute loading
+    rtVertexData = device->CreateBuffer(BindFlag::kVertexBuffer | BindFlag::kCopyDest, vertices.size() * sizeof(vertices[0]));
+    rtVertexData->CommitMemory(MemoryType::kDefault);
+    rtVertexData->SetName("RT Vertex Data: " + name);
+    RenderUtils::UploadBufferData(device, rtVertexData, vertices.data(), vertices.size() * sizeof(vertices[0]));
+
+    // TODO: bindless views of vertex / index data into different spaces, blasIndex is the bindless indexer
+    blasIndex = 0;
+
     // Upload first mesh index data
     rtIndexBuffer = device->CreateBuffer(BindFlag::kIndexBuffer | BindFlag::kCopyDest, indices.size() * sizeof(indices[0]));
     rtIndexBuffer->CommitMemory(MemoryType::kDefault);
@@ -116,7 +125,7 @@ std::shared_ptr<Resource> Mesh::CreateBLAS(std::shared_ptr<Device> device, std::
     fence->Wait(fenceValue);
     uploadQueue->Wait(fence, fenceValue);
 
-    blas_compacted_size = *reinterpret_cast<uint64_t*>(blas_compacted_size_buffer->Map());
+    blasCompactedSize = *reinterpret_cast<uint64_t*>(blas_compacted_size_buffer->Map());
     blas_compacted_size_buffer->Unmap();
 
     return blas;

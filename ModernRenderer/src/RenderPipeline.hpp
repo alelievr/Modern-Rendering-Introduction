@@ -41,6 +41,7 @@ private:
 	std::shared_ptr<BindingSet> objectBindingSet;
 
 	void DrawOpaqueObjects(std::shared_ptr<CommandList> cmd, std::shared_ptr<BindingSet> set, std::shared_ptr<Pipeline> pipeline);
+	void MeshletFrustumCulling(std::shared_ptr<CommandList> cmd);
 	void RenderVisibility(std::shared_ptr<CommandList> cmd);
 	void RenderForwardOpaque(std::shared_ptr<CommandList> cmd);
 
