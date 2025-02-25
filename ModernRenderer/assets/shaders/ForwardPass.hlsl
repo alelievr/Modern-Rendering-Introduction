@@ -1,6 +1,6 @@
 #include "Common.hlsl"
 
-Texture2D<uint> _VisibilityTexture : register(t0, space4);
+Texture2D<uint> _VisibilityTexture : register(t1, space2);
 
 struct MeshToFragment
 {

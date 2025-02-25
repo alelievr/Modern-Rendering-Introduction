@@ -28,6 +28,7 @@ private:
     void ProcessMesh(aiMesh* mesh, const aiScene* scene, const glm::mat4 transform);
     void FindSimilarTextures(const std::string& mat_name, std::vector<std::shared_ptr<Texture>>& textures);
     void LoadMaterialTextures(aiMaterial* mat, aiTextureType aitype, PBRTextureType type, std::vector<std::shared_ptr<Texture>>& textures);
+    void ReadAIMaterialProperties(aiMaterial* mat, std::shared_ptr<Material> currentMaterial);
 
 public:
     ModelImporter(const std::string& path, int flags);

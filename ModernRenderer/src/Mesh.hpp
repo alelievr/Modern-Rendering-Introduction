@@ -32,15 +32,18 @@ public:
     std::vector<meshopt_Meshlet> meshlets;
     std::vector<uint32_t> meshletIndices;
     std::vector<uint8_t> meshletTriangles;
+    std::vector<meshopt_Bounds> meshletBounds;
     size_t meshletCount;
 
     // Raytracing data
     RaytracingASPrebuildInfo blasPrebuildInfo;
     RaytracingGeometryDesc geometryDesc;
     std::shared_ptr<Resource> rtVertexPositions;
+    std::shared_ptr<Resource> rtVertexData;
     std::shared_ptr<Resource> rtIndexBuffer;
     std::shared_ptr<Resource> blas;
-    uint64_t blas_compacted_size;
+    uint64_t blasCompactedSize;
+    unsigned blasIndex;
 
     int meshletOffset;
 

@@ -2,12 +2,24 @@
 #include <filesystem>
 #include "RenderUtils.hpp"
 
+void ConvertFloatArrayToHalfInPlace(float* image, int width, int height)
+{
+    int numPixels = width * height * 4;
+    uint16_t* halfImage = (uint16_t*)image;
+
+    for (int i = 0; i < numPixels; ++i) {
+        halfImage[i] = glm::detail::toFloat16(image[i]);
+    }
+}
+
 void Sky::LoadHDRI(std::shared_ptr<Device> device, const char* filepath)
 {
     int width, height, channels;
-    // TODO: handle textures with less than 4 channels
-    float* image = stbi_loadf(filepath, &width, &height, NULL, STBI_rgb_alpha);
+    void* image = stbi_loadf(filepath, &width, &height, NULL, STBI_rgb_alpha);
     channels = 4;
+
+    // STBI can only load 32 bit float images, convert to 16 bit float
+    ConvertFloatArrayToHalfInPlace((float*)image, width, height);
 
     if (image == nullptr)
     {
@@ -38,6 +50,8 @@ void Sky::LoadHDRI(std::shared_ptr<Device> device, const char* filepath)
 
     RenderUtils::UploadTextureData(hdriSkyTexture, device, 0, image, width, height, channels, 2);
 
+    stbi_image_free(image);
+
     // Load HDRI Sky shader
     std::shared_ptr<Shader> pixelMeshshader = device->CompileShader(
         { MODERN_RENDERER_ASSETS_PATH "shaders/Sky.hlsl", "mesh", ShaderType::kMesh, "6_5" });
@@ -64,11 +78,11 @@ void Sky::Initialize(std::shared_ptr<Device> device, Camera* camera)
 {
 	this->device = device;
 
-    BindKey bindKey = { ShaderType::kCompute, ViewType::kTexture, 0, 4 };
+    BindKey bindKey = { ShaderType::kPixel, ViewType::kTexture, 0, 4};
     BindingDesc bindingDesc = { bindKey, hdriSkyTextureView };
 
-    skyLayout = RenderUtils::CreateLayoutSet(device, *camera, { bindKey }, RenderUtils::CameraData | RenderUtils::TextureList);
-    skyBindingSet = RenderUtils::CreateBindingSet(device, skyLayout, *camera, { bindingDesc }, RenderUtils::CameraData | RenderUtils::TextureList);
+    skyLayout = RenderUtils::CreateLayoutSet(device, *camera, { bindKey }, RenderUtils::CameraData | RenderUtils::TextureList, RenderUtils::Mesh | RenderUtils::Fragment);
+    skyBindingSet = RenderUtils::CreateBindingSet(device, skyLayout, *camera, { bindingDesc }, RenderUtils::CameraData | RenderUtils::TextureList, RenderUtils::Mesh | RenderUtils::Fragment);
 
     GraphicsPipelineDesc skyPipelineDesc = {
         skyProgram,

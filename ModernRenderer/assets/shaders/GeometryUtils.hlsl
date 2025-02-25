@@ -43,6 +43,7 @@ bool IntersectRayPlane(float3 rayOrigin, float3 rayDir, float3 planeNormal, out 
         return distance >= 0;
     }
 
+    distance = 0;
     return false;
 }
 
@@ -79,5 +80,19 @@ bool IntersectRayTraiangle(float3 rayOrigin, float3 rayDir, float3 v0, float3 v1
     // Compute the barycentric coordinates (u, v, w) by normalizing the parallelepiped volumes.
     uvw *= 1.0f / (uvw.x + uvw.y + uvw.z);
     return true;
+}
 
+float DistanceToPlane(float4 plane, float3 p)
+{
+    return dot(float4(p, 1.0), plane);
+}
+ 
+// Returns > 0 if the sphere overlaps the frustum, <= 0 otherwise
+float SphereFrustumTest(float4 planes[6], float3 center, float radius)
+{
+    float dist01 = min(DistanceToPlane(planes[0], center), DistanceToPlane(planes[1], center));
+    float dist23 = min(DistanceToPlane(planes[2], center), DistanceToPlane(planes[3], center));
+    float dist45 = min(DistanceToPlane(planes[4], center), DistanceToPlane(planes[5], center));
+ 
+    return min(min(dist01, dist23), dist45) + radius;
 }

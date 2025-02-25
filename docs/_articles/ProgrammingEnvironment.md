@@ -125,6 +125,7 @@ While technically not a tool but rather a feature of the graphics API, validatio
 
 There will come a time when your screen goes black or freezes, and you'll need to figure out why. GPU crashes, driver resets, or GPU hangs can occur when a misconfigured workload is sent to the GPU, causing it to crash or stall. To identify the root cause, several tools can be used, including:  
 
-- [FidelityFX Breadcrumbs](https://gpuopen.com/learn/fidelityfx-breadcrumbs-now-available/) and [Radeon GPU Detective](https://gpuopen.com/radeon-gpu-detective/) for AMD hardware.  
-- [NSight Aftermath](https://developer.nvidia.com/nsight-aftermath) for NVIDIA hardware.  
-- [DRED](https://microsoft.github.io/DirectX-Specs/d3d/DeviceRemovedExtendedData.html) for DirectX 12 applications.  
+- 📄 [FidelityFX Breadcrumbs](https://gpuopen.com/learn/fidelityfx-breadcrumbs-now-available/) and [Radeon GPU Detective](https://gpuopen.com/radeon-gpu-detective/) for AMD hardware.  
+- 📄 [NSight Aftermath](https://developer.nvidia.com/nsight-aftermath) for NVIDIA hardware.  
+- 📄 [DRED](https://microsoft.github.io/DirectX-Specs/d3d/DeviceRemovedExtendedData.html) for DirectX 12 applications.  
+- 🎥 [Aftermath: Advances in GPU Crash Debugging - NVIDIA Game Developer](https://youtu.be/VaGcs5-W6S4)

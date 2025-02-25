@@ -82,9 +82,6 @@ void Texture::LoadAllTextures(std::shared_ptr<Device> device)
     std::vector<BindKey> bindKeys;
     for (auto& texture : textures)
     {
-        if (texture->type != PBRTextureType::Albedo)
-			continue;
-
         ViewDesc viewDesc = {};
         viewDesc.bindless = true;
         viewDesc.dimension = ViewDimension::kTexture2D;

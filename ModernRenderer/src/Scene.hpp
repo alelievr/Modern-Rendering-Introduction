@@ -55,6 +55,9 @@ public:
 	struct InstanceData
 	{
 		glm::mat4x4 objectToWorld;
+		unsigned meshletIndex;
+		unsigned materialIndex;
+		unsigned meshletCount;
 	};
 
 	std::vector<ModelInstance> instances;

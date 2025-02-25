@@ -83,11 +83,11 @@ The G-Buffer pass can also output depth. If the material evaluation is fast, ove
 
 If the purpose of the G-Buffer is to decouple materials from lighting, then the purpose of the visibility buffer is to decouple geometry from both materials and lighting. The advantage of decoupling geometry is that the objects are only rendered once, unlike with the depth pre-pass approach. Furthermore, it also prevents overdraw, as the visibility buffer stores both visibility information in a color target and depth.
 
-The visibility buffer builds upon the principle of the depth pre-pass, as it essentially uses the same concept but adds an additional output for visibility information. This visibility data contains everything needed to reconstruct the geometric structure of the mesh in subsequent passes. One way to encode visibility is by storing both the triangle ID and draw ID in a single 32-bit texture. The 32-bit size limit is important because we want to maximize the bandwidth usage of this pass. It would be problematic if we ended up with a G-Buffer-like structure, where the bandwidth becomes the limiting factor.
+The visibility buffer builds upon the principle of the depth pre-pass, as it essentially uses the same concept but adds an additional output for visibility information. This visibility data contains everything needed to reconstruct the geometric structure of the mesh in subsequent passes. One way to encode visibility is by storing both the triangle ID and draw ID (or instance ID) in a single 32-bit texture. The 32-bit size limit is important because we want to maximize the bandwidth usage of this pass. It would be problematic if we ended up with a G-Buffer-like structure, where the bandwidth becomes the limiting factor.
 
 The triangle ID refers to an index pointing to the vertices of a triangle. With this index, we can retrieve the 3 vertices that form the triangle. This buffer can either be the vertex buffer of the mesh, arranged in a specific way, or a dedicated vertex buffer storing multiple meshes.
 
-The draw call ID is also an index, this time pointing to the draw data, which includes the object matrix, material ID, etc.
+The draw call ID / instance ID is also an index, this time pointing to the draw data, which includes the object matrix, material ID, etc.
 
 The material ID is an index as well, pointing to the material data. This ID is sufficient to evaluate the material properties required for the shading.
 

@@ -6,7 +6,7 @@ float4 main(MeshToFragment input) : SV_TARGET
     MaterialData material = LoadMaterialData(materialIndex);
     float2 uv = input.uv.xy;
     
-    float4 albedo = SampleTextureLOD(material.albedoTextureIndex, linearRepeatSampler, uv, 0);
+    float4 albedo = SampleTextureLOD(material.baseColorTextureIndex, linearRepeatSampler, uv, 0);
     
     float3 positionRWS = TransformHClipToCameraRelativeWorld(input.positionCS);
     float3 dir = -normalize(positionRWS);

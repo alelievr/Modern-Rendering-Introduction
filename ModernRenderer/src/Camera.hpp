@@ -4,6 +4,7 @@
 #include "MatrixUtils.hpp"
 #include "AppBox/AppBox.h"
 
+// Keep in sync with the CameraData in Common.hlsl
 struct GPUCameraData
 {
     glm::mat4 viewMatrix;
@@ -14,6 +15,11 @@ struct GPUCameraData
     glm::mat4 inverseViewProjectionMatrix;
     glm::vec4 cameraPosition;
     glm::vec4 cameraResolution;
+    unsigned orthographicCamera;
+    float nearPlane;
+    float farPlane;
+    float fieldOfView;
+    glm::vec4 frutsumPlanes[6];
 };
 
 class Camera

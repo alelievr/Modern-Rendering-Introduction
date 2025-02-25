@@ -70,8 +70,8 @@ std::shared_ptr<Scene> Scene::LoadHardcodedScene(std::shared_ptr<Device> device,
 	std::shared_ptr<Scene> scene = std::make_shared<Scene>();
 
 	//scene->LoadSingleCubeScene(device, camera);
-	//scene->LoadSingleSphereScene(device, camera);
-	scene->LoadMultiObjectSphereScene(device, camera);
+	scene->LoadSingleSphereScene(device, camera);
+	//scene->LoadMultiObjectSphereScene(device, camera);
 	//scene->LoadStanfordBunnyScene(device, camera);
 	//scene->LoadChessScene(device, camera);
 
@@ -97,10 +97,16 @@ void Scene::UploadInstancesToGPU(std::shared_ptr<Device> device)
 	int index = 0;
 	for (auto& instance : instances)
 	{
-		InstanceData data;
-		data.objectToWorld = instance.transform;
-		instanceData.push_back(data);
-		instance.instanceDataOffset = index++;
+		for (auto& p : instance.model.parts)
+		{
+			InstanceData data;
+			data.objectToWorld = instance.transform;
+			data.meshletIndex = p.mesh->meshletOffset;
+			data.materialIndex = p.material->materialIndex;
+			data.meshletCount = p.mesh->meshletCount;
+			instanceData.push_back(data);
+			instance.instanceDataOffset = index++;
+		}
 	}
 
 	instanceDataBuffer = device->CreateBuffer(BindFlag::kShaderResource | BindFlag::kCopyDest, sizeof(InstanceData) * instances.size());
@@ -116,16 +122,16 @@ void Scene::UploadInstancesToGPU(std::shared_ptr<Device> device)
 	instanceDataView = device->CreateView(instanceDataBuffer, viewDesc);
 
 	auto instanceDataMeshBindKey = BindKey{ ShaderType::kMesh, ViewType::kStructuredBuffer, 2, 0 };
-	auto instanceDataFragmentBindKey = BindKey{ ShaderType::kPixel, ViewType::kStructuredBuffer, 2, 0 };
+	//auto instanceDataFragmentBindKey = BindKey{ ShaderType::kPixel, ViewType::kStructuredBuffer, 2, 0 };
 
 	bindingDescs = {
 		BindingDesc{ instanceDataMeshBindKey, instanceDataView },
-		BindingDesc{ instanceDataFragmentBindKey, instanceDataView },
+		//BindingDesc{ instanceDataFragmentBindKey, instanceDataView },
 	};
 
 	bindKeys = {
 		instanceDataMeshBindKey,
-		instanceDataFragmentBindKey,
+		//instanceDataFragmentBindKey,
 	};
 }
 
@@ -169,7 +175,7 @@ void Scene::BuildRTAS(std::shared_ptr<Device> device)
 	for (auto mesh : MeshPool::meshes)
 	{
 		mesh.first->CreateBLAS(device, blasBuffer, offset, scratch);
-		offset = Align(offset + mesh.first->blas_compacted_size, kAccelerationStructureAlignment);
+		offset = Align(offset + mesh.first->blasCompactedSize, kAccelerationStructureAlignment);
 	}
 
 	// Create instances for the TLAS
@@ -182,6 +188,7 @@ void Scene::BuildRTAS(std::shared_ptr<Device> device)
 			rt.transform = glm::mat3x4(instance.transform);
 			rt.instance_offset = 0; // This instance offset is used to determine the hit index of the shader table, TODO: multiple shader support
 			rt.instance_mask = 0xff;
+			rt.instance_id = p.mesh->blasIndex; // Pass the index of the BLAS so that the hit shader can find which BLAS was hit
 			rt.acceleration_structure_handle = p.mesh->blas->GetAccelerationStructureHandle();
 		}
     }

@@ -7,6 +7,8 @@ struct VisibilityMeshToFragment
     nointerpolation uint packedVisibilityData : TEXCOORD0;
 };
 
+// TODO: amplification shader to do cluster culling
+
 [NumThreads(128, 1, 1)]
 [OutputTopology("triangle")]
 void mesh(
@@ -17,9 +19,10 @@ void mesh(
     out vertices VisibilityMeshToFragment vertices[MAX_OUTPUT_VERTICES])
     // TODO: use primitive attributes to send meshlet ID to shaders
 {
-    uint meshletIndex = groupID + meshletOffset;
+    uint instanceID = instanceOffset; // Instance offset is provided as extra data from the indirect dispatch
+    InstanceData instance = instanceData[instanceID];
+    uint meshletIndex = groupID + instance.meshletIndex;
     Meshlet meshlet = meshlets[meshletIndex];
-    uint instanceID = groupIndex / meshlet.vertexCount;
 
     SetMeshOutputCounts(meshlet.vertexCount, meshlet.triangleCount);
 

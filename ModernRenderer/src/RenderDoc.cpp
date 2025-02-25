@@ -14,12 +14,36 @@ void RenderDoc::EnqueueCaptureNextFrame()
     captureNextFrame = true;
 }
 
+bool GetRegistryValue(const wchar_t* subKey, std::wstring& outValue) {
+
+    HKEY hKey;
+    wchar_t value[260];
+    DWORD valueSize = sizeof(value);
+
+    if (RegOpenKeyEx(HKEY_CLASSES_ROOT, subKey, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+    {
+        if (RegQueryValueEx(hKey, NULL, NULL, NULL, (LPBYTE)value, &valueSize) == ERROR_SUCCESS)
+        {
+            outValue = value;
+            return true;
+        }
+        RegCloseKey(hKey);
+    }
+
+    return false;
+}
+
 void RenderDoc::LoadRenderDoc()
 {
     HMODULE mod = GetModuleHandleA("renderdoc.dll");
 
     if (mod == nullptr)
-        mod = LoadLibraryA("renderdoc.dll");
+    {
+        // Find installed render doc path:
+        std::wstring renderDocPath;
+        if (GetRegistryValue(L"CLSID\\{5D6BF029-A6BA-417A-8523-120492B1DCE3}\\InprocServer32", renderDocPath))
+			mod = LoadLibraryW(renderDocPath.c_str());
+    }
 
     // At init, on windows
     if (mod != nullptr)
