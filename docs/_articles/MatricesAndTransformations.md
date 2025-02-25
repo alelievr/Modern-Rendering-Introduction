@@ -280,7 +280,48 @@ $$
 
 ## Matrix Inverse
 
-The matrix inverse is a really nice operation, you can see this operation as the equivalent of the [reciprocal](https://en.wikipedia.org/wiki/Multiplicative_inverse) operation. In 3D it is heavily used to calculate the reverse of a transformation or undo a transformation. You'll see it uses in the transformation pipeline, this is basically what allows us to go back in the transformation chain.
+The matrix inverse is very useful; you can think of this operation as the equivalent of the [reciprocal](https://en.wikipedia.org/wiki/Multiplicative_inverse) operation. It is heavily used to compute the inverse of a transformation, effectively undoing a transformation. You'll see it used in the transformation pipeline as this is essentially what allows us to go back in the transformation chain.  
+
+For more information on how to compute the inverse of a matrix, see [Invertible matrix](https://en.wikipedia.org/wiki/Invertible_matrix), especially Cramer's rule, which is widely used in graphics for inverting matrices due to its simplicity for 3×3 and 4×4 matrices.  
+
+### Inverse Rotation Matrix
+
+One special property of rotation matrices is that their inverse is also their transpose. This property makes them fast to compute.  
+
+$$R^T = R^{−1}$$
+
+### Inverse Homogeneous Transformation Matrix
+
+These are special 4×4 matrices that contain only a rotation and translation component. Such matrices can be inverted using a simplified method.
+
+$$
+A = \begin{bmatrix}
+r0.x & r0.y & r0.z & 0 \\
+r1.x & r1.y & r1.z & 0 \\
+r2.x & r2.y & r2.z & 0 \\
+t.x & t.y & t.z & 1
+\end{bmatrix}
+$$
+
+First, we extract the rotation and translation components separately:
+
+$$
+R = \begin{bmatrix}
+r0.x & r0.y & r0.z \\
+r1.x & r1.y & r1.z \\
+r2.x & r2.y & r2.z \\
+\end{bmatrix}
+
+T = \begin{bmatrix}t.x \\ t.y \\t.z\end{bmatrix}
+$$
+
+Then, invert the 3×3 rotation part by using its transpose and multiply this new matrix by the negative translation vector to obtain the inverse of the translation:
+
+$$
+T^{-1} = R^T * -T
+$$
+
+Finally, reconstruct the matrix using the inverse rotation and the transformed translation vector to obtain the inverse of the homogeneous transformation matrix.  
 
 ## Transformation Pipeline
 
