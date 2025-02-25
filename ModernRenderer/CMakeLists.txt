@@ -94,11 +94,3 @@ set(DLL_PATH "${project_root}/renderdoc.dll")
 
 # Specify the folder to copy the DLL to, based on the configuration (e.g., Debug/Release)
 set(DLL_OUTPUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR}")
-
-# Add a custom command to copy the DLL after building the target
-add_custom_command(TARGET ModernRenderer POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${DLL_PATH}"  # Source DLL file
-    "${DLL_OUTPUT_DIR}"  # Destination folder (e.g., Debug/Release directory)
-    COMMENT "Copying DLL to output directory (${CMAKE_CFG_INTDIR})"
-)
