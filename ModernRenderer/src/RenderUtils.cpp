@@ -4,8 +4,26 @@
 #include "Scene.hpp"
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include "GLFW/glfw3native.h"
+#include <algorithm>
 
-std::shared_ptr<BindingSetLayout> RenderUtils::CreateLayoutSet(std::shared_ptr<Device> device, const Camera& camera, const std::vector<BindKey>& keys, const int flags)
+static ShaderType GetShaderTypeFromStage(int stage)
+{
+	switch (stage)
+	{
+	case RenderUtils::Mesh:
+		return ShaderType::kMesh;
+	case RenderUtils::Amplification:
+		return ShaderType::kAmplification;
+	case RenderUtils::Fragment:
+		return ShaderType::kPixel;
+	case RenderUtils::Compute:
+		return ShaderType::kCompute;
+	default:
+		throw std::exception("Unknown shader stage");
+	}
+}
+
+std::shared_ptr<BindingSetLayout> RenderUtils::CreateLayoutSet(std::shared_ptr<Device> device, const Camera& camera, const std::vector<BindKey>& keys, const int flags, const int stages)
 {
 	// Add bindless textures and material datas
 	std::vector<BindKey> allBindings = keys;
@@ -13,9 +31,6 @@ std::shared_ptr<BindingSetLayout> RenderUtils::CreateLayoutSet(std::shared_ptr<D
 	if (flags & CameraData)
 	{
 		allBindings.emplace_back(camera.cameraDataKeyVertex);
-		allBindings.emplace_back(camera.cameraDataKeyFragment);
-		allBindings.emplace_back(camera.cameraDataKeyMesh);
-		allBindings.emplace_back(camera.cameraDataKeyAmplification);
 	}
 
 	if (flags & MaterialBuffers)
@@ -33,7 +48,20 @@ std::shared_ptr<BindingSetLayout> RenderUtils::CreateLayoutSet(std::shared_ptr<D
 			allBindings.emplace_back(textureKeys);
 	}
 
-	return device->CreateBindingSetLayout(allBindings);
+	std::vector<BindKey> allBindingsWithStages;
+	for (auto& key : allBindings)
+	{
+		int stageMask = stages;
+		while (stageMask != 0)
+		{
+			BindingStages stage = (BindingStages)(1 << _tzcnt_u32(stageMask));
+			stageMask &= stageMask - 1;
+			key.shader_type = GetShaderTypeFromStage(stage);
+			allBindingsWithStages.push_back(key);
+		}
+	}
+
+	return device->CreateBindingSetLayout(allBindingsWithStages);
 }
 
 void RenderUtils::UploadBufferData(std::shared_ptr<Device> device, std::shared_ptr<Resource> buffer, const void* data, size_t size)
@@ -59,17 +87,14 @@ void RenderUtils::UploadBufferData(std::shared_ptr<Device> device, std::shared_p
 	fence->Wait(fenceValue);
 }
 
-std::shared_ptr<BindingSet> RenderUtils::CreateBindingSet(std::shared_ptr<Device> device, std::shared_ptr<BindingSetLayout> layout, const Camera& camera, const std::vector<BindingDesc>& descs, const int flags)
+std::shared_ptr<BindingSet> RenderUtils::CreateBindingSet(std::shared_ptr<Device> device, std::shared_ptr<BindingSetLayout> layout,
+	const Camera& camera, const std::vector<BindingDesc>& descs, const int flags, const int stages)
 {
 	std::vector<BindingDesc> allBindings = descs;
 
 	if (flags & CameraData)
-	{
 		allBindings.emplace_back(camera.cameraDataDescVertex);
-		allBindings.emplace_back(camera.cameraDataDescFragment);
-		allBindings.emplace_back(camera.cameraDataDescMesh);
-		allBindings.emplace_back(camera.cameraDataDescAmplification);
-	}
+	
 	if (flags & MaterialBuffers)
 		allBindings.emplace_back(Material::materialBufferBinding);
 	
@@ -85,8 +110,21 @@ std::shared_ptr<BindingSet> RenderUtils::CreateBindingSet(std::shared_ptr<Device
 			allBindings.emplace_back(textureBindings);
 	}
 
+	std::vector<BindingDesc> allBindingsWithStages;
+	for (auto& desc : allBindings)
+	{
+		int stageMask = stages;
+		while (stageMask != 0)
+		{
+			BindingStages stage = (BindingStages)(1 << _tzcnt_u32(stageMask));
+			stageMask &= stageMask - 1;
+			desc.bind_key.shader_type = GetShaderTypeFromStage(stage);
+			allBindingsWithStages.push_back(desc);
+		}
+	}
+
 	auto set = device->CreateBindingSet(layout);
-	set->WriteBindings(allBindings);
+	set->WriteBindings(allBindingsWithStages);
 
 	return set;
 }

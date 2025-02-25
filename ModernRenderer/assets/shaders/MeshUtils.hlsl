@@ -20,6 +20,12 @@ struct MeshToFragment
     nointerpolation float meshletIndex : TEXCOORD2;
 };
 
+struct VisibleMeshlet
+{
+    uint meshletID;
+    uint instanceID;
+};
+
 // From meshoptimizer
 struct Meshlet
 {
@@ -32,10 +38,26 @@ struct Meshlet
     unsigned int triangleCount;
 };
 
+// From meshopt_Bounds
+struct Bounds
+{
+	/* bounding sphere, useful for frustum and occlusion culling */
+    float3 center;
+    float radius;
+
+	/* normal cone, useful for backface culling */
+    float3 coneApex;
+    float3 coneAxis;
+    float coneCutoff; /* = cos(angle/2) */
+
+    uint coneAxisAndCutoff;
+};
+
 StructuredBuffer<VertexData> vertexBuffer : register(t0, space4);
 StructuredBuffer<Meshlet> meshlets : register(t1, space4);
 Buffer<uint> meshletIndices : register(t2, space4);
 Buffer<uint> meshletTriangles : register(t3, space4);
+StructuredBuffer<Bounds> meshletBounds : register(t4, space4);
 
 MeshToFragment LoadVertexAttributes(uint meshletIndex, uint vertexIndex, uint instanceID)
 {

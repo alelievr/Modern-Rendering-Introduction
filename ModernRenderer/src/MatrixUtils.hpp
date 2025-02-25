@@ -19,4 +19,6 @@ public:
 	static glm::mat4x4 Orthographic(const glm::vec2& size, float aspect, float near, float far);
 
 	static glm::mat4x4 Mul(const glm::mat4x4& left, const glm::mat4x4& right);
+
+	static void GetFrustumPlanes(const glm::mat4x4& viewProjectionMatrix, glm::vec4 planes[6]);
 };

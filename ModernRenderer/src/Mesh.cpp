@@ -38,12 +38,14 @@ void Mesh::PrepareMeshletData()
     meshletCount = meshopt_buildMeshlets(meshlets.data(), meshletIndices.data(), meshletTriangles.data(), indices.data(),
         indices.size(), (float*)vertices.data(), vertices.size(), sizeof(Vertex), maxVertices, maxTriangles, coneWeight);
 
-    // TODO: test perfs of this
-    for (size_t i = 0; i < meshlets.size(); ++i)
+    meshletBounds.resize(meshletCount);
+    for (size_t i = 0; i < meshletCount; ++i)
     {
         const meshopt_Meshlet& meshlet = meshlets[i];
 
+        // TODO: test perfs of this
         meshopt_optimizeMeshlet(&meshletIndices[meshlet.vertex_offset], &meshletTriangles[meshlet.triangle_offset], meshlet.triangle_count, meshlet.vertex_count);
+        meshletBounds[i] = meshopt_computeMeshletBounds(&meshletIndices[meshlet.vertex_offset], &meshletTriangles[meshlet.triangle_offset], meshlet.triangle_count, (float*)positions.data(), positions.size(), sizeof(positions[0]));
     }
 
     // Reize the meshlet data to the actual count

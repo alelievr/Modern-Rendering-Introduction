@@ -81,8 +81,8 @@ void Sky::Initialize(std::shared_ptr<Device> device, Camera* camera)
     BindKey bindKey = { ShaderType::kPixel, ViewType::kTexture, 0, 4};
     BindingDesc bindingDesc = { bindKey, hdriSkyTextureView };
 
-    skyLayout = RenderUtils::CreateLayoutSet(device, *camera, { bindKey }, RenderUtils::CameraData | RenderUtils::TextureList);
-    skyBindingSet = RenderUtils::CreateBindingSet(device, skyLayout, *camera, { bindingDesc }, RenderUtils::CameraData | RenderUtils::TextureList);
+    skyLayout = RenderUtils::CreateLayoutSet(device, *camera, { bindKey }, RenderUtils::CameraData | RenderUtils::TextureList, RenderUtils::Mesh | RenderUtils::Fragment);
+    skyBindingSet = RenderUtils::CreateBindingSet(device, skyLayout, *camera, { bindingDesc }, RenderUtils::CameraData | RenderUtils::TextureList, RenderUtils::Mesh | RenderUtils::Fragment);
 
     GraphicsPipelineDesc skyPipelineDesc = {
         skyProgram,

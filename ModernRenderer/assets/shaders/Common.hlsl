@@ -6,6 +6,7 @@
 #define LOG2_E      1.44269504088896340736
 #define PI_DIV_FOUR 0.78539816339744830961
 
+// Keep in sync with GPUCameraData in Camera.hpp
 cbuffer CameraData : register(b0, space0)
 {
     float4x4 viewMatrix;
@@ -16,6 +17,11 @@ cbuffer CameraData : register(b0, space0)
     float4x4 inverseViewProjectionMatrix;
     float4 cameraPosition;
     float4 cameraResolution;
+    uint orthographicCamera;
+    float cameraNearPlane;
+    float cameraFarPlane;
+    float cameraFieldOfView;
+    float4 cameraFrustumPlanes[6];
 };
 
 cbuffer DrawData : register(b1, space0)
@@ -28,6 +34,9 @@ cbuffer DrawData : register(b1, space0)
 struct InstanceData
 {
     float4x4 objectToWorld;
+    uint meshletIndex;
+    uint materialIndex;
+    uint meshletCount;
 };
 
 StructuredBuffer<InstanceData> instanceData : register(t2, space0);
@@ -51,8 +60,8 @@ struct MaterialData
 };
 
 // Bindless textures for materials
-Texture2D bindlessTextures[] : register(t, space1);
-StructuredBuffer<MaterialData> materialBuffer : register(t, space2);
+Texture2D bindlessTextures[] : register(t0, space1);
+StructuredBuffer<MaterialData> materialBuffer : register(t0, space2);
 SamplerState linearClampSampler : register(s0, space3);
 SamplerState linearRepeatSampler : register(s1, space3);
 

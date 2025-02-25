@@ -124,3 +124,49 @@ glm::mat4x4 MatrixUtils::Mul(const glm::mat4x4& left, const glm::mat4x4& right)
 
 	return result;
 }
+
+void MatrixUtils::GetFrustumPlanes(const glm::mat4x4& viewProjectionMatrix, glm::vec4 planes[6])
+{
+	// Left plane
+	planes[0] = glm::vec4(viewProjectionMatrix[0][3] + viewProjectionMatrix[0][0],
+		viewProjectionMatrix[1][3] + viewProjectionMatrix[1][0],
+		viewProjectionMatrix[2][3] + viewProjectionMatrix[2][0],
+		viewProjectionMatrix[3][3] + viewProjectionMatrix[3][0]);
+
+	// Right plane
+	planes[1] = glm::vec4(viewProjectionMatrix[0][3] - viewProjectionMatrix[0][0],
+		viewProjectionMatrix[1][3] - viewProjectionMatrix[1][0],
+		viewProjectionMatrix[2][3] - viewProjectionMatrix[2][0],
+		viewProjectionMatrix[3][3] - viewProjectionMatrix[3][0]);
+
+	// Bottom plane
+	planes[2] = glm::vec4(viewProjectionMatrix[0][3] + viewProjectionMatrix[0][1],
+		viewProjectionMatrix[1][3] + viewProjectionMatrix[1][1],
+		viewProjectionMatrix[2][3] + viewProjectionMatrix[2][1],
+		viewProjectionMatrix[3][3] + viewProjectionMatrix[3][1]);
+
+	// Top plane
+	planes[3] = glm::vec4(viewProjectionMatrix[0][3] - viewProjectionMatrix[0][1],
+		viewProjectionMatrix[1][3] - viewProjectionMatrix[1][1],
+		viewProjectionMatrix[2][3] - viewProjectionMatrix[2][1],
+		viewProjectionMatrix[3][3] - viewProjectionMatrix[3][1]);
+
+	// Near plane
+	planes[4] = glm::vec4(viewProjectionMatrix[0][2],
+		viewProjectionMatrix[1][2],
+		viewProjectionMatrix[2][2],
+		viewProjectionMatrix[3][2]);
+
+	// Far plane
+	planes[5] = glm::vec4(viewProjectionMatrix[0][3] - viewProjectionMatrix[0][2],
+		viewProjectionMatrix[1][3] - viewProjectionMatrix[1][2],
+		viewProjectionMatrix[2][3] - viewProjectionMatrix[2][2],
+		viewProjectionMatrix[3][3] - viewProjectionMatrix[3][2]);
+
+	// Normalize the planes
+	for (int i = 0; i < 6; i++)
+	{
+		float length = glm::length(glm::vec3(planes[i]));
+		planes[i] /= length;
+	}
+}

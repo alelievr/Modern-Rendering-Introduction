@@ -32,6 +32,7 @@ public:
     std::vector<meshopt_Meshlet> meshlets;
     std::vector<uint32_t> meshletIndices;
     std::vector<uint8_t> meshletTriangles;
+    std::vector<meshopt_Bounds> meshletBounds;
     size_t meshletCount;
 
     // Raytracing data

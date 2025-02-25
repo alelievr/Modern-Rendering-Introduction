@@ -54,7 +54,10 @@ void Camera::UpdateCamera(const AppSize& size)
     position += right * cameraControls.movement.x + up * cameraControls.movement.y + forward * cameraControls.movement.z;
 
 	float aspect = size.width() / (float)size.height();
-	glm::mat4x4 projection = MatrixUtils::Perspective(45.0f, aspect, 0.01f, 1000.0f);
+	float nearPlane = 0.01f;
+	float farPlane = 1000.0f;
+	float fov = 45.0f;
+	glm::mat4x4 projection = MatrixUtils::Perspective(fov, aspect, nearPlane, farPlane);
 	//glm::mat4x4 projection = MatrixUtils::Orthographic(glm::vec2(5), aspect, 0.1f, 1000.0f);
     gpuData.viewMatrix = (view);
 	gpuData.inverseViewMatrix = inverse(gpuData.viewMatrix);
@@ -64,6 +67,11 @@ void Camera::UpdateCamera(const AppSize& size)
 	gpuData.inverseViewProjectionMatrix = inverse(gpuData.viewProjectionMatrix);
 	gpuData.cameraPosition = glm::vec4(position, 0);
 	gpuData.cameraResolution = glm::vec4(size.width(), size.height(), 1.0f / size.width(), 1.0f / size.height()); // The camera has the same resoution as the window.
+	gpuData.orthographicCamera = false;
+	gpuData.nearPlane = nearPlane;
+	gpuData.farPlane = farPlane;
+	gpuData.fieldOfView = glm::radians(fov);
+	MatrixUtils::GetFrustumPlanes(gpuData.viewProjectionMatrix, gpuData.frutsumPlanes);
 
 	cameraDataBuffer->UpdateUploadBuffer(0, &gpuData, sizeof(GPUCameraData));
 

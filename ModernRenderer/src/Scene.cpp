@@ -70,10 +70,10 @@ std::shared_ptr<Scene> Scene::LoadHardcodedScene(std::shared_ptr<Device> device,
 	std::shared_ptr<Scene> scene = std::make_shared<Scene>();
 
 	//scene->LoadSingleCubeScene(device, camera);
-	//scene->LoadSingleSphereScene(device, camera);
+	scene->LoadSingleSphereScene(device, camera);
 	//scene->LoadMultiObjectSphereScene(device, camera);
 	//scene->LoadStanfordBunnyScene(device, camera);
-	scene->LoadChessScene(device, camera);
+	//scene->LoadChessScene(device, camera);
 
 	Texture::LoadAllTextures(device);
 	Material::AllocateMaterialBuffers(device);
@@ -97,10 +97,16 @@ void Scene::UploadInstancesToGPU(std::shared_ptr<Device> device)
 	int index = 0;
 	for (auto& instance : instances)
 	{
-		InstanceData data;
-		data.objectToWorld = instance.transform;
-		instanceData.push_back(data);
-		instance.instanceDataOffset = index++;
+		for (auto& p : instance.model.parts)
+		{
+			InstanceData data;
+			data.objectToWorld = instance.transform;
+			data.meshletIndex = p.mesh->meshletOffset;
+			data.materialIndex = p.material->materialIndex;
+			data.meshletCount = p.mesh->meshletCount;
+			instanceData.push_back(data);
+			instance.instanceDataOffset = index++;
+		}
 	}
 
 	instanceDataBuffer = device->CreateBuffer(BindFlag::kShaderResource | BindFlag::kCopyDest, sizeof(InstanceData) * instances.size());
@@ -116,16 +122,16 @@ void Scene::UploadInstancesToGPU(std::shared_ptr<Device> device)
 	instanceDataView = device->CreateView(instanceDataBuffer, viewDesc);
 
 	auto instanceDataMeshBindKey = BindKey{ ShaderType::kMesh, ViewType::kStructuredBuffer, 2, 0 };
-	auto instanceDataFragmentBindKey = BindKey{ ShaderType::kPixel, ViewType::kStructuredBuffer, 2, 0 };
+	//auto instanceDataFragmentBindKey = BindKey{ ShaderType::kPixel, ViewType::kStructuredBuffer, 2, 0 };
 
 	bindingDescs = {
 		BindingDesc{ instanceDataMeshBindKey, instanceDataView },
-		BindingDesc{ instanceDataFragmentBindKey, instanceDataView },
+		//BindingDesc{ instanceDataFragmentBindKey, instanceDataView },
 	};
 
 	bindKeys = {
 		instanceDataMeshBindKey,
-		instanceDataFragmentBindKey,
+		//instanceDataFragmentBindKey,
 	};
 }
 

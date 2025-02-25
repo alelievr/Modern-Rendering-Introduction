@@ -7,16 +7,19 @@ std::vector<meshopt_Meshlet> MeshPool::meshlets;
 std::vector<uint32_t> MeshPool::meshletIndices;
 std::vector<uint8_t> MeshPool::meshletTriangles;
 std::vector<Mesh::Vertex> MeshPool::vertices;
+std::vector<meshopt_Bounds> MeshPool::bounds;
 
 std::shared_ptr<Resource> MeshPool::vertexPool = nullptr;
 std::shared_ptr<Resource> MeshPool::meshletIndicesPool = nullptr;
 std::shared_ptr<Resource> MeshPool::meshletTrianglesPool = nullptr;
 std::shared_ptr<Resource> MeshPool::meshletsPool = nullptr;
+std::shared_ptr<Resource> MeshPool::meshletBoundsPool = nullptr;
 
 std::shared_ptr<View> MeshPool::vertexPoolView = nullptr;
 std::shared_ptr<View> MeshPool::meshletIndicesPoolView = nullptr;
 std::shared_ptr<View> MeshPool::meshletTrianglesPoolView = nullptr;
 std::shared_ptr<View> MeshPool::meshletsPoolView = nullptr;
+std::shared_ptr<View> MeshPool::meshletBoundsPoolView;
 
 std::vector<BindingDesc> MeshPool::bindingDescs;
 std::vector<BindKey> MeshPool::bindKeys;
@@ -37,6 +40,7 @@ unsigned MeshPool::PushNewMesh(std::shared_ptr<Mesh> mesh)
     int triangleOffset = meshletTriangles.size();
 	meshletTriangles.insert(meshletTriangles.end(), mesh->meshletTriangles.begin(), mesh->meshletTriangles.end());
     int indexOffset = meshletIndices.size();
+    bounds.insert(bounds.end(), mesh->meshletBounds.begin(), mesh->meshletBounds.end());
 
     for (const auto& index : mesh->meshletIndices)
 		meshletIndices.push_back(index + vertexOffset);
@@ -59,8 +63,8 @@ void MeshPool::AllocateMeshPoolBuffers(std::shared_ptr<Device> device)
 	RenderUtils::AllocateVertexBufer(device, vertices, ViewType::kStructuredBuffer, gli::FORMAT_UNDEFINED, "Vertex Pool", vertexPool, vertexPoolView);
 	RenderUtils::AllocateVertexBufer(device, meshlets, ViewType::kStructuredBuffer, gli::FORMAT_UNDEFINED, "Meshlet Pool", meshletsPool, meshletsPoolView);
 	RenderUtils::AllocateVertexBufer(device, meshletIndices, ViewType::kStructuredBuffer, gli::FORMAT_UNDEFINED, "Meshlet Vertices", meshletIndicesPool, meshletIndicesPoolView);
-	
-    
+    RenderUtils::AllocateVertexBufer(device, bounds, ViewType::kStructuredBuffer, gli::FORMAT_UNDEFINED, "Meshlet Bounds", meshletBoundsPool, meshletBoundsPoolView);
+
     // TODO: pack 3 meshelet indices (triangle) into a single uint 
     std::vector<uint32_t> unpackedMeshletTriangles(meshletTriangles.size());
     for (int i = 0; i < meshletTriangles.size(); i++)
@@ -73,18 +77,21 @@ void MeshPool::AllocateMeshPoolBuffers(std::shared_ptr<Device> device)
     auto meshletsPoolBindKey = BindKey{ ShaderType::kMesh, ViewType::kStructuredBuffer, 1, 4 };
     auto meshletIndicesBindKey = BindKey{ ShaderType::kMesh, ViewType::kBuffer, 2, 4 };
     auto meshletTrianglesBindKey = BindKey{ ShaderType::kMesh, ViewType::kBuffer, 3, 4 };
+    auto meshletBoundsBindKey = BindKey{ ShaderType::kMesh, ViewType::kStructuredBuffer, 4, 4 };
 
     bindingDescs = {
         BindingDesc{ vertexPoolBindKeyMesh, vertexPoolView },
         BindingDesc{ meshletsPoolBindKey, meshletsPoolView },
         BindingDesc{ meshletIndicesBindKey, meshletIndicesPoolView },
-        BindingDesc{ meshletTrianglesBindKey, meshletTrianglesPoolView }
+        BindingDesc{ meshletTrianglesBindKey, meshletTrianglesPoolView },
+        BindingDesc{ meshletBoundsBindKey, meshletBoundsPoolView }
     };
 
     bindKeys = {
         vertexPoolBindKeyMesh,
         meshletsPoolBindKey,
         meshletIndicesBindKey,
-        meshletTrianglesBindKey
+        meshletTrianglesBindKey,
+        meshletBoundsBindKey
     };
 }
