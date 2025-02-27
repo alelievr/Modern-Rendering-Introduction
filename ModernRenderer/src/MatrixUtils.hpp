@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include "Frustum.hpp"
 
 // Row major matrix utility functions
 class MatrixUtils
@@ -20,5 +21,5 @@ public:
 
 	static glm::mat4x4 Mul(const glm::mat4x4& left, const glm::mat4x4& right);
 
-	static void GetFrustumPlanes(const glm::mat4x4& viewProjectionMatrix, glm::vec4 planes[6]);
+	static Frustum GetFrustum(const glm::mat4x4& viewProjectionMatrix);
 };

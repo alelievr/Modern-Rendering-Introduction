@@ -104,6 +104,7 @@ void Scene::UploadInstancesToGPU(std::shared_ptr<Device> device)
 			data.meshletIndex = p.mesh->meshletOffset;
 			data.materialIndex = p.material->materialIndex;
 			data.meshletCount = p.mesh->meshletCount;
+			data.obb = OBB(p.mesh->aabb, instance.transform);
 			instanceData.push_back(data);
 			instance.instanceDataOffset = index++;
 		}

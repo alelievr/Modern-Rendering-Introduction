@@ -71,7 +71,7 @@ void Camera::UpdateCamera(const AppSize& size)
 	gpuData.nearPlane = nearPlane;
 	gpuData.farPlane = farPlane;
 	gpuData.fieldOfView = glm::radians(fov);
-	MatrixUtils::GetFrustumPlanes(gpuData.viewProjectionMatrix, gpuData.frutsumPlanes);
+	gpuData.frutsum = MatrixUtils::GetFrustum(gpuData.viewProjectionMatrix);
 
 	cameraDataBuffer->UpdateUploadBuffer(0, &gpuData, sizeof(GPUCameraData));
 

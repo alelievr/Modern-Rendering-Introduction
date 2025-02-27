@@ -30,20 +30,23 @@ void main(uint3 threadID : SV_DispatchThreadID)
     {
         InstanceData instance = instanceData.Load(threadID.x);
         
-        // TODO: culling
+        // Frustum culling against the object OBB
+        if (FrustumOBBIntersection(instance.obb, cameraFrustum))
+        {
+            // TODO Backface culling
+            
+            // TODO: wave interlock with surviving instances in the wavefront
+            uint outIndex;
+            InterlockedAdd(_VisibleInstanceCount[0], 1, outIndex);
         
-        // TODO Backface culling
+            IndirectExecuteMesh visibleInstance;
         
-        uint outIndex;
-        InterlockedAdd(_VisibleInstanceCount[0], 1, outIndex);
+            visibleInstance.instanceID = threadID.x;
+            visibleInstance.threadGroupX = instance.meshletCount;
+            visibleInstance.threadGroupY = 1;
+            visibleInstance.threadGroupZ = 1;
         
-        IndirectExecuteMesh visibleInstance;
-        
-        visibleInstance.instanceID = threadID.x;
-        visibleInstance.threadGroupX = instance.meshletCount;
-        visibleInstance.threadGroupY = 1;
-        visibleInstance.threadGroupZ = 1;
-        
-        _IndirectMeshArgs[outIndex] = visibleInstance;
+            _IndirectMeshArgs[outIndex] = visibleInstance;
+        }
     }
 }

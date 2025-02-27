@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include "meshoptimizer.h"
 #include "Instance/Instance.h"
+#include "BoundingVolumes.hpp"
 
 class Mesh
 {
@@ -27,6 +28,7 @@ public:
     std::vector<glm::vec3> normals;
     std::vector<glm::vec2> texcoords;
     std::vector<glm::vec3> tangents;
+    AABB aabb;
 
     // Meshlet data
     std::vector<meshopt_Meshlet> meshlets;

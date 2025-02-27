@@ -1,5 +1,51 @@
 #pragma once
 
+struct OBB
+{
+    float3 right;
+    float extentRight;
+    float3 up;
+    float extentUp;
+    float3 center;
+    float extentForward;
+};
+
+struct AABB
+{
+    float3 min;
+    float3 max;
+};
+
+struct FrustumPlane
+{
+    float3 normal;
+    float dist;
+};
+
+struct Frustum
+{
+    float3 normal0;
+    float dist0;
+    float3 normal1;
+    float dist1;
+    float3 normal2;
+    float dist2;
+    float3 normal3;
+    float dist3;
+    float3 normal4;
+    float dist4;
+    float3 normal5;
+    float dist5;
+    float4 corner0;
+    float4 corner1;
+    float4 corner2;
+    float4 corner3;
+    float4 corner4;
+    float4 corner5;
+    float4 corner6;
+    float4 corner7;
+};
+
 // Utility functions
 bool SolveQuadraticEquation(float a, float b, float c, out float2 roots)
 {
@@ -95,4 +141,100 @@ float SphereFrustumTest(float4 planes[6], float3 center, float radius)
     float dist45 = min(DistanceToPlane(planes[4], center), DistanceToPlane(planes[5], center));
  
     return min(min(dist01, dist23), dist45) + radius;
+}
+
+bool CheckOverlap(OBB obb, float3 planeNormal, float planeDistance)
+{
+    // Max projection of the half-diagonal onto the normal (always positive).
+    float maxHalfDiagProj = obb.extentRight * abs(dot(planeNormal, obb.right))
+        + obb.extentUp * abs(dot(planeNormal, obb.up))
+        + obb.extentForward * abs(dot(planeNormal, cross(obb.up, obb.right)));
+
+    // Positive distance -> center in front of the plane.
+    // Negative distance -> center behind the plane (outside).
+    float centerToPlaneDist = dot(planeNormal, obb.center) + planeDistance;
+
+    // outside = maxHalfDiagProj < -centerToPlaneDist
+    // outside = maxHalfDiagProj + centerToPlaneDist < 0
+    // overlap = overlap && !outside
+    return (maxHalfDiagProj + centerToPlaneDist >= 0);
+}
+
+bool FrustumOBBIntersection(OBB obb, Frustum frustum)
+{
+    // Test the OBB against frustum planes. Frustum planes are inward-facing.
+    // The OBB is outside if it's entirely behind one of the frustum planes.
+    // See "Real-Time Rendering", 3rd Edition, 16.10.2.
+    bool overlap = CheckOverlap(obb, frustum.normal0, frustum.dist0);
+    overlap = overlap && CheckOverlap(obb, frustum.normal1, frustum.dist1);
+    overlap = overlap && CheckOverlap(obb, frustum.normal2, frustum.dist2);
+    overlap = overlap && CheckOverlap(obb, frustum.normal3, frustum.dist3);
+    overlap = overlap && CheckOverlap(obb, frustum.normal4, frustum.dist4);
+    overlap = overlap && CheckOverlap(obb, frustum.normal5, frustum.dist5);
+
+    // Test the frustum corners against OBB planes. The OBB planes are outward-facing.
+    // The frustum is outside if all of its corners are entirely in front of one of the OBB planes.
+    // See "Correct Frustum Culling" by Inigo Quilez.
+    // We can exploit the symmetry of the box by only testing against 3 planes rather than 6.
+    FrustumPlane planes[3];
+    planes[0].normal = obb.right;
+    planes[0].dist = obb.extentRight;
+    planes[1].normal = obb.up;
+    planes[1].dist = obb.extentUp;
+    planes[2].normal = cross(obb.up, obb.right);
+    planes[2].dist = obb.extentForward;
+
+    for (int i = 0; overlap && i < 3; i++)
+    {
+        // We need a separate counter for the "box fully inside frustum" case.
+        bool outsidePos = true; // Positive normal
+        bool outsideNeg = true; // Reversed normal
+        float proj = 0.0;
+
+        // Merge 2 loops. Continue as long as all points are outside either plane.
+        // Corner 0
+        proj = dot(planes[i].normal, frustum.corner0.xyz - obb.center);
+        outsidePos = outsidePos && (proj > planes[i].dist);
+        outsideNeg = outsideNeg && (-proj > planes[i].dist);
+
+        // Corner 1
+        proj = dot(planes[i].normal, frustum.corner1.xyz - obb.center);
+        outsidePos = outsidePos && (proj > planes[i].dist);
+        outsideNeg = outsideNeg && (-proj > planes[i].dist);
+
+        // Corner 2
+        proj = dot(planes[i].normal, frustum.corner2.xyz - obb.center);
+        outsidePos = outsidePos && (proj > planes[i].dist);
+        outsideNeg = outsideNeg && (-proj > planes[i].dist);
+
+        // Corner 3
+        proj = dot(planes[i].normal, frustum.corner3.xyz - obb.center);
+        outsidePos = outsidePos && (proj > planes[i].dist);
+        outsideNeg = outsideNeg && (-proj > planes[i].dist);
+
+        // Corner 4
+        proj = dot(planes[i].normal, frustum.corner4.xyz - obb.center);
+        outsidePos = outsidePos && (proj > planes[i].dist);
+        outsideNeg = outsideNeg && (-proj > planes[i].dist);
+
+        // Corner 5
+        proj = dot(planes[i].normal, frustum.corner5.xyz - obb.center);
+        outsidePos = outsidePos && (proj > planes[i].dist);
+        outsideNeg = outsideNeg && (-proj > planes[i].dist);
+
+        // Corner 6
+        proj = dot(planes[i].normal, frustum.corner6.xyz - obb.center);
+        outsidePos = outsidePos && (proj > planes[i].dist);
+        outsideNeg = outsideNeg && (-proj > planes[i].dist);
+
+        // Corner 7
+        proj = dot(planes[i].normal, frustum.corner7.xyz - obb.center);
+        outsidePos = outsidePos && (proj > planes[i].dist);
+        outsideNeg = outsideNeg && (-proj > planes[i].dist);
+
+        // Combine data of the previous plane
+        overlap = overlap && !(outsidePos || outsideNeg);
+    }
+
+    return overlap;
 }

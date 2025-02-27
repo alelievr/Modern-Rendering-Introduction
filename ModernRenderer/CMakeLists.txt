@@ -55,6 +55,7 @@ add_executable(ModernRenderer WIN32
     src/MeshPool.cpp
     src/Sky.cpp
     src/RenderPipeline.cpp
+    src/BoundingVolumes.cpp
 )
 
 if (WIN32)

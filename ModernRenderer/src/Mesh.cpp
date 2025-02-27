@@ -15,6 +15,8 @@ void Mesh::PrepareMeshletData()
         tmpVertices[i].normal = normals[i];
         tmpVertices[i].texcoord = texcoords[i];
         tmpVertices[i].tangent = tangents[i];
+        aabb.min = glm::min(aabb.min, positions[i]);
+        aabb.max = glm::max(aabb.max, positions[i]);
     }
 
     // Optimize for vertex cache

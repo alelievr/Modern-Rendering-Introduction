@@ -125,48 +125,78 @@ glm::mat4x4 MatrixUtils::Mul(const glm::mat4x4& left, const glm::mat4x4& right)
 	return result;
 }
 
-void MatrixUtils::GetFrustumPlanes(const glm::mat4x4& viewProjectionMatrix, glm::vec4 planes[6])
+Frustum MatrixUtils::GetFrustum(const glm::mat4x4& viewProjectionMatrix)
 {
-	// Left plane
-	planes[0] = glm::vec4(viewProjectionMatrix[0][3] + viewProjectionMatrix[0][0],
+	Frustum frustum;
+
+	// Extract planes from the view-projection matrix
+	frustum.normal0 = glm::vec3(viewProjectionMatrix[0][3] + viewProjectionMatrix[0][0],
 		viewProjectionMatrix[1][3] + viewProjectionMatrix[1][0],
-		viewProjectionMatrix[2][3] + viewProjectionMatrix[2][0],
-		viewProjectionMatrix[3][3] + viewProjectionMatrix[3][0]);
+		viewProjectionMatrix[2][3] + viewProjectionMatrix[2][0]);
+	frustum.dist0 = viewProjectionMatrix[3][3] + viewProjectionMatrix[3][0];
 
-	// Right plane
-	planes[1] = glm::vec4(viewProjectionMatrix[0][3] - viewProjectionMatrix[0][0],
+	frustum.normal1 = glm::vec3(viewProjectionMatrix[0][3] - viewProjectionMatrix[0][0],
 		viewProjectionMatrix[1][3] - viewProjectionMatrix[1][0],
-		viewProjectionMatrix[2][3] - viewProjectionMatrix[2][0],
-		viewProjectionMatrix[3][3] - viewProjectionMatrix[3][0]);
+		viewProjectionMatrix[2][3] - viewProjectionMatrix[2][0]);
+	frustum.dist1 = viewProjectionMatrix[3][3] - viewProjectionMatrix[3][0];
 
-	// Bottom plane
-	planes[2] = glm::vec4(viewProjectionMatrix[0][3] + viewProjectionMatrix[0][1],
+	frustum.normal2 = glm::vec3(viewProjectionMatrix[0][3] + viewProjectionMatrix[0][1],
 		viewProjectionMatrix[1][3] + viewProjectionMatrix[1][1],
-		viewProjectionMatrix[2][3] + viewProjectionMatrix[2][1],
-		viewProjectionMatrix[3][3] + viewProjectionMatrix[3][1]);
+		viewProjectionMatrix[2][3] + viewProjectionMatrix[2][1]);
+	frustum.dist2 = viewProjectionMatrix[3][3] + viewProjectionMatrix[3][1];
 
-	// Top plane
-	planes[3] = glm::vec4(viewProjectionMatrix[0][3] - viewProjectionMatrix[0][1],
+	frustum.normal3 = glm::vec3(viewProjectionMatrix[0][3] - viewProjectionMatrix[0][1],
 		viewProjectionMatrix[1][3] - viewProjectionMatrix[1][1],
-		viewProjectionMatrix[2][3] - viewProjectionMatrix[2][1],
-		viewProjectionMatrix[3][3] - viewProjectionMatrix[3][1]);
+		viewProjectionMatrix[2][3] - viewProjectionMatrix[2][1]);
+	frustum.dist3 = viewProjectionMatrix[3][3] - viewProjectionMatrix[3][1];
 
-	// Near plane
-	planes[4] = glm::vec4(viewProjectionMatrix[0][2],
-		viewProjectionMatrix[1][2],
-		viewProjectionMatrix[2][2],
-		viewProjectionMatrix[3][2]);
+	frustum.normal4 = glm::vec3(viewProjectionMatrix[0][3] + viewProjectionMatrix[0][2],
+		viewProjectionMatrix[1][3] + viewProjectionMatrix[1][2],
+		viewProjectionMatrix[2][3] + viewProjectionMatrix[2][2]);
+	frustum.dist4 = viewProjectionMatrix[3][3] + viewProjectionMatrix[3][2];
 
-	// Far plane
-	planes[5] = glm::vec4(viewProjectionMatrix[0][3] - viewProjectionMatrix[0][2],
+	frustum.normal5 = glm::vec3(viewProjectionMatrix[0][3] - viewProjectionMatrix[0][2],
 		viewProjectionMatrix[1][3] - viewProjectionMatrix[1][2],
-		viewProjectionMatrix[2][3] - viewProjectionMatrix[2][2],
-		viewProjectionMatrix[3][3] - viewProjectionMatrix[3][2]);
+		viewProjectionMatrix[2][3] - viewProjectionMatrix[2][2]);
+	frustum.dist5 = viewProjectionMatrix[3][3] - viewProjectionMatrix[3][2];
 
-	// Normalize the planes
-	for (int i = 0; i < 6; i++)
+	// Normalize the plane normals
+	auto normalizePlane = [](glm::vec3& normal, float& distance) {
+		float length = glm::length(normal);
+		normal /= length;
+		distance /= length;
+		};
+
+	normalizePlane(frustum.normal0, frustum.dist0);
+	normalizePlane(frustum.normal1, frustum.dist1);
+	normalizePlane(frustum.normal2, frustum.dist2);
+	normalizePlane(frustum.normal3, frustum.dist3);
+	normalizePlane(frustum.normal4, frustum.dist4);
+	normalizePlane(frustum.normal5, frustum.dist5);
+
+	// TODO: check that
+	// Compute frustum corners
+	glm::mat4 invVP = glm::inverse(viewProjectionMatrix);
+	glm::vec4 ndcCorners[8] = {
+		{-1, -1, -1, 1}, {1, -1, -1, 1}, {-1, 1, -1, 1}, {1, 1, -1, 1},
+		{-1, -1, 1, 1}, {1, -1, 1, 1}, {-1, 1, 1, 1}, {1, 1, 1, 1}
+	};
+
+	frustum.corner0 = invVP * ndcCorners[0];
+	frustum.corner1 = invVP * ndcCorners[1];
+	frustum.corner2 = invVP * ndcCorners[2];
+	frustum.corner3 = invVP * ndcCorners[3];
+	frustum.corner4 = invVP * ndcCorners[4];
+	frustum.corner5 = invVP * ndcCorners[5];
+	frustum.corner6 = invVP * ndcCorners[6];
+	frustum.corner7 = invVP * ndcCorners[7];
+
+	// Convert to 3D homogeneous coordinates
+	for (auto& corner : { &frustum.corner0, &frustum.corner1, &frustum.corner2, &frustum.corner3,
+						  &frustum.corner4, &frustum.corner5, &frustum.corner6, &frustum.corner7 })
 	{
-		float length = glm::length(glm::vec3(planes[i]));
-		planes[i] /= length;
+		*corner /= corner->w;
 	}
+
+	return frustum;
 }

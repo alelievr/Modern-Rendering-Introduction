@@ -19,7 +19,7 @@ struct GPUCameraData
     float nearPlane;
     float farPlane;
     float fieldOfView;
-    glm::vec4 frutsumPlanes[6];
+    Frustum frutsum;
 };
 
 class Camera

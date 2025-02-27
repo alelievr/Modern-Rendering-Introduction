@@ -6,6 +6,7 @@
 #include "Camera.hpp"
 #include "Model.hpp"
 #include "Sky.hpp"
+#include "BoundingVolumes.hpp"
 
 class ModelInstance
 {
@@ -58,6 +59,7 @@ public:
 		unsigned meshletIndex;
 		unsigned materialIndex;
 		unsigned meshletCount;
+		OBB obb;
 	};
 
 	std::vector<ModelInstance> instances;
