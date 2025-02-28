@@ -4,6 +4,7 @@
 #include "Camera.hpp"
 #include "Scene.hpp"
 #include "RenderPipeline.hpp"
+#include "ImGUIRenderPass.hpp"
 
 class Renderer
 {
@@ -31,6 +32,7 @@ private:
     std::shared_ptr<Device> device;
     Camera* camera;
     std::shared_ptr<RenderPipeline> renderPipeline;
+    std::shared_ptr<ImGUIRenderPass> imGUI;
 
     // Render passes
     std::shared_ptr<RenderPass> loadStoreColorRenderPass;
@@ -56,7 +58,8 @@ private:
     RayTracingShaderTables shaderTables = {};
 
     // FrameBuffers
-    std::shared_ptr<Framebuffer> mainColorFrameBuffer;
+    std::shared_ptr<Framebuffer> imGUIFrameBuffer;
+    std::shared_ptr<RenderPass> imGUIPass;
 
     void AllocateRenderTargets();
     void CompileShaders();

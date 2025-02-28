@@ -31,6 +31,7 @@ Camera::Camera(std::shared_ptr<Device> device, AppBox & app)
 	cameraDataDescVertex = { cameraDataKeyVertex, cameraDataView };
 	cameraDataDescCompute = { cameraDataKeyCompute, cameraDataView };
 
+	window = app.GetWindow();
     app.SubscribeEvents((InputEvents*)&cameraControls, nullptr);
 
 	forward = glm::vec3(0, 0, -1);
@@ -38,6 +39,14 @@ Camera::Camera(std::shared_ptr<Device> device, AppBox & app)
 
 void Camera::UpdateCamera(const AppSize& size)
 {
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	else
+	{
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		cameraControls.Reset();
+	}
+
 	rotation += cameraControls.rotation;
 
 	// Build view matrix

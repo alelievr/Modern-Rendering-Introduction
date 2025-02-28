@@ -57,6 +57,7 @@ private:
     };
 
     std::shared_ptr<Device> device;
+    GLFWwindow* window;
 
     // Disable copy constructor
     Camera(const Camera&);

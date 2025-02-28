@@ -32,6 +32,17 @@ include_directories(
     ${project_root}/3rdparty/assimp/include
     ${project_root}/3rdparty/stb
     ${project_root}/3rdparty/meshoptimizer/src
+    ${project_root}/3rdparty/imgui
+)
+
+# ImGUI Sources
+set(sources
+    3rdparty/imgui/imgui.cpp
+    3rdparty/imgui/imgui_draw.cpp
+    3rdparty/imgui/imgui_widgets.cpp
+    3rdparty/imgui/imgui_tables.cpp
+    3rdparty/imgui/backends/imgui_impl_dx12.cpp
+    3rdparty/imgui/backends/imgui_impl_glfw.cpp
 )
 
 link_libraries(
@@ -40,6 +51,7 @@ link_libraries(
 )
 
 add_executable(ModernRenderer WIN32
+    ${sources}
     src/main.cpp 
     src/Camera.cpp
     src/RenderDoc.cpp
@@ -56,6 +68,7 @@ add_executable(ModernRenderer WIN32
     src/Sky.cpp
     src/RenderPipeline.cpp
     src/BoundingVolumes.cpp
+    src/ImGUIRenderPass.cpp
 )
 
 if (WIN32)

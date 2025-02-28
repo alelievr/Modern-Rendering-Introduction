@@ -16,6 +16,7 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     CreatePipelineObjects();
 
     renderPipeline = std::make_shared<RenderPipeline>(device, app.GetAppSize(), camera, mainColorTexture, mainColorRenderTargetView, mainDepthTexture, mainDepthTextureView);
+    imGUI = std::make_shared<ImGUIRenderPass>(device, app);
 }
 
 Renderer::~Renderer()
@@ -53,8 +54,10 @@ void Renderer::AllocateRenderTargets()
     desc.width = appSize.width();
     desc.height = appSize.height();
     desc.colors = { mainColorRenderTargetView };
-    desc.depth_stencil = mainDepthTextureView;
-    mainColorFrameBuffer = device->CreateFramebuffer(desc);
+    desc.depth_stencil = nullptr;
+    imGUIFrameBuffer = device->CreateFramebuffer(desc);
+
+    imGUIPass = device->CreateRenderPass({ { { mainColorRenderTargetView->GetResource()->GetFormat(), RenderPassLoadOp::kLoad, RenderPassStoreOp::kStore}}});
 }
 
 void Renderer::CompileShaders()
@@ -166,33 +169,42 @@ void Renderer::Controls::OnKey(int key, int action)
     }
 }
 
-void Renderer::UpdateCommandList(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, const Camera& camera, std::shared_ptr<Scene> scene)
+void Renderer::UpdateCommandList(std::shared_ptr<CommandList> cmd, std::shared_ptr<Resource> backBuffer, const Camera& camera, std::shared_ptr<Scene> scene)
 {
-    commandList->Reset();
-    commandList->BeginEvent("RenderFrame");
+    cmd->Reset();
+    cmd->BeginEvent("RenderFrame");
 
-    commandList->SetViewport(0, 0, appSize.width(), appSize.height());
-    commandList->SetScissorRect(0, 0, appSize.width(), appSize.height());
+    cmd->SetViewport(0, 0, appSize.width(), appSize.height());
+    cmd->SetScissorRect(0, 0, appSize.width(), appSize.height());
 
 	if (controls.rendererMode == RendererMode::Rasterization)
 	{
-		RenderRasterization(commandList, backBuffer, camera, scene);
+		RenderRasterization(cmd, backBuffer, camera, scene);
 	}
 	else
 	{
-		RenderPathTracing(commandList, backBuffer, camera, scene);
+		RenderPathTracing(cmd, backBuffer, camera, scene);
 	}
+
+    // Render ImGUI on top of the scene
+    cmd->ResourceBarrier({ { mainColorTexture, ResourceState::kCommon, ResourceState::kRenderTarget } });
+    cmd->ResourceBarrier({ { mainDepthTexture, ResourceState::kCommon, ResourceState::kDepthStencilWrite } });
+    cmd->BeginRenderPass(imGUIPass, imGUIFrameBuffer, {});
+    imGUI->OnRender(cmd);
+    cmd->EndRenderPass();
+    cmd->ResourceBarrier({ { mainColorTexture, ResourceState::kRenderTarget, ResourceState::kCommon } });
+    cmd->ResourceBarrier({ { mainDepthTexture, ResourceState::kDepthStencilWrite, ResourceState::kCommon } });
 
     // Copy final image to the backbuffer
     // TODO: tonemap color buffer to LDR backbuffer
-    commandList->ResourceBarrier({ { backBuffer, ResourceState::kPresent, ResourceState::kCopyDest } });
-    commandList->ResourceBarrier({ { mainColorTexture, ResourceState::kCommon, ResourceState::kCopySource } });
-    commandList->CopyTexture(mainColorTexture, backBuffer, { { appSize.width(), appSize.height(), 1 } });
-    commandList->ResourceBarrier({ { backBuffer, ResourceState::kCopyDest, ResourceState::kPresent } });
-    commandList->ResourceBarrier({ { mainColorTexture, ResourceState::kCopySource, ResourceState::kCommon } });
+    cmd->ResourceBarrier({ { backBuffer, ResourceState::kPresent, ResourceState::kCopyDest } });
+    cmd->ResourceBarrier({ { mainColorTexture, ResourceState::kCommon, ResourceState::kCopySource } });
+    cmd->CopyTexture(mainColorTexture, backBuffer, { { appSize.width(), appSize.height(), 1 } });
+    cmd->ResourceBarrier({ { backBuffer, ResourceState::kCopyDest, ResourceState::kPresent } });
+    cmd->ResourceBarrier({ { mainColorTexture, ResourceState::kCopySource, ResourceState::kCommon } });
 
-    commandList->EndEvent();
-    commandList->Close();
+    cmd->EndEvent();
+    cmd->Close();
 }
 
 void Renderer::RenderRasterization(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, const Camera& camera, std::shared_ptr<Scene> scene)
