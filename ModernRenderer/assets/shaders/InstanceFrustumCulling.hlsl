@@ -31,7 +31,7 @@ void main(uint3 threadID : SV_DispatchThreadID)
         InstanceData instance = instanceData.Load(threadID.x);
         
         // Frustum culling against the object OBB
-        if (FrustumOBBIntersection(instance.obb, cameraFrustum))
+        if (FrustumOBBIntersection(instance.obb, cameraFrustum) || cameraFrustumCullingDisabled)
         {
             // TODO Backface culling
             

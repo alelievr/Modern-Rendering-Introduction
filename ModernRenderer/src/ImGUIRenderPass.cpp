@@ -13,6 +13,7 @@
 #include <GLFW/glfw3native.h>
 #endif
 #include <CommandList/DXCommandList.h>
+#include "RenderSettings.hpp"
 
 ImGUIRenderPass::ImGUIRenderPass(std::shared_ptr<Device> device, AppBox& app)
     : device(device)
@@ -26,6 +27,7 @@ ImGUIRenderPass::ImGUIRenderPass(std::shared_ptr<Device> device, AppBox& app)
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.DisplaySize = ImVec2((float)width, (float)height);
 #if defined(_WIN32)
     UINT dpi = GetDpiForWindow(glfwGetWin32Window(window));
@@ -57,24 +59,15 @@ ImGUIRenderPass::~ImGUIRenderPass()
 
 void ImGUIRenderPass::OnUpdate() {}
 
-static bool show_another_window = true;
-
 void ImGUIRenderPass::OnRender(std::shared_ptr<CommandList> cmd)
 {
     ImGui_ImplGlfw_NewFrame();
     ImGui_ImplDX12_NewFrame();
     ImGui::NewFrame();
 
-    // TODO: render all settings windows
+    ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
-    if (show_another_window)
-    {
-        ImGui::Begin("Another Window", &show_another_window);
-        ImGui::Text("Hello from another window!");
-        if (ImGui::Button("Close Me"))
-            show_another_window = false;
-        ImGui::End();
-    }
+    RenderSettings::RenderImGUISettingsWindow();
 
     ImGui::Render();
     ImDrawData* draw_data = ImGui::GetDrawData();

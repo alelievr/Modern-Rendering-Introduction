@@ -24,6 +24,7 @@ cbuffer CameraData : register(b0, space0)
     float cameraFarPlane;
     float cameraFieldOfView;
     Frustum cameraFrustum;
+    uint cameraFrustumCullingDisabled;
 };
 
 cbuffer DrawData : register(b1, space0)

@@ -20,6 +20,7 @@ struct GPUCameraData
     float farPlane;
     float fieldOfView;
     Frustum frutsum;
+    unsigned cameraFrustumCullingDisabled;
 };
 
 class Camera

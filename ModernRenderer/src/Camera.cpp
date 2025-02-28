@@ -4,6 +4,7 @@
 
 #include "Camera.hpp"
 #include <glm/gtx/rotate_vector.hpp> 
+#include "RenderSettings.hpp"
 
 Camera::Camera(std::shared_ptr<Device> device, AppBox & app)
 {
@@ -81,6 +82,7 @@ void Camera::UpdateCamera(const AppSize& size)
 	gpuData.farPlane = farPlane;
 	gpuData.fieldOfView = glm::radians(fov);
 	gpuData.frutsum = MatrixUtils::GetFrustum(gpuData.viewProjectionMatrix);
+	gpuData.cameraFrustumCullingDisabled = RenderSettings::frustumCulling;
 
 	cameraDataBuffer->UpdateUploadBuffer(0, &gpuData, sizeof(GPUCameraData));
 

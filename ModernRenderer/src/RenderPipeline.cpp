@@ -1,5 +1,6 @@
 #include "RenderPipeline.hpp"
 #include "RenderUtils.hpp"
+#include "RenderSettings.hpp"
 
 RenderPipeline::RenderPipeline(std::shared_ptr<Device> device, const AppSize& appSize,
     Camera& camera, std::shared_ptr<Resource> colorTexture, std::shared_ptr<View> colorTextureView,
@@ -372,8 +373,8 @@ void RenderPipeline::Render(std::shared_ptr<CommandList> cmd, std::shared_ptr<Re
 
     // Frustum cull instances of the scene using their OBB
     // The result goes directly into an indirect argument buffer for the amplification shaders
-    FrustumCulling(cmd);
-    // TODO: frustum culling
+    if (!RenderSettings::freezeFrustumCulling)
+        FrustumCulling(cmd);
 
     // Visibility pass:
     // Clears depth, draw into depth and visibility targets

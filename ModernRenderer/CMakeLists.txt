@@ -69,6 +69,7 @@ add_executable(ModernRenderer WIN32
     src/RenderPipeline.cpp
     src/BoundingVolumes.cpp
     src/ImGUIRenderPass.cpp
+    src/RenderSettings.cpp
 )
 
 if (WIN32)
