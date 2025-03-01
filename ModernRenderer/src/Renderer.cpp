@@ -9,6 +9,7 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     this->device = device;
     this->appSize = app.GetAppSize();
     this->camera = &camera;
+    imGUI = std::make_shared<ImGUIRenderPass>(device, app);
 
 	app.SubscribeEvents((InputEvents*)&controls, nullptr);
 
@@ -17,7 +18,6 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     CreatePipelineObjects();
 
     renderPipeline = std::make_shared<RenderPipeline>(device, app.GetAppSize(), camera, mainColorTexture, mainColorRenderTargetView, mainDepthTexture, mainDepthTextureView);
-    imGUI = std::make_shared<ImGUIRenderPass>(device, app);
 }
 
 Renderer::~Renderer()

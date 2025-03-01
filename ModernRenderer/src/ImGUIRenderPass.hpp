@@ -4,6 +4,8 @@
 #include <imgui.h>
 #include <GLFW/glfw3.h>
 #include <AppBox/AppBox.h>
+#include <backends/imgui_impl_dx12.h>
+#include <backends/imgui_impl_glfw.h>
 
 class ImGUIRenderPass
 {
@@ -16,6 +18,7 @@ public:
 
 private:
     std::shared_ptr<Device> device;
+    ID3D12DescriptorHeap* cbvSrvHeap;
     int width;
     int height;
     GLFWwindow* window;
