@@ -10,6 +10,7 @@
 #include "RenderUtils.hpp"
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include "GLFW/glfw3native.h"
+#include "RenderSettings.hpp"
 
 //#define LOAD_RENDERDOC
 //#define FORCE_BACKGROUND_BLACK
@@ -30,6 +31,7 @@ int main(int argc, char* argv[])
 #if defined(LOAD_RENDERDOC)
     // Loading renderdoc will diisable the validation layer, make sure there is no error before enabling it.
     RenderDoc::LoadRenderDoc();
+    RenderSettings::noUI = true;
 #endif
 
     glfwSetInputMode(app.GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);

@@ -81,8 +81,8 @@ void Camera::UpdateCamera(const AppSize& size)
 	gpuData.nearPlane = nearPlane;
 	gpuData.farPlane = farPlane;
 	gpuData.fieldOfView = glm::radians(fov);
-	gpuData.frutsum = MatrixUtils::GetFrustum(gpuData.viewProjectionMatrix);
-	gpuData.cameraFrustumCullingDisabled = RenderSettings::frustumCulling;
+	gpuData.frutsum = MatrixUtils::GetFrustum(projection * view);
+	gpuData.cameraFrustumCullingDisabled = RenderSettings::frustumCullingDisabled;
 
 	cameraDataBuffer->UpdateUploadBuffer(0, &gpuData, sizeof(GPUCameraData));
 

@@ -2,6 +2,7 @@
 #include "RenderDoc.hpp"
 #include <CommandList/DXCommandList.h>
 #include "RenderUtils.hpp"
+#include "RenderSettings.hpp"
 
 Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
 {
@@ -57,7 +58,8 @@ void Renderer::AllocateRenderTargets()
     desc.depth_stencil = nullptr;
     imGUIFrameBuffer = device->CreateFramebuffer(desc);
 
-    imGUIPass = device->CreateRenderPass({ { { mainColorRenderTargetView->GetResource()->GetFormat(), RenderPassLoadOp::kLoad, RenderPassStoreOp::kStore}}});
+    if (!RenderSettings::noUI)
+        imGUIPass = device->CreateRenderPass({ { { mainColorRenderTargetView->GetResource()->GetFormat(), RenderPassLoadOp::kLoad, RenderPassStoreOp::kStore}}});
 }
 
 void Renderer::CompileShaders()
@@ -186,14 +188,17 @@ void Renderer::UpdateCommandList(std::shared_ptr<CommandList> cmd, std::shared_p
 		RenderPathTracing(cmd, backBuffer, camera, scene);
 	}
 
-    // Render ImGUI on top of the scene
-    cmd->ResourceBarrier({ { mainColorTexture, ResourceState::kCommon, ResourceState::kRenderTarget } });
-    cmd->ResourceBarrier({ { mainDepthTexture, ResourceState::kCommon, ResourceState::kDepthStencilWrite } });
-    cmd->BeginRenderPass(imGUIPass, imGUIFrameBuffer, {});
-    imGUI->OnRender(cmd);
-    cmd->EndRenderPass();
-    cmd->ResourceBarrier({ { mainColorTexture, ResourceState::kRenderTarget, ResourceState::kCommon } });
-    cmd->ResourceBarrier({ { mainDepthTexture, ResourceState::kDepthStencilWrite, ResourceState::kCommon } });
+    if (!RenderSettings::noUI)
+    {
+        // Render ImGUI on top of the scene
+        cmd->ResourceBarrier({ { mainColorTexture, ResourceState::kCommon, ResourceState::kRenderTarget } });
+        cmd->ResourceBarrier({ { mainDepthTexture, ResourceState::kCommon, ResourceState::kDepthStencilWrite } });
+        cmd->BeginRenderPass(imGUIPass, imGUIFrameBuffer, {});
+        imGUI->OnRender(cmd);
+        cmd->EndRenderPass();
+        cmd->ResourceBarrier({ { mainColorTexture, ResourceState::kRenderTarget, ResourceState::kCommon } });
+        cmd->ResourceBarrier({ { mainDepthTexture, ResourceState::kDepthStencilWrite, ResourceState::kCommon } });
+    }
 
     // Copy final image to the backbuffer
     // TODO: tonemap color buffer to LDR backbuffer

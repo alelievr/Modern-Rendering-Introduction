@@ -171,7 +171,7 @@ bool FrustumOBBIntersection(OBB obb, Frustum frustum)
     overlap = overlap && CheckOverlap(obb, frustum.normal3, frustum.dist3);
     overlap = overlap && CheckOverlap(obb, frustum.normal4, frustum.dist4);
     overlap = overlap && CheckOverlap(obb, frustum.normal5, frustum.dist5);
-
+    
     // Test the frustum corners against OBB planes. The OBB planes are outward-facing.
     // The frustum is outside if all of its corners are entirely in front of one of the OBB planes.
     // See "Correct Frustum Culling" by Inigo Quilez.

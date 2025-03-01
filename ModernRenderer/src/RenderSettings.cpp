@@ -1,8 +1,9 @@
 #include "RenderSettings.hpp"
 #include <imgui.h>
 
-bool RenderSettings::frustumCulling = true;
+bool RenderSettings::frustumCullingDisabled = false;
 bool RenderSettings::freezeFrustumCulling = false;
+bool RenderSettings::noUI = false;
 
 void RenderSettings::RenderImGUISettingsWindow()
 {
@@ -10,7 +11,7 @@ void RenderSettings::RenderImGUISettingsWindow()
 
     ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_NoCollapse);
 
-    ImGui::Checkbox("Frustum culling", &frustumCulling);
+    ImGui::Checkbox("Disable Frustum culling", &frustumCullingDisabled);
     ImGui::Checkbox("Freeze frustum culling", &freezeFrustumCulling);
 
     ImGui::End();

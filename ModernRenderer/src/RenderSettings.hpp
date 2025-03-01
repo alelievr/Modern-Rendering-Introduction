@@ -6,8 +6,9 @@ public:
 	RenderSettings() = delete;
 	~RenderSettings() = delete;
 
-	static bool frustumCulling;
+	static bool frustumCullingDisabled;
 	static bool freezeFrustumCulling;
+	static bool noUI;
 
 	static void RenderImGUISettingsWindow();
 };

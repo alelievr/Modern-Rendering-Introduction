@@ -125,40 +125,40 @@ glm::mat4x4 MatrixUtils::Mul(const glm::mat4x4& left, const glm::mat4x4& right)
 	return result;
 }
 
-Frustum MatrixUtils::GetFrustum(const glm::mat4x4& viewProjectionMatrix)
+Frustum MatrixUtils::GetFrustum(const glm::mat4x4& vp)
 {
 	Frustum frustum;
 
 	// Extract planes from the view-projection matrix
-	frustum.normal0 = glm::vec3(viewProjectionMatrix[0][3] + viewProjectionMatrix[0][0],
-		viewProjectionMatrix[1][3] + viewProjectionMatrix[1][0],
-		viewProjectionMatrix[2][3] + viewProjectionMatrix[2][0]);
-	frustum.dist0 = viewProjectionMatrix[3][3] + viewProjectionMatrix[3][0];
+	frustum.normal0 = glm::vec3(vp[0][3] + vp[0][0],
+		vp[1][3] + vp[1][0],
+		vp[2][3] + vp[2][0]);
+	frustum.dist0 = vp[3][3] + vp[3][0];
 
-	frustum.normal1 = glm::vec3(viewProjectionMatrix[0][3] - viewProjectionMatrix[0][0],
-		viewProjectionMatrix[1][3] - viewProjectionMatrix[1][0],
-		viewProjectionMatrix[2][3] - viewProjectionMatrix[2][0]);
-	frustum.dist1 = viewProjectionMatrix[3][3] - viewProjectionMatrix[3][0];
+	frustum.normal1 = glm::vec3(vp[0][3] - vp[0][0],
+		vp[1][3] - vp[1][0],
+		vp[2][3] - vp[2][0]);
+	frustum.dist1 = vp[3][3] - vp[3][0];
 
-	frustum.normal2 = glm::vec3(viewProjectionMatrix[0][3] + viewProjectionMatrix[0][1],
-		viewProjectionMatrix[1][3] + viewProjectionMatrix[1][1],
-		viewProjectionMatrix[2][3] + viewProjectionMatrix[2][1]);
-	frustum.dist2 = viewProjectionMatrix[3][3] + viewProjectionMatrix[3][1];
+	frustum.normal2 = glm::vec3(vp[0][3] + vp[0][1],
+		vp[1][3] + vp[1][1],
+		vp[2][3] + vp[2][1]);
+	frustum.dist2 = vp[3][3] + vp[3][1];
 
-	frustum.normal3 = glm::vec3(viewProjectionMatrix[0][3] - viewProjectionMatrix[0][1],
-		viewProjectionMatrix[1][3] - viewProjectionMatrix[1][1],
-		viewProjectionMatrix[2][3] - viewProjectionMatrix[2][1]);
-	frustum.dist3 = viewProjectionMatrix[3][3] - viewProjectionMatrix[3][1];
+	frustum.normal3 = glm::vec3(vp[0][3] - vp[0][1],
+		vp[1][3] - vp[1][1],
+		vp[2][3] - vp[2][1]);
+	frustum.dist3 = vp[3][3] - vp[3][1];
 
-	frustum.normal4 = glm::vec3(viewProjectionMatrix[0][3] + viewProjectionMatrix[0][2],
-		viewProjectionMatrix[1][3] + viewProjectionMatrix[1][2],
-		viewProjectionMatrix[2][3] + viewProjectionMatrix[2][2]);
-	frustum.dist4 = viewProjectionMatrix[3][3] + viewProjectionMatrix[3][2];
+	frustum.normal4 = glm::vec3(vp[0][3] + vp[0][2],
+		vp[1][3] + vp[1][2],
+		vp[2][3] + vp[2][2]);
+	frustum.dist4 = vp[3][3] + vp[3][2];
 
-	frustum.normal5 = glm::vec3(viewProjectionMatrix[0][3] - viewProjectionMatrix[0][2],
-		viewProjectionMatrix[1][3] - viewProjectionMatrix[1][2],
-		viewProjectionMatrix[2][3] - viewProjectionMatrix[2][2]);
-	frustum.dist5 = viewProjectionMatrix[3][3] - viewProjectionMatrix[3][2];
+	frustum.normal5 = glm::vec3(vp[0][3] - vp[0][2],
+		vp[1][3] - vp[1][2],
+		vp[2][3] - vp[2][2]);
+	frustum.dist5 = vp[3][3] - vp[3][2];
 
 	// Normalize the plane normals
 	auto normalizePlane = [](glm::vec3& normal, float& distance) {
@@ -174,9 +174,8 @@ Frustum MatrixUtils::GetFrustum(const glm::mat4x4& viewProjectionMatrix)
 	normalizePlane(frustum.normal4, frustum.dist4);
 	normalizePlane(frustum.normal5, frustum.dist5);
 
-	// TODO: check that
 	// Compute frustum corners
-	glm::mat4 invVP = glm::inverse(viewProjectionMatrix);
+	glm::mat4 invVP = glm::inverse(vp);
 	glm::vec4 ndcCorners[8] = {
 		{-1, -1, -1, 1}, {1, -1, -1, 1}, {-1, 1, -1, 1}, {1, 1, -1, 1},
 		{-1, -1, 1, 1}, {1, -1, 1, 1}, {-1, 1, 1, 1}, {1, 1, 1, 1}

@@ -73,6 +73,15 @@ MaterialData LoadMaterialData(uint materialIndex)
 {
     return materialBuffer.Load(materialIndex);
 }
+InstanceData LoadInstance(uint instanceIndex)
+{
+    InstanceData data = instanceData.Load(instanceIndex);
+    
+    // Apply camera relative rendering to OBB positions
+    data.obb.center -= cameraPosition.xyz;
+
+    return data;
+}
 
 float4 SampleTexture(uint textureIndex, SamplerState s, float2 uv)
 {
