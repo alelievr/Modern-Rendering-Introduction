@@ -43,5 +43,5 @@ float4 fragment(MeshToFragment input) : SV_TARGET0
     uint materialID, meshletID, triangleID;
     DecodeVisibility(visibilityData, materialID, meshletID, triangleID);
     
-    return float4(triangleID / 255.0, 0, 1, 1);
+    return float4(GetRandomColor(meshletID), 1);
 }

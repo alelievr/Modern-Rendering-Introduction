@@ -18,13 +18,16 @@ cbuffer CameraData : register(b0, space0)
     float4x4 viewProjectionMatrix;
     float4x4 inverseViewProjectionMatrix;
     float4 cameraPosition;
+    float4 cameraCullingPosition;
     float4 cameraResolution;
     uint orthographicCamera;
     float cameraNearPlane;
     float cameraFarPlane;
     float cameraFieldOfView;
     Frustum cameraFrustum;
-    uint cameraFrustumCullingDisabled;
+    Frustum cameraCullingFrustum;
+    uint cameraInstanceFrustumCullingDisabled;
+    uint cameraMeshletFrustumCullingDisabled;
 };
 
 cbuffer DrawData : register(b1, space0)
@@ -73,12 +76,12 @@ MaterialData LoadMaterialData(uint materialIndex)
 {
     return materialBuffer.Load(materialIndex);
 }
-InstanceData LoadInstance(uint instanceIndex)
+InstanceData LoadInstance(uint instanceIndex, bool culling = false)
 {
     InstanceData data = instanceData.Load(instanceIndex);
     
     // Apply camera relative rendering to OBB positions
-    data.obb.center -= cameraPosition.xyz;
+    data.obb.center -= culling ? cameraCullingPosition.xyz : cameraPosition.xyz;
 
     return data;
 }

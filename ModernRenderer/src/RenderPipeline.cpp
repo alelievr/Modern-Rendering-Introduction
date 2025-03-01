@@ -200,21 +200,23 @@ void RenderPipeline::RenderVisibility(std::shared_ptr<CommandList> cmd)
         BindKey indirectCountKey = { ShaderType::kCompute, ViewType::kRWBuffer, 1, 0 };
         BindKey instanceIDKey = { ShaderType::kCompute, ViewType::kConstantBuffer, 1, 0, 3, UINT32_MAX, true };
 
-        indirectVisibilityLayoutSet = RenderUtils::CreateLayoutSet(device, *camera, { instanceIDKey, indirectCountKey }, RenderUtils::CameraData | RenderUtils::SceneInstances | RenderUtils::MeshPool, RenderUtils::Mesh | RenderUtils::Fragment);
+        indirectVisibilityLayoutSet = RenderUtils::CreateLayoutSet(device, *camera, { instanceIDKey, indirectCountKey }, RenderUtils::CameraData | RenderUtils::SceneInstances | RenderUtils::MeshPool, RenderUtils::Mesh | RenderUtils::Amplification | RenderUtils::Fragment);
         indirectVisibilitySet = RenderUtils::CreateBindingSet(device, indirectVisibilityLayoutSet, *camera,
             { { instanceIDKey, nullptr }, { indirectCountKey, meshletIndirectCountBufferView } },
-            RenderUtils::CameraData | RenderUtils::SceneInstances | RenderUtils::MeshPool, RenderUtils::Mesh | RenderUtils::Fragment
+            RenderUtils::CameraData | RenderUtils::SceneInstances | RenderUtils::MeshPool, RenderUtils::Mesh | RenderUtils::Amplification | RenderUtils::Fragment
         );
     }
 
     if (!visibilityPipeline)
     {
+        ShaderDesc visibilityTaskShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/VisibilityPass.hlsl", "task", ShaderType::kAmplification, "6_5" };
+        visibilityTaskShader = device->CompileShader(visibilityTaskShaderDesc);
         ShaderDesc visibilityMeshShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/VisibilityPass.hlsl", "mesh", ShaderType::kMesh, "6_5" };
         visibilityMeshShader = device->CompileShader(visibilityMeshShaderDesc);
         ShaderDesc visibilityFragmentShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/VisibilityPass.hlsl", "fragment", ShaderType::kPixel, "6_5" };
         visibilityFragmentShader = device->CompileShader(visibilityFragmentShaderDesc);
 
-        visibilityProgram = device->CreateProgram({ visibilityMeshShader, visibilityFragmentShader });
+        visibilityProgram = device->CreateProgram({ visibilityMeshShader, visibilityFragmentShader, visibilityTaskShader });
 
         GraphicsPipelineDesc meshShaderPipelineDesc = {
             visibilityProgram,
@@ -373,8 +375,7 @@ void RenderPipeline::Render(std::shared_ptr<CommandList> cmd, std::shared_ptr<Re
 
     // Frustum cull instances of the scene using their OBB
     // The result goes directly into an indirect argument buffer for the amplification shaders
-    if (!RenderSettings::freezeFrustumCulling)
-        FrustumCulling(cmd);
+    FrustumCulling(cmd);
 
     // Visibility pass:
     // Clears depth, draw into depth and visibility targets

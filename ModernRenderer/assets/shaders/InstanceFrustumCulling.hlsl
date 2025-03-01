@@ -28,10 +28,10 @@ void main(uint3 threadID : SV_DispatchThreadID)
     
     if (threadID.x < instanceCout)
     {
-        InstanceData instance = LoadInstance(threadID.x);
+        InstanceData instance = LoadInstance(threadID.x, true);
         
         // Frustum culling against the object OBB
-        if (FrustumOBBIntersection(instance.obb, cameraFrustum) || cameraFrustumCullingDisabled)
+        if (FrustumOBBIntersection(instance.obb, cameraCullingFrustum) || cameraInstanceFrustumCullingDisabled)
         {
             // TODO Backface culling
             
@@ -42,7 +42,7 @@ void main(uint3 threadID : SV_DispatchThreadID)
             IndirectExecuteMesh visibleInstance;
         
             visibleInstance.instanceID = threadID.x;
-            visibleInstance.threadGroupX = instance.meshletCount;
+            visibleInstance.threadGroupX = (instance.meshletCount + 31) / 32;
             visibleInstance.threadGroupY = 1;
             visibleInstance.threadGroupZ = 1;
         

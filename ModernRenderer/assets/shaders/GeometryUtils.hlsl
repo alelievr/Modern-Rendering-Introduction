@@ -128,17 +128,17 @@ bool IntersectRayTraiangle(float3 rayOrigin, float3 rayDir, float3 v0, float3 v1
     return true;
 }
 
-float DistanceToPlane(float4 plane, float3 p)
+float DistanceToPlane(float3 planeNormal, float planeDistance, float3 p)
 {
-    return dot(float4(p, 1.0), plane);
+    return dot(float4(p, 1.0), float4(planeNormal, planeDistance));
 }
  
 // Returns > 0 if the sphere overlaps the frustum, <= 0 otherwise
-float SphereFrustumTest(float4 planes[6], float3 center, float radius)
+float SphereFrustumIntersection(Frustum frustum, float3 center, float radius)
 {
-    float dist01 = min(DistanceToPlane(planes[0], center), DistanceToPlane(planes[1], center));
-    float dist23 = min(DistanceToPlane(planes[2], center), DistanceToPlane(planes[3], center));
-    float dist45 = min(DistanceToPlane(planes[4], center), DistanceToPlane(planes[5], center));
+    float dist01 = min(DistanceToPlane(frustum.normal0, frustum.dist0, center), DistanceToPlane(frustum.normal1, frustum.dist1, center));
+    float dist23 = min(DistanceToPlane(frustum.normal2, frustum.dist2, center), DistanceToPlane(frustum.normal3, frustum.dist3, center));
+    float dist45 = min(DistanceToPlane(frustum.normal4, frustum.dist4, center), DistanceToPlane(frustum.normal5, frustum.dist5, center));
  
     return min(min(dist01, dist23), dist45) + radius;
 }

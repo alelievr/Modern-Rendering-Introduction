@@ -6,7 +6,8 @@ public:
 	RenderSettings() = delete;
 	~RenderSettings() = delete;
 
-	static bool frustumCullingDisabled;
+	static bool frustumInstanceCullingDisabled;
+	static bool frustumMeshletCullingDisabled;
 	static bool freezeFrustumCulling;
 	static bool noUI;
 

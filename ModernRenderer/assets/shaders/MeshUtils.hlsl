@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Common.hlsl"
+
 // must match meshlet generation limits
 #define MAX_OUTPUT_VERTICES 128
 #define MAX_OUTPUT_PRIMITIVES 256
@@ -59,13 +61,22 @@ Buffer<uint> meshletIndices : register(t2, space4);
 Buffer<uint> meshletTriangles : register(t3, space4);
 StructuredBuffer<Bounds> meshletBounds : register(t4, space4);
 
+Bounds LoadMeshletBounds(uint meshletIndex, bool culling = false)
+{
+    Bounds bounds = meshletBounds[meshletIndex];
+    
+    bounds.center -= culling ? cameraCullingPosition.xyz : cameraPosition.xyz;
+    
+    return bounds;
+}
+
 MeshToFragment LoadVertexAttributes(uint meshletIndex, uint vertexIndex, uint instanceID)
 {
     MeshToFragment vout;
     
     // Fetch mesh data from buffers
     VertexData vertex = vertexBuffer.Load(vertexIndex);
-    InstanceData instance = instanceData.Load(instanceOffset + instanceID);
+    InstanceData instance = LoadInstance(instanceOffset + instanceID);
     
     // Apply camera relative rendering
     vertex.positionOS = GetCameraRelativePosition(vertex.positionOS);

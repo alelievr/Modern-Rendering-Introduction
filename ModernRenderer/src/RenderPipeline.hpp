@@ -47,6 +47,7 @@ private:
 	std::shared_ptr<Pipeline> visibilityPipeline;
 	std::shared_ptr<Program> visibilityProgram;
 	std::shared_ptr<Shader> visibilityMeshShader;
+	std::shared_ptr<Shader> visibilityTaskShader;
 	std::shared_ptr<Shader> visibilityFragmentShader;
 	std::shared_ptr<BindingSetLayout> indirectVisibilityLayoutSet;
 	std::shared_ptr<BindingSet> indirectVisibilitySet;

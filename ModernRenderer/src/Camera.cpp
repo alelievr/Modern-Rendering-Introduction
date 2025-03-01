@@ -69,6 +69,13 @@ void Camera::UpdateCamera(const AppSize& size)
 	float fov = 45.0f;
 	glm::mat4x4 projection = MatrixUtils::Perspective(fov, aspect, nearPlane, farPlane);
 	//glm::mat4x4 projection = MatrixUtils::Orthographic(glm::vec2(5), aspect, 0.1f, 1000.0f);
+
+	if (!RenderSettings::freezeFrustumCulling)
+	{
+		cullingViewProjMatrix = projection * view;
+		cullingPosition = position;
+	}
+
     gpuData.viewMatrix = (view);
 	gpuData.inverseViewMatrix = inverse(gpuData.viewMatrix);
 	gpuData.projectionMatrix = transpose(projection);
@@ -76,13 +83,16 @@ void Camera::UpdateCamera(const AppSize& size)
 	gpuData.viewProjectionMatrix = transpose(projection * view);
 	gpuData.inverseViewProjectionMatrix = inverse(gpuData.viewProjectionMatrix);
 	gpuData.cameraPosition = glm::vec4(position, 0);
+	gpuData.cameraCullingPosition = glm::vec4(cullingPosition, 0);
 	gpuData.cameraResolution = glm::vec4(size.width(), size.height(), 1.0f / size.width(), 1.0f / size.height()); // The camera has the same resoution as the window.
 	gpuData.orthographicCamera = false;
 	gpuData.nearPlane = nearPlane;
 	gpuData.farPlane = farPlane;
 	gpuData.fieldOfView = glm::radians(fov);
 	gpuData.frutsum = MatrixUtils::GetFrustum(projection * view);
-	gpuData.cameraFrustumCullingDisabled = RenderSettings::frustumCullingDisabled;
+	gpuData.cullingFrutsum = MatrixUtils::GetFrustum(cullingViewProjMatrix);
+	gpuData.cameraInstanceFrustumCullingDisabled = RenderSettings::frustumInstanceCullingDisabled;
+	gpuData.cameraMeshletFrustumCullingDisabled = RenderSettings::frustumMeshletCullingDisabled;
 
 	cameraDataBuffer->UpdateUploadBuffer(0, &gpuData, sizeof(GPUCameraData));
 

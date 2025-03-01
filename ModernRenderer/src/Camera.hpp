@@ -14,13 +14,16 @@ struct GPUCameraData
     glm::mat4 viewProjectionMatrix;
     glm::mat4 inverseViewProjectionMatrix;
     glm::vec4 cameraPosition;
+    glm::vec4 cameraCullingPosition;
     glm::vec4 cameraResolution;
     unsigned orthographicCamera;
     float nearPlane;
     float farPlane;
     float fieldOfView;
     Frustum frutsum;
-    unsigned cameraFrustumCullingDisabled;
+    Frustum cullingFrutsum;
+    unsigned cameraInstanceFrustumCullingDisabled;
+    unsigned cameraMeshletFrustumCullingDisabled;
 };
 
 class Camera
@@ -74,6 +77,8 @@ public:
     glm::vec3 up;
 
     GPUCameraData gpuData;
+    glm::mat4 cullingViewProjMatrix;
+    glm::vec3 cullingPosition;
     std::shared_ptr<Resource> cameraDataBuffer;
     std::shared_ptr<View> cameraDataView;
     BindingDesc cameraDataDescFragment;
