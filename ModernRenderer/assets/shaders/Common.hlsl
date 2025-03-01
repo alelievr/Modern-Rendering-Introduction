@@ -28,6 +28,7 @@ cbuffer CameraData : register(b0, space0)
     Frustum cameraCullingFrustum;
     uint cameraInstanceFrustumCullingDisabled;
     uint cameraMeshletFrustumCullingDisabled;
+    uint cameraMeshletBackfaceCullingDisabled;
 };
 
 cbuffer DrawData : register(b1, space0)

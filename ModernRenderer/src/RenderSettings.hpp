@@ -8,6 +8,7 @@ public:
 
 	static bool frustumInstanceCullingDisabled;
 	static bool frustumMeshletCullingDisabled;
+	static bool backfacingMeshletCullingDisabled;
 	static bool freezeFrustumCulling;
 	static bool noUI;
 

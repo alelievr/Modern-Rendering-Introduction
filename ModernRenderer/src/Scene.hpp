@@ -28,6 +28,7 @@ private:
 	Scene& operator=(const Scene&) = delete;
 
 	void LoadSingleSphereScene(std::shared_ptr<Device> device, const Camera& camera);
+	void LoadRoughnessTestScene(std::shared_ptr<Device> device, const Camera& camera);
 	void LoadMultiObjectSphereScene(std::shared_ptr<Device> device, const Camera& camera);
 	void LoadSingleCubeScene(std::shared_ptr<Device> device, const Camera& camera);
 	void LoadSponzaScene(std::shared_ptr<Device> device, const Camera& camera);

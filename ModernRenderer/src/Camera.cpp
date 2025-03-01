@@ -93,6 +93,8 @@ void Camera::UpdateCamera(const AppSize& size)
 	gpuData.cullingFrutsum = MatrixUtils::GetFrustum(cullingViewProjMatrix);
 	gpuData.cameraInstanceFrustumCullingDisabled = RenderSettings::frustumInstanceCullingDisabled;
 	gpuData.cameraMeshletFrustumCullingDisabled = RenderSettings::frustumMeshletCullingDisabled;
+	gpuData.cameraMeshletBackfaceCullingDisabled = RenderSettings::backfacingMeshletCullingDisabled;
+
 
 	cameraDataBuffer->UpdateUploadBuffer(0, &gpuData, sizeof(GPUCameraData));
 

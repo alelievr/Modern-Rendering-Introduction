@@ -20,6 +20,14 @@ void Scene::LoadSingleSphereScene(std::shared_ptr<Device> device, const Camera& 
 	instances.push_back(ModelInstance(importer.GetModel()));
 }
 
+void Scene::LoadRoughnessTestScene(std::shared_ptr<Device> device, const Camera& camera)
+{
+	name = L"Roughness Test";
+
+	ModelImporter importer("assets/models/RoughnessTest/EnvironmentTest.gltf", aiProcessPreset_TargetRealtime_Fast);
+	instances.push_back(ModelInstance(importer.GetModel()));
+}
+
 void Scene::LoadMultiObjectSphereScene(std::shared_ptr<Device> device, const Camera& camera)
 {
 	name = L"4 Sphere";
@@ -70,7 +78,8 @@ std::shared_ptr<Scene> Scene::LoadHardcodedScene(std::shared_ptr<Device> device,
 	std::shared_ptr<Scene> scene = std::make_shared<Scene>();
 
 	//scene->LoadSingleCubeScene(device, camera);
-	scene->LoadSingleSphereScene(device, camera);
+	//scene->LoadSingleSphereScene(device, camera);
+	scene->LoadRoughnessTestScene(device, camera);
 	//scene->LoadMultiObjectSphereScene(device, camera);
 	//scene->LoadStanfordBunnyScene(device, camera);
 	//scene->LoadChessScene(device, camera);

@@ -22,8 +22,9 @@ struct GPUCameraData
     float fieldOfView;
     Frustum frutsum;
     Frustum cullingFrutsum;
-    unsigned cameraInstanceFrustumCullingDisabled;
+    unsigned cameraInstanceFrustumCullingDisabled; // TODO: 32 bit int flag
     unsigned cameraMeshletFrustumCullingDisabled;
+    unsigned cameraMeshletBackfaceCullingDisabled;
 };
 
 class Camera

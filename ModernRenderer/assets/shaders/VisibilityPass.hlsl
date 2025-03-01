@@ -9,8 +9,6 @@ struct VisibilityMeshToFragment
     nointerpolation uint packedVisibilityData : TEXCOORD0;
 };
 
-// TODO: amplification shader to do cluster culling
-
 struct TaskCullingPayload
 {
     uint meshletIndex[TASK_THREAD_GROUP_SIZE];
@@ -24,20 +22,21 @@ void task(uint threadID : SV_DispatchThreadID, uint groupThreadId : SV_GroupThre
     // TODO: Perform frustum culling on meshlets
     uint instanceID = instanceOffset; // Instance offset is provided as extra data from the indirect dispatch
     InstanceData instance = instanceData[instanceID];
-    bool visible = false;
+    bool visible = true;
     
     uint meshletIndex = threadID + instance.meshletIndex; // TODO: replace the meshlet index from instance by cullingPayload data
     //Meshlet meshlet = meshlets[meshletIndex];
     Bounds bounds = LoadMeshletBounds(meshletIndex, true);
     
-    //if (dot(normalize(cone_apex - camera_position), cone_axis) >= cone_cutoff)
-    //    reject();
+    // Perform cone culling to eliminate backfacing meshlets
+    if (!cameraMeshletFrustumCullingDisabled)
+        if (dot(normalize(bounds.coneApex - cameraCullingPosition.xyz), bounds.coneAxis) >= bounds.coneCutoff)
+            visible = false;
 
     // Perform frustum culling on the meshlet
-    if (SphereFrustumIntersection(cameraCullingFrustum, bounds.center, bounds.radius) > 0)
-        visible = true;
-    
-    visible |= cameraMeshletFrustumCullingDisabled;
+    if (!cameraMeshletFrustumCullingDisabled)
+        if (visible && SphereFrustumIntersection(cameraCullingFrustum, bounds.center, bounds.radius) <= 0)
+            visible = false;
     
     if (visible)
     {

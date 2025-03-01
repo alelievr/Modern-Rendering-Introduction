@@ -3,6 +3,7 @@
 
 bool RenderSettings::frustumInstanceCullingDisabled = false;
 bool RenderSettings::frustumMeshletCullingDisabled = false;
+bool RenderSettings::backfacingMeshletCullingDisabled = false;
 bool RenderSettings::freezeFrustumCulling = false;
 bool RenderSettings::noUI = false;
 
@@ -14,6 +15,7 @@ void RenderSettings::RenderImGUISettingsWindow()
 
     ImGui::Checkbox("Disable Instance Frustum culling", &frustumInstanceCullingDisabled);
     ImGui::Checkbox("Disable Meshlet Frustum culling", &frustumMeshletCullingDisabled);
+    ImGui::Checkbox("Disable Backfacing Meshlet culling", &backfacingMeshletCullingDisabled);
     ImGui::Checkbox("Freeze frustum culling", &freezeFrustumCulling);
 
     ImGui::End();
