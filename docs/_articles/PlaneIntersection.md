@@ -24,7 +24,7 @@ $${\mathbf{ {p} = {l_{0}} + {l} \ d}}$$
 
 Note that this is both the formula for a line and a vector, in our case we're interesting in solving the intersection between a vector and another object, which means that we must discard any intersection if the object is "behind" the vector like so:
 
-![](/assets/Recordings/Plane%2001.png)
+![](../assets/Recordings/Plane%2001.png)
 
 This is equivalent to say that we'll discard any solution where the $\mathbf{d}$ variable is negative (going in the inverse direction compared to the vector $\mathbf{a}$)
 
@@ -56,7 +56,7 @@ $${\mathbf{ d = {({\color{orange}p_{0}} - l_{0}) \cdot {\color{lime}n}  \over {l
 
 Note that we also need to handle the case where both the line and vector are parallel, in this case there is no intersection. Luckily we can know that in advance by first computing the dot product of $\mathbf{l}$ and $\mathbf{n}$ which will give 0 if both vectors are parallel. Look how this visualization of the dot product reacts whe the vector $l$ overlaps with the line $P$.
 
-![](/assets/Recordings/Plane%2002.gif)
+![](../assets/Recordings/Plane%2002.gif)
 
 ## Result
 

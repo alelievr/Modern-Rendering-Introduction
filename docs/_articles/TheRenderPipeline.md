@@ -10,7 +10,7 @@ Now that we know how to render objects using the GPU, we'll look at the differen
 
 The following diagram provides a high-level overview of the content of a generic render pipeline:
 
-![](/assets/Images/RenderPipeline.png)
+![](../assets/Images/RenderPipeline.png)
 
 Note that the techniques used to render each box vary greatly depending on the requirements of the renderer. To achieve optimal performance, the design of the renderer must take into account the type of content in your 3D scenes:
 
@@ -39,7 +39,7 @@ There are many techniques to render opaque geometry, which can be split into two
 
 ### Forward Opaque Rendering
 
-![](/assets/Recordings/The%20Render%20Pipeline%20-%20Forward.gif)
+![](../assets/Recordings/The%20Render%20Pipeline%20-%20Forward.gif)
 
 Forward rendering is the simplest way to render an object. This is because it consists of directly rendering the object into the main color and depth textures. Due to this single rendering pass, the shader for these objects has to handle vertex transformations, evaluate/load material properties (constants, textures, procedural functions, etc.), and shade the surface with the scene's lighting setup. Usually, this results in shaders that consume a lot of resources and limit parallelism on the GPU.
 
@@ -57,7 +57,7 @@ Deferred rendering, as the name implies, involves shading the pixels in two or m
 
 #### Depth Pre-Pass
 
-![](/assets/Recordings/The%20Render%20Pipeline%20-%20Depth%20Prepass.gif)
+![](../assets/Recordings/The%20Render%20Pipeline%20-%20Depth%20Prepass.gif)
 
 As the name suggests, this pass renders the depth of every object into a depth buffer. This depth buffer can then be used to render objects without any overdraw by leveraging the [early depth testing](Rasterization.md) feature of the rasterizer.
 
@@ -69,7 +69,7 @@ It’s worth noting that every object needs to be rendered twice in this approac
 
 #### Geometry Buffer (G-Buffer)
 
-![](/assets/Recordings/The%20Render%20Pipeline%20-%20GBuffer.gif)
+![](../assets/Recordings/The%20Render%20Pipeline%20-%20GBuffer.gif)
 
 The geometry buffer technique involves rendering the geometric attributes and material properties into multiple render targets to be used later in a lighting pass. This technique allows the decoupling of material evaluation and lighting computation into two separate passes. Decoupling material and lighting is beneficial because it enables control over the complexity of the materials and geometry without affecting the cost of the lighting pass.
 
@@ -79,7 +79,7 @@ The G-Buffer pass can also output depth. If the material evaluation is fast, ove
 
 #### Visibility Buffer
 
-![](/assets/Recordings/The%20Render%20Pipeline%20-%20Visibility%20Buffer.gif)
+![](../assets/Recordings/The%20Render%20Pipeline%20-%20Visibility%20Buffer.gif)
 
 If the purpose of the G-Buffer is to decouple materials from lighting, then the purpose of the visibility buffer is to decouple geometry from both materials and lighting. The advantage of decoupling geometry is that the objects are only rendered once, unlike with the depth pre-pass approach. Furthermore, it also prevents overdraw, as the visibility buffer stores both visibility information in a color target and depth.
 
@@ -112,7 +112,7 @@ Each of these categories will be addressed by a specific algorithm or system. No
 
 ## Sky Rendering
 
-![](/assets/Recordings/The%20Render%20Pipeline%20-%20Sky.png)
+![](../assets/Recordings/The%20Render%20Pipeline%20-%20Sky.png)
 
 > HDRI sky background with a chrome ball reflecting it.
 

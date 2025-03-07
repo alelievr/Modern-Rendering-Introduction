@@ -82,7 +82,7 @@ We can put these sequence transformations in dedicated functions with to help us
 
 Now that we have the ray direction and it's origin (it's the camera position), we can calculate intersections with other objects in the scene. Using the intersections formulas we saw in previous chapters, we can test our ray tracer by hardcoding a few objects in hlsl. Each object is assigned a different color and we select the closest hit distance in case of multiple intersections. If nothing is intersected, we just return black color.
 
-![](/assets/Recordings/Hardcoded%20Scene%2000.png)
+![](../assets/Recordings/Hardcoded%20Scene%2000.png)
 
 The result might not be impressive right now but there is no point in doing crazy stuff with primitives as our goal will be to render polygonal meshes with the path tracer in the next chapters.
 
