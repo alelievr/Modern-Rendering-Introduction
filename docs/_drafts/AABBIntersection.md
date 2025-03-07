@@ -18,6 +18,12 @@ To intersect a ray with an AABB, we can take a simple approach using slabs, a sl
 
 ![](../assets/Recordings/AABBIntersection%2001.gif)
 
+## Ray - AABB Test
+
+The intersection is great if you want to compute the exact location of the intersection between the AABB and a ray, but if you just want to know if the ray hits the AABB or not, then we can use a different approach that allows us to perform less calculations.
+
+## AABB Distance
+
 ## Conclusion
 
 ## References
