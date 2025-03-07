@@ -10,11 +10,11 @@ Welcome to the introduction to modern rendering! This course will cover everythi
 
 To make things simpler, we won't discuss the details of a specific graphics API like D3D12 or Vulkan. Instead, all examples and source code will use the [FlyCube](https://github.com/andrejnau/FlyCube) library. This will allow us to focus on designing a good renderer without worrying too much about the low-level driver interactions of the GPU.
 
-It's important to note that the rendering solutions presented in this book are not always optimal in terms of performance. Generally, heavy optimizations in rendering tend to complicate things significantly, requiring vast knowledge and making them unsuitable for an introductory course. This is why I have chosen to sacrifice a bit of performance (but not too much) for the sake of simplicity in the algorithms.
+It's important to note that the rendering solutions presented in this course are not always optimal in terms of performance. Generally, heavy optimizations in rendering tend to complicate things significantly, requiring vast knowledge and making them unsuitable for an introductory course. This is why I have chosen to sacrifice a bit of performance (but not too much) for the sake of simplicity in the algorithms.
 
 ## Who is this course for?
 
-This book is written for anyone interested in graphics programming or looking to learn more about rendering. While it's not necessary to know a shader language to follow this course, being proficient in a programming language is beneficial. Similarly, having some knowledge of linear algebra and trigonometry will be helpful, but it's not a strict requirement, as we will cover intuitive ways to describe the virtual 3D world using equations.
+This course is written for anyone interested in graphics programming or looking to learn more about rendering. While it's not necessary to know a shader language to follow this course, being proficient in a programming language is beneficial. Similarly, having some knowledge of linear algebra and trigonometry will be helpful, but it's not a strict requirement, as we will cover intuitive ways to describe the virtual 3D world using equations.
 
 ## Subjects Covered
 
