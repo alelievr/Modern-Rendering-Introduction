@@ -52,11 +52,13 @@ private:
     public:
         glm::vec3 movement;
         glm::vec2 rotation;
+        float currentSpeed = 1.0f / 60.0f;
 
         CameraControls() : movement(0), rotation(0), lastCursorPos(0), activeKeyMask(0) {}
 
         void OnKey(int key, int action) override;
         void OnMouse(bool first, double xpos, double ypos) override;
+        void OnScroll(double xoffset, double yoffset) override;
 
         void Reset();
     };
@@ -65,8 +67,8 @@ private:
     GLFWwindow* window;
 
     // Disable copy constructor
-    Camera(const Camera&);
-    Camera& operator=(const Camera&);
+    Camera(const Camera&) = delete;
+    Camera& operator=(const Camera&) = delete;
 
 public:
     CameraControls cameraControls;

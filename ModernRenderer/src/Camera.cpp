@@ -122,7 +122,7 @@ void Camera::CameraControls::OnKey(int key, int action)
 	CheckKeyMask(activeKeyMask, Right, GLFW_KEY_D, key, action);
 	CheckKeyMask(activeKeyMask, Sprint, GLFW_KEY_LEFT_SHIFT, key, action);
 
-	float speed = 1.0f / 60.0f;
+	float speed = currentSpeed;
 	if ((activeKeyMask & Sprint) != 0)
 		speed *= 5;
 
@@ -139,6 +139,13 @@ void Camera::CameraControls::OnKey(int key, int action)
 		movement.y += speed;
 	if (activeKeyMask & Down)
 		movement.y -= speed;
+}
+
+void Camera::CameraControls::OnScroll(double xoffset, double yoffset)
+{
+	currentSpeed += yoffset * 0.04f;
+	if (currentSpeed < 0.01f)
+		currentSpeed = 0.01f;
 }
 
 void Camera::CameraControls::OnMouse(bool first, double xpos, double ypos)

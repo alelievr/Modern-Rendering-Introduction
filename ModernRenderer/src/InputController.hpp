@@ -24,4 +24,10 @@ public:
         for (auto event : registeredEvents)
             event->OnMouse(first, xpos, ypos);
     }
+
+    void OnScroll(double xoffset, double yoffset) override
+	{
+		for (auto event : registeredEvents)
+			event->OnScroll(xoffset, yoffset);
+	}
 };
