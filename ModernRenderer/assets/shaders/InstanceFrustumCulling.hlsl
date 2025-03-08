@@ -21,14 +21,14 @@ void clear(uint3 threadID : SV_DispatchThreadID)
 }
 
 [numthreads(64, 1, 1)]
-void main(uint3 threadID : SV_DispatchThreadID)
+void main(uint threadID : SV_DispatchThreadID)
 {
     uint instanceCout, stride;
     instanceData.GetDimensions(instanceCout, stride);
     
-    if (threadID.x < instanceCout)
+    if (threadID < instanceCout)
     {
-        InstanceData instance = LoadInstance(threadID.x, true);
+        InstanceData instance = LoadInstance(threadID, true);
         
         // Frustum culling against the object OBB
         if (FrustumOBBIntersection(instance.obb, cameraCullingFrustum) || cameraInstanceFrustumCullingDisabled)
@@ -41,7 +41,7 @@ void main(uint3 threadID : SV_DispatchThreadID)
         
             IndirectExecuteMesh visibleInstance;
         
-            visibleInstance.instanceID = threadID.x;
+            visibleInstance.instanceID = threadID;
             visibleInstance.threadGroupX = (instance.meshletCount + 31) / 32;
             visibleInstance.threadGroupY = 1;
             visibleInstance.threadGroupZ = 1;

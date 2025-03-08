@@ -28,8 +28,11 @@ void task(uint threadID : SV_DispatchThreadID, uint groupThreadId : SV_GroupThre
     //Meshlet meshlet = meshlets[meshletIndex];
     Bounds bounds = LoadMeshletBounds(meshletIndex, true);
     
+    // TODO: transform bounds to world space
+    bounds.center = TransformObjectToWorld(GetCameraRelativePosition(bounds.center), instance.objectToWorld);
+    
     // Perform cone culling to eliminate backfacing meshlets
-    if (!cameraMeshletFrustumCullingDisabled)
+    if (!cameraMeshletBackfaceCullingDisabled)
         if (dot(normalize(bounds.coneApex - cameraCullingPosition.xyz), bounds.coneAxis) >= bounds.coneCutoff)
             visible = false;
 

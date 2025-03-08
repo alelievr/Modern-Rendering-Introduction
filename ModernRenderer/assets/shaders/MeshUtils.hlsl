@@ -76,7 +76,7 @@ MeshToFragment LoadVertexAttributes(uint meshletIndex, uint vertexIndex, uint in
     
     // Fetch mesh data from buffers
     VertexData vertex = vertexBuffer.Load(vertexIndex);
-    InstanceData instance = LoadInstance(instanceOffset + instanceID);
+    InstanceData instance = LoadInstance(instanceID);
     
     // Apply camera relative rendering
     vertex.positionOS = GetCameraRelativePosition(vertex.positionOS);

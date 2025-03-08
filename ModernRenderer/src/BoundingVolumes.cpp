@@ -5,7 +5,7 @@ OBB::OBB(const AABB& aabb, const glm::mat4x4& transform)
     glm::vec3 localCenter = (aabb.min + aabb.max) * 0.5f;
     glm::vec3 halfExtents = (aabb.max - aabb.min) * 0.5f;
 
-    center = glm::vec3(transform * glm::vec4(localCenter, 1.0f));
+    center = glm::vec3(glm::vec4(localCenter, 1.0f) * transform);
 
     glm::vec3 right = glm::vec3(transform[0]);
     glm::vec3 up = glm::vec3(transform[1]);
