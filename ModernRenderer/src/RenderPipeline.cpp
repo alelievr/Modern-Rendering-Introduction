@@ -187,53 +187,6 @@ void RenderPipeline::MeshletCulling(std::shared_ptr<CommandList> cmd)
     cmd->BeginEvent("Meshlet Culling");
     auto dxCmd = ((DXCommandList*)cmd.get())->GetCommandList();
 
-    //if (!meshletIndirectCountBuffer)
-    //{
-    //    meshletIndirectCountBuffer = device->CreateBuffer(BindFlag::kUnorderedAccess | BindFlag::kCopyDest, sizeof(uint32_t));
-    //    meshletIndirectCountBuffer->CommitMemory(MemoryType::kDefault);
-    //    meshletIndirectCountBuffer->SetName("Meshlet Indirect Count Buffer");
-    //}
-
-    //if (!meshletIndirectCountView)
-    //{
-    //    ViewDesc viewDesc = {};
-    //    viewDesc.view_type = ViewType::kRWBuffer;
-    //    viewDesc.buffer_format = gli::FORMAT_R32_UINT_PACK32;
-    //    viewDesc.dimension = ViewDimension::kBuffer;
-    //    viewDesc.buffer_size = sizeof(uint32_t);
-    //    viewDesc.structure_stride = sizeof(uint32_t);
-    //    meshletIndirectCountView = device->CreateView(meshletIndirectCountBuffer, viewDesc);
-    //}
-
-    //if (!meshletIndirectArgsBuffer)
-    //{
-    //    meshletIndirectArgsBuffer = device->CreateBuffer(BindFlag::kIndirectBuffer | BindFlag::kUnorderedAccess, sizeof(IndirectDispatchCommand) * maxVisibleMeshlets);
-    //    meshletIndirectArgsBuffer->CommitMemory(MemoryType::kDefault);
-    //    meshletIndirectArgsBuffer->SetName("Meshlet Indirect Args Buffer");
-    //}
-
-    //if (!meshletIndirectArgsView)
-    //{
-    //    ViewDesc viewDesc = {};
-    //    viewDesc.view_type = ViewType::kStructuredBuffer;
-    //    viewDesc.dimension = ViewDimension::kBuffer;
-    //    viewDesc.buffer_size = sizeof(IndirectDispatchCommand) * maxVisibleMeshlets;
-    //    viewDesc.structure_stride = sizeof(IndirectDispatchCommand);
-    //    meshletIndirectArgsView = device->CreateView(meshletCullingIndirectArgsBuffer, viewDesc);
-    //}
-
-    //if (!meshletCullingLayoutSet)
-    //{
-    //    BindKey indirectBindKey = { ShaderType::kCompute, ViewType::kRWStructuredBuffer, 2, 0 };
-    //    BindKey indirectCountKey = { ShaderType::kCompute, ViewType::kRWBuffer, 1, 0 };
-
-    //    meshletCullingLayoutSet = RenderUtils::CreateLayoutSet(device, *camera, { indirectBindKey, indirectCountKey }, RenderUtils::CameraData | RenderUtils::SceneInstances, RenderUtils::Compute);
-    //    meshletCullingSet = RenderUtils::CreateBindingSet(device, meshletCullingLayoutSet, *camera,
-    //        { { indirectBindKey, meshletIndirectArgsView }, { indirectCountKey, meshletCullingIndirectCountView } },
-    //        RenderUtils::CameraData | RenderUtils::SceneInstances, RenderUtils::Compute
-    //    );
-    //}
-
     if (!meshletCullingProgram.program)
     {
         meshletCullingProgram = RenderUtils::CreateComputePipeline(device, "shaders/MeshletCulling.hlsl", "main", instanceFrustumCullingLayoutSet);
@@ -331,7 +284,6 @@ void RenderPipeline::RenderVisibility(std::shared_ptr<CommandList> cmd)
 
     if (!indirectVisibilitySet)
     {
-        //BindKey indirectBindKey = { ShaderType::kCompute, ViewType::kRWStructuredBuffer, 0, 0 };
         BindKey indirectCountKey = { ShaderType::kCompute, ViewType::kRWBuffer, 1, 0 };
         BindKey instanceIDKey = { ShaderType::kCompute, ViewType::kConstantBuffer, 1, 0, 3, UINT32_MAX, true };
 
@@ -344,8 +296,6 @@ void RenderPipeline::RenderVisibility(std::shared_ptr<CommandList> cmd)
 
     if (!visibilityPipeline)
     {
-        //ShaderDesc visibilityTaskShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/VisibilityPass.hlsl", "task", ShaderType::kAmplification, "6_5" };
-        //visibilityTaskShader = device->CompileShader(visibilityTaskShaderDesc);
         ShaderDesc visibilityMeshShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/VisibilityPass.hlsl", "mesh", ShaderType::kMesh, "6_5" };
         visibilityMeshShader = device->CompileShader(visibilityMeshShaderDesc);
         ShaderDesc visibilityFragmentShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/VisibilityPass.hlsl", "fragment", ShaderType::kPixel, "6_5" };
