@@ -16,5 +16,6 @@ public:
 	std::vector<MaterialMeshPair> parts;
 
 	Model() = default;
+	Model(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material);
 	~Model() = default;
 };

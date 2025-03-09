@@ -4,7 +4,7 @@
 
 // must match meshlet generation limits
 #define MAX_OUTPUT_VERTICES 128
-#define MAX_OUTPUT_PRIMITIVES 256
+#define MAX_OUTPUT_PRIMITIVES 128
 
 struct VertexData
 {
@@ -24,8 +24,8 @@ struct MeshToFragment
 
 struct VisibleMeshlet
 {
-    uint meshletID;
-    uint instanceID;
+    uint instanceIndex;
+    uint meshletIndex;
 };
 
 // From meshoptimizer
@@ -54,6 +54,9 @@ struct Bounds
 
     uint coneAxisAndCutoff;
 };
+
+RWStructuredBuffer<VisibleMeshlet> visibleMeshlets0 : register(u0, space4);
+RWStructuredBuffer<VisibleMeshlet> visibleMeshlets1 : register(u1, space4);
 
 StructuredBuffer<VertexData> vertexBuffer : register(t0, space4);
 StructuredBuffer<Meshlet> meshlets : register(t1, space4);

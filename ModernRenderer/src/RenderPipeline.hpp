@@ -3,11 +3,14 @@
 #include "Instance/Instance.h"
 #include "Camera.hpp"
 #include "Scene.hpp"
-#include <directx/d3dx12.h>
+#include "RenderUtils.hpp"
+
 #include <CommandList/DXCommandList.h>
 #include <Resource/DXResource.h>
-#include <Device/DXDevice.h>
-#include <BindingSetLayout/DXBindingSetLayout.h>
+
+// Set the maximum number of visible meshlets for the different culling steps divided by 65k
+// 256 * 65k = 16.7M. This is a very high limit as most of them will get culled.
+#define MAX_VISIBLE_MESHLETS 256
 
 class RenderPipeline
 {
@@ -18,19 +21,43 @@ private:
 	AppSize appSize = { 0, 0 };
 
 	// Frustum culling resources
-	std::shared_ptr<Resource> meshletIndirectArgsBuffer;
-	std::shared_ptr<View> meshletIndirectArgsBufferView;
-	std::shared_ptr<Resource> meshletIndirectCountBuffer;
-	std::shared_ptr<View> meshletIndirectCountBufferView;
+	std::shared_ptr<Resource> meshletCullingIndirectArgsBuffer;
+	std::shared_ptr<View> meshletCullingIndirectArgsView;
+	std::shared_ptr<Resource> meshletCullingIndirectCountBuffer;
+	std::shared_ptr<View> meshletCullingIndirectCountView;
+	std::shared_ptr<Resource> visibleMeshletsCountBuffer;
+	std::shared_ptr<View> visibleMeshletsCountView;
 	std::shared_ptr<BindingSetLayout> instanceFrustumCullingLayoutSet;
 	std::shared_ptr<BindingSet> instanceFrustumCullingSet;
 	ComPtr<ID3D12CommandSignature> frustumCullingCommandSignature;
-	std::shared_ptr<Pipeline> frustumCullingPipeline;
-	std::shared_ptr<Pipeline> frustumCullingClearPipeline;
-	std::shared_ptr<Shader> frustumCullingShader;
-	std::shared_ptr<Shader> frustumCullingClearShader;
-	std::shared_ptr<Program> frustumCullingProgram;
-	std::shared_ptr<Program> frustumCullingClearProgram;
+	RenderUtils::ComputeProgram frustumCullingProgram;
+	RenderUtils::ComputeProgram frustumCullingClearProgram;
+	RenderUtils::ComputeProgram frustumCullingIndirectArgsProgram;
+	//std::shared_ptr<Pipeline> frustumCullingPipeline;
+	//std::shared_ptr<Pipeline> frustumCullingClearPipeline;
+	//std::shared_ptr<Pipeline> frustumCullingIndirectArgsPipeline;
+	//std::shared_ptr<Shader> frustumCullingShader;
+	//std::shared_ptr<Shader> frustumCullingClearShader;
+	//std::shared_ptr<Shader> frustumCullingIndirectArgsShader;
+	//std::shared_ptr<Program> frustumCullingProgram;
+	//std::shared_ptr<Program> frustumCullingClearProgram;
+	//std::shared_ptr<Program> frustumCullingIndirectArgsProgram;
+
+	// Meshlet culling resources
+	//std::shared_ptr<Resource> meshletIndirectArgsBuffer;
+	//std::shared_ptr<View> meshletIndirectArgsView;
+	//std::shared_ptr<Resource> meshletIndirectCountBuffer;
+	//std::shared_ptr<View> meshletIndirectCountView;
+	RenderUtils::ComputeProgram meshletCullingProgram;
+	RenderUtils::ComputeProgram meshletCullingClearProgram;
+	RenderUtils::ComputeProgram meshletCullingIndirectArgsProgram;
+	ComPtr<ID3D12CommandSignature> meshletCullingCommandSignature;
+
+	//std::shared_ptr<BindingSetLayout> meshletCullingLayoutSet;
+	//std::shared_ptr<BindingSet> meshletCullingSet;
+	//std::shared_ptr<Pipeline> meshletCullingPipeline;
+	//std::shared_ptr<Shader> meshletCullingShader;
+	//std::shared_ptr<Program> meshletCullingProgram;
 
 	// Common Render Pipeline resources
 	std::shared_ptr<Resource> colorTexture;
@@ -65,6 +92,7 @@ private:
 
 	void DrawOpaqueObjects(std::shared_ptr<CommandList> cmd, std::shared_ptr<BindingSet> set, std::shared_ptr<Pipeline> pipeline);
 	void FrustumCulling(std::shared_ptr<CommandList> cmd);
+	void MeshletCulling(std::shared_ptr<CommandList> cmd);
 	void RenderVisibility(std::shared_ptr<CommandList> cmd);
 	void RenderForwardOpaque(std::shared_ptr<CommandList> cmd);
 

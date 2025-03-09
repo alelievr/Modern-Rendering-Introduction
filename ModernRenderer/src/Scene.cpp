@@ -7,6 +7,10 @@
 
 std::shared_ptr<Resource> Scene::instanceDataBuffer;
 std::shared_ptr<View> Scene::instanceDataView;
+std::shared_ptr<Resource> Scene::visibleMeshletsBuffer0;
+std::shared_ptr<View> Scene::visibleMeshletsView0;
+std::shared_ptr<Resource> Scene::visibleMeshletsBuffer1;
+std::shared_ptr<View> Scene::visibleMeshletsView1;
 std::vector<BindingDesc> Scene::bindingDescs;
 std::vector<BindKey> Scene::bindKeys;
 BindKey Scene::accelerationStructureKey;
@@ -24,8 +28,22 @@ void Scene::LoadRoughnessTestScene(std::shared_ptr<Device> device, const Camera&
 {
 	name = L"Roughness Test";
 
-	ModelImporter importer("assets/models/RoughnessTest/EnvironmentTest.gltf", aiProcessPreset_TargetRealtime_Fast);
-	instances.push_back(ModelInstance(importer.GetModel()));
+	ModelImporter importer("assets/models/sphere.fbx", aiProcessPreset_TargetRealtime_Fast);
+	auto model = importer.GetModel();
+	auto mesh = model.parts[0].mesh;
+
+	int spheresCount = 100;
+	for (int x = 0; x < spheresCount; x++)
+	{
+		for (int z = 0; z < spheresCount; z++)
+		{
+			auto mat = Material::CreateMaterial();
+			mat->roughness = (float)x / spheresCount;
+			mat->metalness = (float)z / spheresCount;
+			auto instance = ModelInstance(Model(mesh, mat), transpose(MatrixUtils::Translation(glm::vec3(x * 2, 0, z * 2))));
+			instances.push_back(instance);
+		}
+	}
 }
 
 void Scene::LoadMultiObjectSphereScene(std::shared_ptr<Device> device, const Camera& camera)
@@ -99,10 +117,11 @@ void Scene::UploadInstancesToGPU(std::shared_ptr<Device> device)
 	// Allocate and upload the mesh pool to the GPU
 	MeshPool::AllocateMeshPoolBuffers(device);
 
-	BuildRTAS(device);
+	//BuildRTAS(device);
 
 	// Prepate and upload instance data
 	std::vector<InstanceData> instanceData;
+	size_t maxMeshletsVisible = 0;
 	int index = 0;
 	for (auto& instance : instances)
 	{
@@ -116,32 +135,54 @@ void Scene::UploadInstancesToGPU(std::shared_ptr<Device> device)
 			data.obb = OBB(p.mesh->aabb, instance.transform);
 			instanceData.push_back(data);
 			instance.instanceDataOffset = index++;
+			maxMeshletsVisible += p.mesh->meshletCount;
 		}
 	}
 
-	instanceDataBuffer = device->CreateBuffer(BindFlag::kShaderResource | BindFlag::kCopyDest, sizeof(InstanceData) * instances.size());
+	size_t instanceDataSize = sizeof(InstanceData) * instances.size();
+	instanceDataBuffer = device->CreateBuffer(BindFlag::kShaderResource | BindFlag::kCopyDest, instanceDataSize);
 	instanceDataBuffer->CommitMemory(MemoryType::kUpload);
-	instanceDataBuffer->UpdateUploadBuffer(0, instanceData.data(), sizeof(InstanceData) * instances.size());
+	instanceDataBuffer->UpdateUploadBuffer(0, instanceData.data(), instanceDataSize);
 	instanceDataBuffer->SetName("InstanceDataBuffer");
 
 	ViewDesc viewDesc = {};
 	viewDesc.view_type = ViewType::kStructuredBuffer;
 	viewDesc.dimension = ViewDimension::kBuffer;
-	viewDesc.buffer_size = sizeof(InstanceData) * instances.size();
+	viewDesc.buffer_size = instanceDataSize;
 	viewDesc.structure_stride = sizeof(InstanceData);
 	instanceDataView = device->CreateView(instanceDataBuffer, viewDesc);
 
-	auto instanceDataMeshBindKey = BindKey{ ShaderType::kMesh, ViewType::kStructuredBuffer, 2, 0 };
-	//auto instanceDataFragmentBindKey = BindKey{ ShaderType::kPixel, ViewType::kStructuredBuffer, 2, 0 };
+	// Create 2 meshlet buffers for the culling results that have 2 passes
+	size_t visibleMeshletsSize = sizeof(int) * 2 * maxMeshletsVisible;
+	visibleMeshletsBuffer0 = device->CreateBuffer(BindFlag::kShaderResource | BindFlag::kUnorderedAccess, visibleMeshletsSize);
+	visibleMeshletsBuffer0->CommitMemory(MemoryType::kDefault);
+	visibleMeshletsBuffer0->SetName("Visible Meshlets 0");
+
+	viewDesc.view_type = ViewType::kRWStructuredBuffer;
+	viewDesc.buffer_size = visibleMeshletsSize;
+	viewDesc.structure_stride = sizeof(int) * 2;
+	visibleMeshletsView0 = device->CreateView(visibleMeshletsBuffer0, viewDesc);
+
+	visibleMeshletsBuffer1 = device->CreateBuffer(BindFlag::kShaderResource | BindFlag::kUnorderedAccess, visibleMeshletsSize);
+	visibleMeshletsBuffer1->CommitMemory(MemoryType::kDefault);
+	visibleMeshletsBuffer1->SetName("Visible Meshlets 1");
+
+	visibleMeshletsView1 = device->CreateView(visibleMeshletsBuffer1, viewDesc);
+
+	auto instanceDataMeshBindKey = BindKey{ ShaderType::kUnknown, ViewType::kStructuredBuffer, 2, 0 };
+	auto visibleMeshletsBindKey0 = BindKey{ ShaderType::kUnknown, ViewType::kRWStructuredBuffer, 0, 4 };
+	auto visibleMeshletsBindKey1 = BindKey{ ShaderType::kUnknown, ViewType::kRWStructuredBuffer, 1, 4 };
 
 	bindingDescs = {
 		BindingDesc{ instanceDataMeshBindKey, instanceDataView },
-		//BindingDesc{ instanceDataFragmentBindKey, instanceDataView },
+		BindingDesc{ visibleMeshletsBindKey0, visibleMeshletsView0 },
+		BindingDesc{ visibleMeshletsBindKey1, visibleMeshletsView1 },
 	};
 
 	bindKeys = {
 		instanceDataMeshBindKey,
-		//instanceDataFragmentBindKey,
+		visibleMeshletsBindKey0,
+		visibleMeshletsBindKey1,
 	};
 }
 
@@ -176,7 +217,7 @@ void Scene::BuildRTAS(std::shared_ptr<Device> device)
 	tlasBuffer->SetName("Top Level Acceleration Structures");
 
 	scratchSize = std::max(scratchSize, tlasPrebuildInfo.build_scratch_data_size);
-	auto scratch = device->CreateBuffer(BindFlag::kRayTracing, scratchSize);
+	scratch = device->CreateBuffer(BindFlag::kRayTracing, scratchSize);
 	scratch->CommitMemory(MemoryType::kDefault);
 	scratch->SetName("scratch");
 
@@ -209,8 +250,7 @@ void Scene::BuildRTAS(std::shared_ptr<Device> device)
 	rtInstanceDataBuffer->CommitMemory(MemoryType::kUpload);
 	rtInstanceDataBuffer->SetName("Instance Data");
 	rtInstanceDataBuffer->UpdateUploadBuffer(0, rtInstances.data(), rtInstances.size() * sizeof(RaytracingGeometryInstance));
-    cmd->BuildTopLevelAS({}, tlas, scratch, 0, rtInstanceDataBuffer, 0, rtInstances.size(),
-        BuildAccelerationStructureFlags::kNone);
+    cmd->BuildTopLevelAS({}, tlas, scratch, 0, rtInstanceDataBuffer, 0, rtInstances.size(), BuildAccelerationStructureFlags::kNone);
     cmd->UAVResourceBarrier(tlas);
 
     cmd->Close();

@@ -29,7 +29,7 @@ void Mesh::PrepareMeshletData()
 
     // Process meshes to meshlets for the mesh shaders
     const size_t maxVertices = 128;
-    const size_t maxTriangles = 256;
+    const size_t maxTriangles = 128;
     const float coneWeight = 0.8f;
 
     size_t max_meshlets = meshopt_buildMeshletsBound(indices.size(), maxVertices, maxTriangles);

@@ -1,5 +1,4 @@
 #include "RenderPipeline.hpp"
-#include "RenderUtils.hpp"
 #include "RenderSettings.hpp"
 
 RenderPipeline::RenderPipeline(std::shared_ptr<Device> device, const AppSize& appSize,
@@ -58,24 +57,19 @@ void RenderPipeline::DrawOpaqueObjects(std::shared_ptr<CommandList> cmd, std::sh
     }
 }
 
-struct IndirectDispatchCommand
-{
-    unsigned instanceID; // Custom data for the amplification shader to find the instance back
-    D3D12_DISPATCH_ARGUMENTS dispatchArgs;
-};
-
 void RenderPipeline::FrustumCulling(std::shared_ptr<CommandList> cmd)
 {
+    cmd->BeginEvent("Frustum Culling");
     auto dxCmd = ((DXCommandList*)cmd.get())->GetCommandList();
 
-    if (!meshletIndirectCountBuffer)
+    if (!meshletCullingIndirectCountBuffer)
     {
-        meshletIndirectCountBuffer = device->CreateBuffer(BindFlag::kUnorderedAccess | BindFlag::kCopyDest, sizeof(uint32_t));
-		meshletIndirectCountBuffer->CommitMemory(MemoryType::kDefault);
-		meshletIndirectCountBuffer->SetName("Meshlet Indirect Count Buffer");
+        meshletCullingIndirectCountBuffer = device->CreateBuffer(BindFlag::kUnorderedAccess | BindFlag::kCopyDest, sizeof(uint32_t));
+		meshletCullingIndirectCountBuffer->CommitMemory(MemoryType::kDefault);
+		meshletCullingIndirectCountBuffer->SetName("Meshlet Culling Indirect Count");
     }
 
-    if (!meshletIndirectCountBufferView)
+    if (!meshletCullingIndirectCountView)
     {
         ViewDesc viewDesc = {};
         viewDesc.view_type = ViewType::kRWBuffer;
@@ -83,88 +77,229 @@ void RenderPipeline::FrustumCulling(std::shared_ptr<CommandList> cmd)
         viewDesc.dimension = ViewDimension::kBuffer;
         viewDesc.buffer_size = sizeof(uint32_t);
         viewDesc.structure_stride = sizeof(uint32_t);
-        meshletIndirectCountBufferView = device->CreateView(meshletIndirectCountBuffer, viewDesc);
+        meshletCullingIndirectCountView = device->CreateView(meshletCullingIndirectCountBuffer, viewDesc);
     }
 
-    if (!meshletIndirectArgsBuffer)
+    if (!visibleMeshletsCountBuffer)
     {
-        meshletIndirectArgsBuffer = device->CreateBuffer(BindFlag::kIndirectBuffer | BindFlag::kUnorderedAccess, sizeof(IndirectDispatchCommand) * scene->instances.size());
-        meshletIndirectArgsBuffer->CommitMemory(MemoryType::kDefault);
-        meshletIndirectArgsBuffer->SetName("Meshlet Indirect Args Buffer");
+        visibleMeshletsCountBuffer = device->CreateBuffer(BindFlag::kUnorderedAccess | BindFlag::kCopyDest, sizeof(uint32_t) * 16);
+        visibleMeshletsCountBuffer->CommitMemory(MemoryType::kDefault);
+        visibleMeshletsCountBuffer->SetName("Visible Meshlet Count");
     }
 
-    if (!meshletIndirectArgsBufferView)
+    if (!visibleMeshletsCountView)
     {
         ViewDesc viewDesc = {};
-        viewDesc.view_type = ViewType::kStructuredBuffer;
+        viewDesc.view_type = ViewType::kRWBuffer;
+        viewDesc.buffer_format = gli::FORMAT_R32_UINT_PACK32;
         viewDesc.dimension = ViewDimension::kBuffer;
-        viewDesc.buffer_size = sizeof(IndirectDispatchCommand) * scene->instances.size();
+        viewDesc.buffer_size = sizeof(uint32_t) * 16;
+        viewDesc.structure_stride = sizeof(uint32_t);
+        visibleMeshletsCountView = device->CreateView(visibleMeshletsCountBuffer, viewDesc);
+    }
+
+    if (!meshletCullingIndirectArgsBuffer)
+    {
+        meshletCullingIndirectArgsBuffer = device->CreateBuffer(BindFlag::kIndirectBuffer | BindFlag::kUnorderedAccess, sizeof(IndirectDispatchCommand) * MAX_VISIBLE_MESHLETS);
+        meshletCullingIndirectArgsBuffer->CommitMemory(MemoryType::kDefault);
+        meshletCullingIndirectArgsBuffer->SetName("Meshlet Culling Indirect Args");
+    }
+
+    if (!meshletCullingIndirectArgsView)
+    {
+        ViewDesc viewDesc = {};
+        viewDesc.view_type = ViewType::kRWStructuredBuffer;
+        viewDesc.dimension = ViewDimension::kBuffer;
+        viewDesc.buffer_size = sizeof(IndirectDispatchCommand) * MAX_VISIBLE_MESHLETS;
         viewDesc.structure_stride = sizeof(IndirectDispatchCommand);
-        meshletIndirectArgsBufferView = device->CreateView(meshletIndirectArgsBuffer, viewDesc);
+        meshletCullingIndirectArgsView = device->CreateView(meshletCullingIndirectArgsBuffer, viewDesc);
     }
 
     if (!instanceFrustumCullingLayoutSet)
     {
-        BindKey indirectBindKey = { ShaderType::kCompute, ViewType::kRWStructuredBuffer, 2, 0 };
         BindKey indirectCountKey = { ShaderType::kCompute, ViewType::kRWBuffer, 1, 0 };
+        BindKey indirectBindKey = { ShaderType::kCompute, ViewType::kRWStructuredBuffer, 2, 0 };
+        BindKey meshletCountKey = { ShaderType::kCompute, ViewType::kRWBuffer, 3, 0 };
+        BindKey drawRootConstant = { ShaderType::kCompute, ViewType::kConstantBuffer, 1, 0, 3, UINT32_MAX, true };
 
-        instanceFrustumCullingLayoutSet = RenderUtils::CreateLayoutSet(device, *camera, { indirectBindKey, indirectCountKey }, RenderUtils::CameraData | RenderUtils::SceneInstances, RenderUtils::Compute);
+        instanceFrustumCullingLayoutSet = RenderUtils::CreateLayoutSet(device, *camera,
+            { drawRootConstant, indirectBindKey, indirectCountKey, meshletCountKey },
+            RenderUtils::CameraData | RenderUtils::SceneInstances | RenderUtils::MeshPool,
+            RenderUtils::Compute
+        );
         instanceFrustumCullingSet = RenderUtils::CreateBindingSet(device, instanceFrustumCullingLayoutSet, *camera,
-            { { indirectBindKey, meshletIndirectArgsBufferView }, { indirectCountKey, meshletIndirectCountBufferView } },
-            RenderUtils::CameraData | RenderUtils::SceneInstances, RenderUtils::Compute
+            { { drawRootConstant, nullptr }, { indirectBindKey, meshletCullingIndirectArgsView }, { indirectCountKey, meshletCullingIndirectCountView }, { meshletCountKey, visibleMeshletsCountView } },
+            RenderUtils::CameraData | RenderUtils::SceneInstances | RenderUtils::MeshPool,
+            RenderUtils::Compute
         );
     }
 
-    if (!frustumCullingProgram)
+    if (!frustumCullingProgram.program)
     {
-        ShaderDesc instanceFrustumCullingDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/InstanceFrustumCulling.hlsl", "main", ShaderType::kCompute, "6_5" };
-        ShaderDesc instanceFrustumCullingClearDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/InstanceFrustumCulling.hlsl", "clear", ShaderType::kCompute, "6_5" };
-        frustumCullingShader = device->CompileShader(instanceFrustumCullingDesc);
-        frustumCullingClearShader = device->CompileShader(instanceFrustumCullingClearDesc);
-        frustumCullingProgram = device->CreateProgram({ frustumCullingShader });
-        frustumCullingClearProgram = device->CreateProgram({ frustumCullingClearShader });
-
-        ComputePipelineDesc frustumCullingPipelineDesc = {
-            frustumCullingProgram,
-            instanceFrustumCullingLayoutSet,
-        };
-
-        ComputePipelineDesc frustumCullingClearPipelineDesc = {
-            frustumCullingClearProgram,
-            instanceFrustumCullingLayoutSet,
-        };
-
-        frustumCullingPipeline = device->CreateComputePipeline(frustumCullingPipelineDesc);
-        frustumCullingClearPipeline = device->CreateComputePipeline(frustumCullingClearPipelineDesc);
+        frustumCullingProgram = RenderUtils::CreateComputePipeline(device, "shaders/InstanceFrustumCulling.hlsl", "main", instanceFrustumCullingLayoutSet);
+        frustumCullingClearProgram = RenderUtils::CreateComputePipeline(device, "shaders/InstanceFrustumCulling.hlsl", "clear", instanceFrustumCullingLayoutSet);
+        frustumCullingIndirectArgsProgram = RenderUtils::CreateComputePipeline(device, "shaders/InstanceFrustumCulling.hlsl", "updateIndirectArguments", instanceFrustumCullingLayoutSet);
     }
 
     // Clear previous frame culling data
-    cmd->ResourceBarrier({ { meshletIndirectCountBuffer, ResourceState::kCommon, ResourceState::kUnorderedAccess } });
+    cmd->BeginEvent("Reset Visible Meshlet Counter");
+    cmd->ResourceBarrier({ { visibleMeshletsCountBuffer, ResourceState::kCommon, ResourceState::kUnorderedAccess } });
 
-    cmd->BindPipeline(frustumCullingClearPipeline);
+    cmd->BindPipeline(frustumCullingClearProgram.pipeline);
     cmd->BindBindingSet(instanceFrustumCullingSet);
     cmd->Dispatch(1, 1, 1);
 
-    cmd->ResourceBarrier({ { meshletIndirectCountBuffer, ResourceState::kUnorderedAccess, ResourceState::kCommon } });
+    cmd->ResourceBarrier({ { visibleMeshletsCountBuffer, ResourceState::kUnorderedAccess, ResourceState::kCommon } });
+    cmd->EndEvent();
 
-    cmd->ResourceBarrier({ { meshletIndirectArgsBuffer, ResourceState::kIndirectArgument, ResourceState::kUnorderedAccess } });
-    cmd->ResourceBarrier({ { meshletIndirectCountBuffer, ResourceState::kCommon, ResourceState::kUnorderedAccess } });
+    cmd->BeginEvent("Frustum Culling");
+    cmd->ResourceBarrier({ { Scene::visibleMeshletsBuffer0, ResourceState::kCommon, ResourceState::kUnorderedAccess } });
+    cmd->ResourceBarrier({ { visibleMeshletsCountBuffer, ResourceState::kCommon, ResourceState::kUnorderedAccess } });
 
-    cmd->BindPipeline(frustumCullingPipeline);
+    cmd->BindPipeline(frustumCullingProgram.pipeline);
     cmd->BindBindingSet(instanceFrustumCullingSet);
-    // TODO: 2D or 3D dispatch if the instance count is too big
+    // TODO: multiple dispatch if the instance count is too big
     int dispatchCount = (scene->instances.size() + 63) / 64;
     cmd->Dispatch(dispatchCount, 1, 1);
 
-    cmd->ResourceBarrier({ { meshletIndirectCountBuffer, ResourceState::kUnorderedAccess, ResourceState::kCommon } });
-    cmd->ResourceBarrier({ { meshletIndirectArgsBuffer, ResourceState::kUnorderedAccess, ResourceState::kIndirectArgument } });
+    cmd->ResourceBarrier({ { Scene::visibleMeshletsBuffer0, ResourceState::kUnorderedAccess, ResourceState::kCommon } });
+    cmd->ResourceBarrier({ { visibleMeshletsCountBuffer, ResourceState::kUnorderedAccess, ResourceState::kCommon } });
+    cmd->EndEvent();
+
+    cmd->BeginEvent("Update Indirect Args");
+    cmd->ResourceBarrier({ { meshletCullingIndirectArgsBuffer, ResourceState::kIndirectArgument, ResourceState::kUnorderedAccess } });
+    cmd->ResourceBarrier({ { meshletCullingIndirectCountBuffer, ResourceState::kIndirectArgument, ResourceState::kUnorderedAccess } });
+    cmd->ResourceBarrier({ { visibleMeshletsCountBuffer, ResourceState::kCommon, ResourceState::kGenericRead } });
+
+    cmd->BindPipeline(frustumCullingIndirectArgsProgram.pipeline);
+    cmd->BindBindingSet(instanceFrustumCullingSet);
+    cmd->Dispatch(1, 1, 1);
+
+    cmd->ResourceBarrier({ { meshletCullingIndirectArgsBuffer, ResourceState::kUnorderedAccess, ResourceState::kIndirectArgument } });
+    cmd->ResourceBarrier({ { meshletCullingIndirectCountBuffer, ResourceState::kUnorderedAccess, ResourceState::kIndirectArgument } });
+    cmd->ResourceBarrier({ { visibleMeshletsCountBuffer, ResourceState::kGenericRead, ResourceState::kCommon } });
+    cmd->EndEvent();
+    cmd->EndEvent();
+}
+
+void RenderPipeline::MeshletCulling(std::shared_ptr<CommandList> cmd)
+{
+    cmd->BeginEvent("Meshlet Culling");
+    auto dxCmd = ((DXCommandList*)cmd.get())->GetCommandList();
+
+    //if (!meshletIndirectCountBuffer)
+    //{
+    //    meshletIndirectCountBuffer = device->CreateBuffer(BindFlag::kUnorderedAccess | BindFlag::kCopyDest, sizeof(uint32_t));
+    //    meshletIndirectCountBuffer->CommitMemory(MemoryType::kDefault);
+    //    meshletIndirectCountBuffer->SetName("Meshlet Indirect Count Buffer");
+    //}
+
+    //if (!meshletIndirectCountView)
+    //{
+    //    ViewDesc viewDesc = {};
+    //    viewDesc.view_type = ViewType::kRWBuffer;
+    //    viewDesc.buffer_format = gli::FORMAT_R32_UINT_PACK32;
+    //    viewDesc.dimension = ViewDimension::kBuffer;
+    //    viewDesc.buffer_size = sizeof(uint32_t);
+    //    viewDesc.structure_stride = sizeof(uint32_t);
+    //    meshletIndirectCountView = device->CreateView(meshletIndirectCountBuffer, viewDesc);
+    //}
+
+    //if (!meshletIndirectArgsBuffer)
+    //{
+    //    meshletIndirectArgsBuffer = device->CreateBuffer(BindFlag::kIndirectBuffer | BindFlag::kUnorderedAccess, sizeof(IndirectDispatchCommand) * maxVisibleMeshlets);
+    //    meshletIndirectArgsBuffer->CommitMemory(MemoryType::kDefault);
+    //    meshletIndirectArgsBuffer->SetName("Meshlet Indirect Args Buffer");
+    //}
+
+    //if (!meshletIndirectArgsView)
+    //{
+    //    ViewDesc viewDesc = {};
+    //    viewDesc.view_type = ViewType::kStructuredBuffer;
+    //    viewDesc.dimension = ViewDimension::kBuffer;
+    //    viewDesc.buffer_size = sizeof(IndirectDispatchCommand) * maxVisibleMeshlets;
+    //    viewDesc.structure_stride = sizeof(IndirectDispatchCommand);
+    //    meshletIndirectArgsView = device->CreateView(meshletCullingIndirectArgsBuffer, viewDesc);
+    //}
+
+    //if (!meshletCullingLayoutSet)
+    //{
+    //    BindKey indirectBindKey = { ShaderType::kCompute, ViewType::kRWStructuredBuffer, 2, 0 };
+    //    BindKey indirectCountKey = { ShaderType::kCompute, ViewType::kRWBuffer, 1, 0 };
+
+    //    meshletCullingLayoutSet = RenderUtils::CreateLayoutSet(device, *camera, { indirectBindKey, indirectCountKey }, RenderUtils::CameraData | RenderUtils::SceneInstances, RenderUtils::Compute);
+    //    meshletCullingSet = RenderUtils::CreateBindingSet(device, meshletCullingLayoutSet, *camera,
+    //        { { indirectBindKey, meshletIndirectArgsView }, { indirectCountKey, meshletCullingIndirectCountView } },
+    //        RenderUtils::CameraData | RenderUtils::SceneInstances, RenderUtils::Compute
+    //    );
+    //}
+
+    if (!meshletCullingProgram.program)
+    {
+        meshletCullingProgram = RenderUtils::CreateComputePipeline(device, "shaders/MeshletCulling.hlsl", "main", instanceFrustumCullingLayoutSet);
+        meshletCullingClearProgram = RenderUtils::CreateComputePipeline(device, "shaders/MeshletCulling.hlsl", "clear", instanceFrustumCullingLayoutSet);
+        meshletCullingIndirectArgsProgram = RenderUtils::CreateComputePipeline(device, "shaders/MeshletCulling.hlsl", "updateIndirectArguments", instanceFrustumCullingLayoutSet);
+    }
+
+    if (!meshletCullingCommandSignature)
+        meshletCullingCommandSignature = RenderUtils::CreateIndirectRootConstantCommandSignature(device, instanceFrustumCullingLayoutSet, true);
+
+    // Clear previous frame culling data
+    cmd->BeginEvent("Reset Visible Meshlet Counter");
+    cmd->ResourceBarrier({ { visibleMeshletsCountBuffer, ResourceState::kCommon, ResourceState::kUnorderedAccess } });
+
+    cmd->BindPipeline(meshletCullingClearProgram.pipeline);
+    cmd->BindBindingSet(instanceFrustumCullingSet);
+    cmd->Dispatch(1, 1, 1);
+
+    cmd->ResourceBarrier({ { visibleMeshletsCountBuffer, ResourceState::kUnorderedAccess, ResourceState::kCommon } });
+    cmd->EndEvent();
+
+    cmd->BeginEvent("Meshlet Culling");
+    cmd->ResourceBarrier({ { Scene::visibleMeshletsBuffer1, ResourceState::kCommon, ResourceState::kUnorderedAccess } });
+    cmd->ResourceBarrier({ { Scene::visibleMeshletsBuffer0, ResourceState::kCommon, ResourceState::kGenericRead } });
+
+    DXBindingSetLayout* l = (DXBindingSetLayout*)instanceFrustumCullingLayoutSet.get();
+    dxCmd->SetComputeRootSignature(l->GetRootSignature().Get());
+    cmd->BindPipeline(meshletCullingProgram.pipeline);
+    cmd->BindBindingSet(instanceFrustumCullingSet);
+
+    DXResource* dxIndirectArgsBuffer = (DXResource*)meshletCullingIndirectArgsBuffer.get();
+    DXResource* dxIndirectCountBuffer = (DXResource*)meshletCullingIndirectCountBuffer.get();
+
+    // Instead of drawing objects one by one here, we can use the culling results to render only visible objects
+    dxCmd->ExecuteIndirect(
+        meshletCullingCommandSignature.Get(),
+        MAX_VISIBLE_MESHLETS,
+        dxIndirectArgsBuffer->resource.Get(),
+        0,
+        dxIndirectCountBuffer->resource.Get(),
+        0
+    );
+
+    cmd->ResourceBarrier({ { Scene::visibleMeshletsBuffer0, ResourceState::kGenericRead, ResourceState::kCommon } });
+    cmd->ResourceBarrier({ { Scene::visibleMeshletsBuffer1, ResourceState::kUnorderedAccess, ResourceState::kCommon } });
+    cmd->EndEvent();
+
+    cmd->BeginEvent("Update Indirect Args");
+    cmd->ResourceBarrier({ { meshletCullingIndirectArgsBuffer, ResourceState::kIndirectArgument, ResourceState::kUnorderedAccess } });
+    cmd->ResourceBarrier({ { meshletCullingIndirectCountBuffer, ResourceState::kIndirectArgument, ResourceState::kUnorderedAccess } });
+    cmd->ResourceBarrier({ { visibleMeshletsCountBuffer, ResourceState::kCommon, ResourceState::kGenericRead } });
+
+    cmd->BindPipeline(meshletCullingIndirectArgsProgram.pipeline);
+    cmd->BindBindingSet(instanceFrustumCullingSet);
+    cmd->Dispatch(1, 1, 1);
+
+    cmd->ResourceBarrier({ { visibleMeshletsCountBuffer, ResourceState::kGenericRead, ResourceState::kCommon } });
+    cmd->ResourceBarrier({ { meshletCullingIndirectCountBuffer, ResourceState::kUnorderedAccess, ResourceState::kIndirectArgument } });
+    cmd->ResourceBarrier({ { meshletCullingIndirectArgsBuffer, ResourceState::kUnorderedAccess, ResourceState::kIndirectArgument } });
+    cmd->EndEvent();
+    cmd->EndEvent();
 }
 
 void RenderPipeline::RenderVisibility(std::shared_ptr<CommandList> cmd)
 {
     auto dxCmd = ((DXCommandList*)cmd.get())->GetCommandList();
-    auto dxDevice = (DXDevice*)device.get();
-    auto nativeDevice = dxDevice->GetDevice();
 
     if (!visibilityRenderPass)
     {
@@ -202,21 +337,21 @@ void RenderPipeline::RenderVisibility(std::shared_ptr<CommandList> cmd)
 
         indirectVisibilityLayoutSet = RenderUtils::CreateLayoutSet(device, *camera, { instanceIDKey, indirectCountKey }, RenderUtils::CameraData | RenderUtils::SceneInstances | RenderUtils::MeshPool, RenderUtils::Mesh | RenderUtils::Amplification | RenderUtils::Fragment);
         indirectVisibilitySet = RenderUtils::CreateBindingSet(device, indirectVisibilityLayoutSet, *camera,
-            { { instanceIDKey, nullptr }, { indirectCountKey, meshletIndirectCountBufferView } },
+            { { instanceIDKey, nullptr }, { indirectCountKey, meshletCullingIndirectCountView } },
             RenderUtils::CameraData | RenderUtils::SceneInstances | RenderUtils::MeshPool, RenderUtils::Mesh | RenderUtils::Amplification | RenderUtils::Fragment
         );
     }
 
     if (!visibilityPipeline)
     {
-        ShaderDesc visibilityTaskShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/VisibilityPass.hlsl", "task", ShaderType::kAmplification, "6_5" };
-        visibilityTaskShader = device->CompileShader(visibilityTaskShaderDesc);
+        //ShaderDesc visibilityTaskShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/VisibilityPass.hlsl", "task", ShaderType::kAmplification, "6_5" };
+        //visibilityTaskShader = device->CompileShader(visibilityTaskShaderDesc);
         ShaderDesc visibilityMeshShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/VisibilityPass.hlsl", "mesh", ShaderType::kMesh, "6_5" };
         visibilityMeshShader = device->CompileShader(visibilityMeshShaderDesc);
         ShaderDesc visibilityFragmentShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/VisibilityPass.hlsl", "fragment", ShaderType::kPixel, "6_5" };
         visibilityFragmentShader = device->CompileShader(visibilityFragmentShaderDesc);
 
-        visibilityProgram = device->CreateProgram({ visibilityMeshShader, visibilityFragmentShader, visibilityTaskShader });
+        visibilityProgram = device->CreateProgram({ visibilityMeshShader, visibilityFragmentShader });
 
         GraphicsPipelineDesc meshShaderPipelineDesc = {
             visibilityProgram,
@@ -229,58 +364,27 @@ void RenderPipeline::RenderVisibility(std::shared_ptr<CommandList> cmd)
         visibilityPipeline = device->CreateGraphicsPipeline(meshShaderPipelineDesc);
     }
 
-
     if (!frustumCullingCommandSignature)
-    {
-        // Define the indirect argument descriptors
-        D3D12_INDIRECT_ARGUMENT_DESC args[2] = {};
+        frustumCullingCommandSignature = RenderUtils::CreateIndirectRootConstantCommandSignature(device, indirectVisibilityLayoutSet, false);
 
-        // Root constant to pass the instanceID
-        args[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT;
-        args[0].Constant.RootParameterIndex = 0;
-        args[0].Constant.Num32BitValuesToSet = 1;
-        args[0].Constant.DestOffsetIn32BitValues = 2;
-
-        // Dispatch mesh arguments
-        args[1].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH_MESH;
-
-        // Create the command signature description
-        D3D12_COMMAND_SIGNATURE_DESC commandSignatureDesc = {};
-        commandSignatureDesc.ByteStride = sizeof(IndirectDispatchCommand);
-        commandSignatureDesc.NumArgumentDescs = _countof(args);
-        commandSignatureDesc.pArgumentDescs = args;
-
-        DXBindingSetLayout* layout = (DXBindingSetLayout*)indirectVisibilityLayoutSet.get();
-
-        // Create the command signature
-        HRESULT hr = nativeDevice->CreateCommandSignature(
-            &commandSignatureDesc,
-            layout->GetRootSignature().Get(),
-            IID_PPV_ARGS(&frustumCullingCommandSignature)
-        );
-
-        if (FAILED(hr))
-            printf("Failed to create command signature\n");
-    }
-
-    ClearDesc clearDesc = { { { 0.0, 0.2, 0.4, 1.0 } } }; // Clear Color
+    cmd->BeginEvent("Visibility Pass");
     cmd->ResourceBarrier({ { visibilityTexture, ResourceState::kCommon, ResourceState::kRenderTarget } });
     cmd->ResourceBarrier({ { depthTexture, ResourceState::kCommon, ResourceState::kDepthStencilWrite}});
 
-    cmd->BeginRenderPass(visibilityRenderPass, visibilityFrameBuffer, clearDesc);
+    cmd->BeginRenderPass(visibilityRenderPass, visibilityFrameBuffer, {});
 
     cmd->BindPipeline(visibilityPipeline);
     cmd->BindBindingSet(indirectVisibilitySet);
 
     //DrawOpaqueObjects(cmd, objectBindingSet, visibilityPipeline);
 
-    DXResource* dxIndirectArgsBuffer = (DXResource*)meshletIndirectArgsBuffer.get();
-    DXResource* dxIndirectCountBuffer = (DXResource*)meshletIndirectCountBuffer.get();
+    DXResource* dxIndirectArgsBuffer = (DXResource*)meshletCullingIndirectArgsBuffer.get();
+    DXResource* dxIndirectCountBuffer = (DXResource*)meshletCullingIndirectCountBuffer.get();
 
     // Instead of drawing objects one by one here, we can use the culling results to render only visible objects
     dxCmd->ExecuteIndirect(
         frustumCullingCommandSignature.Get(),
-        scene->instances.size(),
+        MAX_VISIBLE_MESHLETS,
         dxIndirectArgsBuffer->resource.Get(),
         0,
         dxIndirectCountBuffer->resource.Get(),
@@ -291,6 +395,7 @@ void RenderPipeline::RenderVisibility(std::shared_ptr<CommandList> cmd)
     
     cmd->ResourceBarrier({ { visibilityTexture, ResourceState::kRenderTarget, ResourceState::kCommon } });
     cmd->ResourceBarrier({ { depthTexture, ResourceState::kDepthStencilWrite, ResourceState::kCommon } });
+    cmd->EndEvent();
 }
 
 void RenderPipeline::RenderForwardOpaque(std::shared_ptr<CommandList> cmd)
@@ -352,11 +457,11 @@ void RenderPipeline::RenderForwardOpaque(std::shared_ptr<CommandList> cmd)
         forwardPipeline = device->CreateGraphicsPipeline(meshShaderPipelineDesc);
     }
 
-    ClearDesc clearDesc = { { { 0.0, 0.2, 0.4, 1.0 } } }; // Clear Color
+    cmd->BeginEvent("Forward Opaque Pass");
     cmd->ResourceBarrier({ { colorTexture, ResourceState::kCommon, ResourceState::kRenderTarget } });
     cmd->ResourceBarrier({ { depthTexture, ResourceState::kCommon, ResourceState::kDepthStencilWrite} });
 
-    cmd->BeginRenderPass(forwardRenderPass, forwardFrameBuffer, clearDesc);
+    cmd->BeginRenderPass(forwardRenderPass, forwardFrameBuffer, {});
 
     // Draw fullscreen forward pass
     cmd->BindPipeline(forwardPipeline);
@@ -367,6 +472,7 @@ void RenderPipeline::RenderForwardOpaque(std::shared_ptr<CommandList> cmd)
 
     cmd->ResourceBarrier({ { colorTexture, ResourceState::kRenderTarget, ResourceState::kCommon } });
     cmd->ResourceBarrier({ { depthTexture, ResourceState::kDepthStencilWrite, ResourceState::kCommon } });
+    cmd->EndEvent();
 }
 
 void RenderPipeline::Render(std::shared_ptr<CommandList> cmd, std::shared_ptr<Resource> backBuffer, std::shared_ptr<Scene> scene)
@@ -374,8 +480,12 @@ void RenderPipeline::Render(std::shared_ptr<CommandList> cmd, std::shared_ptr<Re
 	this->scene = scene;
 
     // Frustum cull instances of the scene using their OBB
-    // The result goes directly into an indirect argument buffer for the amplification shaders
+    // Outputs a buffer of visible meshlets
     FrustumCulling(cmd);
+
+    // Cull the meshlets usig frustum and cone culling
+    // Outputs a reduced list of visible meshlets for the next render passes
+    MeshletCulling(cmd);
 
     // Visibility pass:
     // Clears depth, draw into depth and visibility targets

@@ -11,13 +11,14 @@ struct IndirectExecuteMesh
     uint threadGroupZ;
 };
 
-RWBuffer<uint> _VisibleInstanceCount : register(u1, space0);
+RWBuffer<uint> _IndirectCommandCounts : register(u1, space0);
 RWStructuredBuffer<IndirectExecuteMesh> _IndirectMeshArgs : register(u2, space0);
+RWBuffer<uint> _VisibleMeshletsCount : register(u3, space0);
 
 [numthreads(1, 1, 1)]
 void clear(uint3 threadID : SV_DispatchThreadID)
 {
-    _VisibleInstanceCount[0] = 0;
+    _VisibleMeshletsCount[0] = 0;
 }
 
 [numthreads(64, 1, 1)]
@@ -33,20 +34,41 @@ void main(uint threadID : SV_DispatchThreadID)
         // Frustum culling against the object OBB
         if (FrustumOBBIntersection(instance.obb, cameraCullingFrustum) || cameraInstanceFrustumCullingDisabled)
         {
-            // TODO Backface culling
-            
             // TODO: wave interlock with surviving instances in the wavefront
-            uint outIndex;
-            InterlockedAdd(_VisibleInstanceCount[0], 1, outIndex);
-        
-            IndirectExecuteMesh visibleInstance;
-        
-            visibleInstance.instanceID = threadID;
-            visibleInstance.threadGroupX = (instance.meshletCount + 31) / 32;
-            visibleInstance.threadGroupY = 1;
-            visibleInstance.threadGroupZ = 1;
-        
-            _IndirectMeshArgs[outIndex] = visibleInstance;
+            //uint argumentIndex = _IndirectCommandCounts[0];
+            
+            uint outStartIndex;
+            InterlockedAdd(_VisibleMeshletsCount[0], instance.meshletCount, outStartIndex);
+            
+            
+            for (uint i = 0; i < instance.meshletCount; i++)
+            {
+                VisibleMeshlet v;
+                
+                v.instanceIndex = threadID;
+                v.meshletIndex = instance.meshletIndex + i;
+                
+                visibleMeshlets0[outStartIndex + i] = v;
+            }
+            
+            //InterlockedCompareExchange(_IndirectCommandCounts[0], 0, 0);
         }
     }
+}
+
+[numthreads(1, 1, 1)]
+void updateIndirectArguments()
+{
+    // TODO: support multiple commands
+    uint groupCount = ceil(_VisibleMeshletsCount[0] / 64.0);
+
+    IndirectExecuteMesh args;
+
+    args.instanceID = 0;
+    args.threadGroupX = groupCount;
+    args.threadGroupY = 1;
+    args.threadGroupZ = 1;
+
+    _IndirectMeshArgs[0] = args;
+    _IndirectCommandCounts[0] = 1;
 }

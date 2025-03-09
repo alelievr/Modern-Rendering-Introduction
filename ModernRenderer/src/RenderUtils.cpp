@@ -192,3 +192,61 @@ void RenderUtils::UploadTextureData(const std::shared_ptr<Resource>& resource, c
 	queue->Wait(fence, 1);
 	fence->Wait(1);
 }
+
+RenderUtils::ComputeProgram RenderUtils::CreateComputePipeline(std::shared_ptr<Device> device, const std::string& shaderPath, const std::string& kernelName, std::shared_ptr<BindingSetLayout> layoutSet)
+{
+	ComputeProgram c;
+
+	std::string path = MODERN_RENDERER_ASSETS_PATH + shaderPath;
+	ShaderDesc instanceFrustumCullingDesc = { path.c_str(), kernelName.c_str(), ShaderType::kCompute, "6_5"};
+	c.shader = device->CompileShader(instanceFrustumCullingDesc);
+	c.program = device->CreateProgram({ c.shader });
+
+	ComputePipelineDesc desc = {
+		c.program,
+		layoutSet,
+	};
+
+	c.pipeline = device->CreateComputePipeline(desc);
+
+	return c;
+}
+
+ComPtr<ID3D12CommandSignature> RenderUtils::CreateIndirectRootConstantCommandSignature(std::shared_ptr<Device> device, std::shared_ptr<BindingSetLayout> layoutSet, bool compute)
+{
+	ComPtr<ID3D12CommandSignature> signature;
+	auto dxDevice = (DXDevice*)device.get();
+	auto nativeDevice = dxDevice->GetDevice();
+
+	// Define the indirect argument descriptors
+	D3D12_INDIRECT_ARGUMENT_DESC args[2] = {};
+
+	// Root constant to pass the instanceID
+	args[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT;
+	args[0].Constant.RootParameterIndex = 0;
+	args[0].Constant.Num32BitValuesToSet = 1;
+	args[0].Constant.DestOffsetIn32BitValues = 2;
+
+	// Dispatch mesh arguments
+	args[1].Type = compute ? D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH : D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH_MESH;
+
+	// Create the command signature description
+	D3D12_COMMAND_SIGNATURE_DESC commandSignatureDesc = {};
+	commandSignatureDesc.ByteStride = sizeof(IndirectDispatchCommand);
+	commandSignatureDesc.NumArgumentDescs = _countof(args);
+	commandSignatureDesc.pArgumentDescs = args;
+
+	DXBindingSetLayout* layout = (DXBindingSetLayout*)layoutSet.get();
+
+	// Create the command signature
+	HRESULT hr = nativeDevice->CreateCommandSignature(
+		&commandSignatureDesc,
+		layout->GetRootSignature().Get(),
+		IID_PPV_ARGS(&signature)
+	);
+
+	if (FAILED(hr))
+		printf("Failed to create command signature\n");
+
+	return signature;
+}

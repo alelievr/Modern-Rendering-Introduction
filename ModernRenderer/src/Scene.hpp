@@ -47,6 +47,12 @@ public:
 	static std::shared_ptr<Resource> instanceDataBuffer;
 	static std::shared_ptr<View> instanceDataView;
 
+	static std::shared_ptr<Resource> visibleMeshletsBuffer0;
+	static std::shared_ptr<View> visibleMeshletsView0;
+
+	static std::shared_ptr<Resource> visibleMeshletsBuffer1;
+	static std::shared_ptr<View> visibleMeshletsView1;
+
 	static std::vector<BindingDesc> bindingDescs;
 	static std::vector<BindKey> bindKeys;
 
@@ -70,6 +76,7 @@ public:
 	std::shared_ptr<Resource> tlasBuffer;
 	std::shared_ptr<Resource> blasBuffer;
 	std::shared_ptr<Resource> rtInstanceDataBuffer;
+	std::shared_ptr<Resource> scratch;
 
 	Sky sky;
 
