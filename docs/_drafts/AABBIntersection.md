@@ -8,7 +8,7 @@ layout: post
 
 An Axis Aligned Bounding Box is a [bounding volume](https://en.wikipedia.org/wiki/Bounding_volume) represented by a box that has no rotation relative to the origin of the space. In the image below, you can see that each line of the boxes are parallel to one of the basis vectors.
 
-![](/assets/Recordings/AABBIntersection%2000.png)
+![](../assets/Recordings/AABBIntersection%2000.png)
 
 These bounding volumes are often used to accelerate other algorithm by serving as proxy to a more complex object. The idea behind this is to intersect the bounding volume which is a fast operation to perform and then intersect what's inside the bounding volume which is often more costly to evaluate. This is the basic idea behind an acceleration structure, there is a hierarchy of bounding volumes that are fast to intersect.
 
@@ -16,7 +16,13 @@ These bounding volumes are often used to accelerate other algorithm by serving a
 
 To intersect a ray with an AABB, we can take a simple approach using slabs, a slab is defined by the region created in between 2 parallel planes.
 
-![](/assets/Recordings/AABBIntersection%2001.gif)
+![](../assets/Recordings/AABBIntersection%2001.gif)
+
+## Ray - AABB Test
+
+The intersection is great if you want to compute the exact location of the intersection between the AABB and a ray, but if you just want to know if the ray hits the AABB or not, then we can use a different approach that allows us to perform less calculations.
+
+## AABB Distance
 
 ## Conclusion
 

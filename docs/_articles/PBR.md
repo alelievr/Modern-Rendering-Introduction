@@ -6,7 +6,7 @@ category: Fundamentals
 layout: post
 ---
 
-[![Zero Day: https://developer.nvidia.com/orca/beeple-zero-day](/assets/Images/ZeroDayMeasureOne_1.png)](https://developer.nvidia.com/orca/beeple-zero-day)
+[![Zero Day: https://developer.nvidia.com/orca/beeple-zero-day](../assets/Images/ZeroDayMeasureOne_1.png)](https://developer.nvidia.com/orca/beeple-zero-day)
 
 Physically based rendering (PBR) is a method for rendering virtual content using equations derived from real-world observations. It often targets photorealistic rendering but PBR can also be used for stylized rendering when more artistic control is given.
 
@@ -45,9 +45,9 @@ Here’s an example showcasing how various textures combine to create a photorea
     <th>Final Render</th><th>Albedo</th><th>Ambient Occlusion</th>
   </tr>
   <tr>
-    <td width=33.3%><img src="/assets/Images/PBR Rock Sample/FinalRender.jpg"  alt="Final Render"></td>
-    <td width=33.3%><img src="/assets/Images/PBR Rock Sample/Albedo.jpg"  alt="Albedo"></td>
-    <td width=33.3%><img src="/assets/Images/PBR Rock Sample/AO.jpg"  alt="Ambient Occlusion"></td>
+    <td style="width: 33%;"><img src="../assets/Images/PBR Rock Sample/FinalRender.jpg" alt="Final Render"></td>
+    <td style="width: 33%;"><img src="../assets/Images/PBR Rock Sample/Albedo.jpg" alt="Albedo"></td>
+    <td style="width: 33%;"><img src="../assets/Images/PBR Rock Sample/AO.jpg" alt="Ambient Occlusion"></td>
   </tr>
 </table>
 
@@ -56,9 +56,9 @@ Here’s an example showcasing how various textures combine to create a photorea
     <th>Displacement</th><th>Normal</th><th>Roughness</th>
   </tr>
   <tr>
-    <td width=33.3%><img src="/assets/Images/PBR Rock Sample/Displacement.jpg"  alt="Displacement"></td>
-    <td width=33.3%><img src="/assets/Images/PBR Rock Sample/Normal.jpg"  alt="Normal"></td>
-    <td width=33.3%><img src="/assets/Images/PBR Rock Sample/Roughness.jpg"  alt="Roughness"></td>
+    <td style="width: 33%;"><img src="../assets/Images/PBR Rock Sample/Displacement.jpg" alt="Displacement"></td>
+    <td style="width: 33%;"><img src="../assets/Images/PBR Rock Sample/Normal.jpg" alt="Normal"></td>
+    <td style="width: 33%;"><img src="../assets/Images/PBR Rock Sample/Roughness.jpg" alt="Roughness"></td>
   </tr>
 </table>
 

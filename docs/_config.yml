@@ -71,7 +71,7 @@ toc:
 collections:
   articles:
     output: true
-    permalink: /:collection/:path/
+    permalink: /:path/
     sort_by: order
 
 defaults:

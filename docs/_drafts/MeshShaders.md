@@ -14,7 +14,7 @@ Mesh shaders are the modern way of writing shaders that perform the vertex trans
 
 The first step on how to understand mesh shaders is to explain the operation that are performed on the mesh data itself before sending it to the mesh shader. Indeed, to achieve correct performances, we can't throw the mesh data directly as input of the mesh shader, the mesh need to be split in smaller parts called meshlets. Each meshlet is a group of triangles forming a patch on the surface of the mesh. In the image below, each colored patch represent a single meshlet:
 
-![](/assets/Images/Stanford%20Bunny.png)
+![](../assets/Images/Stanford%20Bunny.png)
 
 You might notice that most of the meshlets generated are roughly the same size. This is the result of the meshlet generation algorithm trying to minimize the bounding volume of each meshlet while trying to maximize the [vertex reuse](https://interplayoflight.wordpress.com/2021/11/14/shaded-vertex-reuse-on-modern-gpus/) inside each meshlet. Minimizing the bounding volume will be important later on when implementing a meshlet culling algorithm that we'll see in a future chapter.
 
@@ -25,7 +25,7 @@ Cluster are a similar concept to meshlets in the way that they are also composed
 ## The Graphics Pipeline
 
 Here you can see in this diagram form the DirectX 12 documentation, the chain of shader types executed by the GPU when an object is rendered. The blue nodes represent fixed hardware functions, fixed hardware mean that it physically exists on the GPU silicium, hence it can't be programmed, that's why we call it fixed hardware functions, usually these fixed hardware functions act as the glue between the different stages of the shaders by passing and converting data from one stage to another.
-[![](/assets/Images/MeshShaderPipeline.png)](https://devblogs.microsoft.com/directx/dev-preview-of-new-directx-12-features/)
+[![](../assets/Images/MeshShaderPipeline.png)](https://devblogs.microsoft.com/directx/dev-preview-of-new-directx-12-features/)
 
 In this guide, we'll focus on the Mesh Shader Pipeline which is the new preferred way of rendering objects in new graphics APIs. You'll see that it's simpler to understand because it has less stages and fixed hardware functions. If you want to learn more about the legacy graphics pipeline stages, you can read more in the [DirectX 11 documentation](https://learn.microsoft.com/en-us/windows/win32/direct3d11/overviews-direct3d-11-graphics-pipeline).
 

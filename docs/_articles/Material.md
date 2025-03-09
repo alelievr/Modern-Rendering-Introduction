@@ -24,7 +24,7 @@ Materials can be categorized into three distinct parts. Let's take a look at the
 
 | Unity | Blender |
 | --- | --- |
-| ![](/assets/Images/HDRP_Unlit.png) | ![](/assets/Images/Blender_Unlit.png) |
+| ![](../assets/Images/HDRP_Unlit.png) | ![](../assets/Images/Blender_Unlit.png) |
 
 > Example of an unlit material in Unity HDRP and Blender.
 
@@ -36,7 +36,7 @@ Another interesting use case for unlit materials is when using pre-computed ligh
 
 | Unity | Blender |
 | --- | --- |
-| ![](/assets/Images/HDRP_Lit.png) | ![](/assets/Images/Blender_Lit.png) |
+| ![](../assets/Images/HDRP_Lit.png) | ![](../assets/Images/Blender_Lit.png) |
 
 > Example of a standard lit material in Unity HDRP and Blender.
 
@@ -55,7 +55,7 @@ Lit materials and their parametrization is a complex topic that we will explore 
 
 | Unity | Blender |
 | --- | --- |
-| ![](/assets/Images/HDRP_Volume.png) | ![](/assets/Images/Blender_Volume.png) |
+| ![](../assets/Images/HDRP_Volume.png) | ![](../assets/Images/Blender_Volume.png) |
 
 > Example of a volume material in Unity HDRP and Blender.
 
@@ -75,7 +75,7 @@ Depending on the use case, even some gameplay logic or reaction to environment c
 
 | Unity | Blender |
 | --- | --- |
-| ![](/assets/Images/Unity_ShaderGraph.png) | ![](/assets/Images/Blender_ShaderEditor.png) |
+| ![](../assets/Images/Unity_ShaderGraph.png) | ![](../assets/Images/Blender_ShaderEditor.png) |
 
 > Example of a shader/material editors in Unity HDRP and Blender.
 
@@ -87,7 +87,7 @@ It is worth noting that the logic of a material graph is often decoupled from th
 
 ### Material Layering
 
-[![](/assets/Images/MaterialLayering.png)](https://unity3d.com/files/solutions/photogrammetry/Unity-Photogrammetry-Workflow-Layered-Shader_v2.pdf)
+[![](../assets/Images/MaterialLayering.png)](https://unity3d.com/files/solutions/photogrammetry/Unity-Photogrammetry-Workflow-Layered-Shader_v2.pdf)
 
 > Example of a layered material in Unity HDRP with 3 different surfaces.
 

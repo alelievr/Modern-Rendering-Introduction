@@ -16,17 +16,17 @@ The camera is an object in 3D, so it have a position vector of 3 component stori
 
 When rendering a scene, we often limit from how far we can see objects on the camera level, this is mainly an optimization to avoid rendering things that are too far and probably wouldn't contribute to the look of the scene but it's also important to keep a reasonable range of distance between the camera and the scene's object to avoid precision issues. These limits are controlled by the near and far planes of the camera, everything outside of those planes (farther than the far plane or between the near plane and the camera position) will get culled out.
 
-![](/assets/Recordings/Camera%2001.png)
+![](../assets/Recordings/Camera%2001.png)
 
 This alone is not enough, we need to constrain the size of the camera somehow to focus on a particular part of the 3D scene. This is called the field of view. Changing the FoV of a camera is the same as using the zoom on a true camera, it effectively changes how much of the 3D scene you're viewing. As you can see this forms a kind of square based pyramid shape with the tip pointing to the camera position cut off, this shape is called a [Frustum](https://en.wikipedia.org/wiki/Frustum), it's a kind of mathematical shape that is often used to represent what that camera can see.
 
-![](/assets/Recordings/Camera%2000.gif)
+![](../assets/Recordings/Camera%2000.gif)
 
 This kind of projection with the field of view is called [perspective](https://en.wikipedia.org/wiki/Perspective_(graphical)) projection, this is the kind of projection we're most used to as it keeps nicely the notion of distance (far objects appear smaller than close ones).
 
 One nice way of visualizing how the objects inside the frustum gets projected onto the 2D surface is to imagine the Frustum and all the objects inside getting squished towards the camera. This way of interpreting the transformation gives us a good insight of how the 3D space gets turned into 2D space where the Z coordinate essentially disappears. In this example, notice how the scene gets projected on the near plane of the frustum, this essentially is how we get the image of the 3D scene.
 
-![](/assets/Recordings/Camera%2002.gif)
+![](../assets/Recordings/Camera%2002.gif)
 
 There is another kind of camera that is a bit less intuitive as it doesn't really exists in real life. It's a camera that perform an orthographic projection instead of the standard perspective projection we're used to. In this projection, the perception of depth doesn't exists as the size of the objects on screen are not defined by their distance to the camera. This kind of camera is simpler to model because it doesn't have a field of view, instead it's a 2D size that determines what the camera can see. This is the projection I've been using for most of the illustrations, it has the neat property of keeping lines parallels to each other and makes really clean schematics.
 

@@ -28,7 +28,7 @@ Since meshes are used during the rendering, it's essential to make sure that the
 
 As we're following PBR guidelines, most of our objects will use textures and we need a way to apply those textures on 3D meshes. The most common way to apply textures is called [UV mapping](https://en.wikipedia.org/wiki/UV_mapping), this techniques relies on the fact that we can unwrap the 3D mesh onto a 2D surface which represent a texture. In practice, complex algorithms can perform the UV unwrapping after the mesh has been authored, this algorithm then assign a 2 component vector to each vertex of the mesh called 'UV', this UV data is a coordinate from 0 to 1 that indicates the position in the texture to apply at this vertex position. We can also visualize the UV using the red and green color channels:
 
-![](/assets/Recordings/Meshes%2004.gif)
+![](../assets/Recordings/Meshes%2004.gif)
 
 Something important to be aware with UV mapping is that there are also conventions to respect which affects how the calculations depending on UVs are calculated. In this course we'll be following the [DirectX texture coordinate](https://learn.microsoft.com/en-us/windows/win32/direct3d9/texture-coordinates) convention which means that the UVs start in the top left corner of the texture.
 
@@ -36,27 +36,27 @@ Something important to be aware with UV mapping is that there are also conventio
 
 Using the same method, we can display the vertex position of the mesh, except that this time the values are not normalized so we just display them as color without any modification.
 
-![](/assets/Recordings/Meshes%2003.png)
+![](../assets/Recordings/Meshes%2003.png)
 
 ### Normal
 
 Almost all the lighting algorithms will require the [surface normal](https://en.wikipedia.org/wiki/Normal_(geometry)), this information is usually authored when the 3D model is created because it influences a lot its rendering. We can visualize the normals of a mesh by simply drawing an arrow pointing in the direction of the normal vector from each vertex like so:
 
-![](/assets/Recordings/Meshes%2000.gif)
+![](../assets/Recordings/Meshes%2000.gif)
 
 Notice that the color of the arrow here reprensents the value of the normal vector. The normal vector is always normalized (it is a direction only) so it's values are between -1 and 1, the color of the normal can be interpreted as color by simply remapping the -1 to 1 values to 0 to 1 (color = $normal * 0.5 + 0.5$) these values can then be mapped directly to RGB colors. Nowadays models have quite a lot of vertices so it's not practical to represent them with little arrows so instead we use the color of the normal directly on the model:
 
 <table>
   <tr><th>Suzanne</th><th>Lucy</th></tr>
   <tr>
-    <td><img src="/assets/Recordings/Meshes%2001.png"  alt="2D" width = 100% height = 100% ></td>
-    <td><img src="/assets/Recordings/Meshes%2002.png"  alt="3D" width = 100% height = 100% ></td>
+    <td><img src="../assets/Recordings/Meshes 01.png" alt="2D" style="width: 100%; height: auto;"></td>
+    <td><img src="../assets/Recordings/Meshes 02.png" alt="3D" style="width: 100%; height: auto;"></td>
   </tr>
 </table>
 
 The normal values are playing a big part in the details of the lighting of a surface, right now we have only one normal value per vertex which is often not enough to render high quality models. Instead of just adding more vertex to store more normals, we can add use a normal map. The normal map consist in high frequency normals being stored in a 2D texture, when the model is rendered, the UVs are used to know which texel to sample from the normal map. As you can see, we get back a lot of details from applying a normal map to the object:
 
-![](/assets/Recordings/Meshes%2006.gif)
+![](../assets/Recordings/Meshes%2006.gif)
 
 ### Tangent & Bitangent
 
@@ -80,15 +80,15 @@ Indeed, to calculate the tangent we can directly use the delta of the 2 UV value
 
 Let's consider the surface of a low poly sphere and display the vertex normal (blue), tangent (red) and bitangent (green) as arrows for each vertex:
 
-![](/assets/Recordings/Meshes%2007.png)
+![](../assets/Recordings/Meshes%2007.png)
 
 It may not be obvious from this image but the direction of the tangent and bitangent are directly aligned with the UVs, to better visualize that, we can display the X and Y components of the UVs separately as grayscale:
 
 <table>
   <tr><th>X</th><th>Y</th></tr>
   <tr>
-    <td><img src="/assets/Recordings/Meshes%2009.png"  alt="3D" width = 100% height = 100% ></td>
-    <td><img src="/assets/Recordings/Meshes%2008.png"  alt="2D" width = 100% height = 100% ></td>
+    <td><img src="../assets/Recordings/Meshes%2009.png" alt="3D" style="width: 100%; height: auto;"></td>
+    <td><img src="../assets/Recordings/Meshes%2008.png" alt="2D" style="width: 100%; height: auto;"></td>
   </tr>
 </table>
 
