@@ -117,7 +117,7 @@ void Scene::UploadInstancesToGPU(std::shared_ptr<Device> device)
 	// Allocate and upload the mesh pool to the GPU
 	MeshPool::AllocateMeshPoolBuffers(device);
 
-	//BuildRTAS(device);
+	BuildRTAS(device);
 
 	// Prepate and upload instance data
 	std::vector<InstanceData> instanceData;
@@ -210,7 +210,12 @@ void Scene::BuildRTAS(std::shared_ptr<Device> device)
     blasBuffer->CommitMemory(MemoryType::kDefault);
     blasBuffer->SetName("Bottom Level Acceleration Structures");
 	
-    auto tlasPrebuildInfo = device->GetTLASPrebuildInfo(MeshPool::meshes.size(), BuildAccelerationStructureFlags::kNone);
+	size_t instanceCount = 0;
+	for (const auto& instance : instances)
+		for (auto& p : instance.model.parts)
+			instanceCount++;
+
+    auto tlasPrebuildInfo = device->GetTLASPrebuildInfo(instanceCount, BuildAccelerationStructureFlags::kNone);
 	uint64_t tlasSize = Align(tlasPrebuildInfo.acceleration_structure_size, kAccelerationStructureAlignment);
 	tlasBuffer = device->CreateBuffer(BindFlag::kAccelerationStructure, tlasSize);
 	tlasBuffer->CommitMemory(MemoryType::kDefault);
