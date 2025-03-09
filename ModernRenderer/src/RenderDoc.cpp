@@ -75,6 +75,13 @@ void RenderDoc::LoadRenderDoc()
         // Free the buffer allocated by FormatMessage
         LocalFree(messageBuffer);
     }
+
+    if (isLoaded)
+    {
+        // Override the capture key to F11 to avoid conflicts with the break key in visual
+        RENDERDOC_InputButton captureKeys[] = { eRENDERDOC_Key_F11 };
+        rdoc_api->SetCaptureKeys(captureKeys, 1);
+    }
 }
 
 void RenderDoc::StartFrameCapture()
