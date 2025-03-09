@@ -104,56 +104,56 @@ void Renderer::CreatePipelineObjects()
     clearColorRenderPass = device->CreateRenderPass(renderPassDesc);
 
     BindKey pathTracerMainColorKey = { ShaderType::kLibrary, ViewType::kRWTexture, 0, 0, 1, UINT32_MAX };
-    std::shared_ptr<BindingSetLayout> pathTracerLayout = device->CreateBindingSetLayout({ camera->cameraDataKeyCompute, pathTracerMainColorKey, Scene::accelerationStructureKey });
-    pathTracerBindingSet = device->CreateBindingSet(pathTracerLayout);
-    pathTracerBindingSet->WriteBindings({ camera->cameraDataDescCompute, { pathTracerMainColorKey, mainColorTextureView }, Scene::accelerationStructureBinding });
+    //std::shared_ptr<BindingSetLayout> pathTracerLayout = device->CreateBindingSetLayout({ camera->cameraDataKeyCompute, pathTracerMainColorKey, Scene::accelerationStructureKey });
+    //pathTracerBindingSet = device->CreateBindingSet(pathTracerLayout);
+    //pathTracerBindingSet->WriteBindings({ camera->cameraDataDescCompute, { pathTracerMainColorKey, mainColorTextureView }, Scene::accelerationStructureBinding });
 
     // Create HW path tracing pipeline
-    std::vector<RayTracingShaderGroup> groups;
-    groups.push_back({ RayTracingShaderGroupType::kGeneral, pathTracingLibrary->GetId("ray_gen") });
-    groups.push_back({ RayTracingShaderGroupType::kGeneral, pathTracingLibrary->GetId("miss") });
-    groups.push_back({ RayTracingShaderGroupType::kTrianglesHitGroup, 0, pathTracingHitLibrary->GetId("Hit") });
-    groups.push_back({ RayTracingShaderGroupType::kTrianglesHitGroup, 0, pathTracingHitLibrary->GetId("closest_green") });
-    groups.push_back({ RayTracingShaderGroupType::kGeneral, pathTracingCallableLibrary->GetId("callable") });
-    pathTracerPipeline = device->CreateRayTracingPipeline({ pathTracingProgram, pathTracerLayout, groups });
+    //std::vector<RayTracingShaderGroup> groups;
+    //groups.push_back({ RayTracingShaderGroupType::kGeneral, pathTracingLibrary->GetId("ray_gen") });
+    //groups.push_back({ RayTracingShaderGroupType::kGeneral, pathTracingLibrary->GetId("miss") });
+    //groups.push_back({ RayTracingShaderGroupType::kTrianglesHitGroup, 0, pathTracingHitLibrary->GetId("Hit") });
+    //groups.push_back({ RayTracingShaderGroupType::kTrianglesHitGroup, 0, pathTracingHitLibrary->GetId("closest_green") });
+    //groups.push_back({ RayTracingShaderGroupType::kGeneral, pathTracingCallableLibrary->GetId("callable") });
+    //pathTracerPipeline = device->CreateRayTracingPipeline({ pathTracingProgram, pathTracerLayout, groups });
 
     // Create the shader table for HW path tracing
-    std::shared_ptr<Resource> shaderTable =
-        device->CreateBuffer(BindFlag::kShaderTable, device->GetShaderTableAlignment() * groups.size());
-    shaderTable->CommitMemory(MemoryType::kUpload);
-    shaderTable->SetName("Shader Table");
+    //std::shared_ptr<Resource> shaderTable =
+    //    device->CreateBuffer(BindFlag::kShaderTable, device->GetShaderTableAlignment() * groups.size());
+    //shaderTable->CommitMemory(MemoryType::kUpload);
+    //shaderTable->SetName("Shader Table");
 
-    decltype(auto) shaderHandles = pathTracerPipeline->GetRayTracingShaderGroupHandles(0, groups.size());
-    for (size_t i = 0; i < groups.size(); ++i) {
-        shaderTable->UpdateUploadBuffer(i * device->GetShaderTableAlignment(),
-            shaderHandles.data() + i * device->GetShaderGroupHandleSize(),
-            device->GetShaderGroupHandleSize());
-    }
+    //decltype(auto) shaderHandles = pathTracerPipeline->GetRayTracingShaderGroupHandles(0, groups.size());
+    //for (size_t i = 0; i < groups.size(); ++i) {
+    //    shaderTable->UpdateUploadBuffer(i * device->GetShaderTableAlignment(),
+    //        shaderHandles.data() + i * device->GetShaderGroupHandleSize(),
+    //        device->GetShaderGroupHandleSize());
+    //}
 
-    shaderTables.raygen = {
-        shaderTable,
-        0 * device->GetShaderTableAlignment(),
-        device->GetShaderTableAlignment(),
-        device->GetShaderTableAlignment(),
-    };
-    shaderTables.miss = {
-        shaderTable,
-        1 * device->GetShaderTableAlignment(),
-        device->GetShaderTableAlignment(),
-        device->GetShaderTableAlignment(),
-    };
-    shaderTables.hit = {
-        shaderTable,
-        2 * device->GetShaderTableAlignment(),
-        2 * device->GetShaderTableAlignment(),
-        device->GetShaderTableAlignment(),
-    };
-    shaderTables.callable = {
-        shaderTable,
-        4 * device->GetShaderTableAlignment(),
-        device->GetShaderTableAlignment(),
-        device->GetShaderTableAlignment(),
-    };
+    //shaderTables.raygen = {
+    //    shaderTable,
+    //    0 * device->GetShaderTableAlignment(),
+    //    device->GetShaderTableAlignment(),
+    //    device->GetShaderTableAlignment(),
+    //};
+    //shaderTables.miss = {
+    //    shaderTable,
+    //    1 * device->GetShaderTableAlignment(),
+    //    device->GetShaderTableAlignment(),
+    //    device->GetShaderTableAlignment(),
+    //};
+    //shaderTables.hit = {
+    //    shaderTable,
+    //    2 * device->GetShaderTableAlignment(),
+    //    2 * device->GetShaderTableAlignment(),
+    //    device->GetShaderTableAlignment(),
+    //};
+    //shaderTables.callable = {
+    //    shaderTable,
+    //    4 * device->GetShaderTableAlignment(),
+    //    device->GetShaderTableAlignment(),
+    //    device->GetShaderTableAlignment(),
+    //};
 }
 
 void Renderer::Controls::OnKey(int key, int action)
