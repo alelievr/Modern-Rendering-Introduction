@@ -103,7 +103,7 @@ Material layering is a technique commonly used for terrain rendering, but it can
 
 [![](https://cdn.80.lv/api/upload/content/09/images/6303dc9595c76/widen_920x0.jpeg)](https://80.lv/articles/creating-a-procedural-sci-fi-material-generator-in-substance-3d-designer-toolbag/)
 
-> Image from Creating a Procedural Sci-Fi Material Generator in Substance 3D Designer & Toolbag at [80.lv](80.lv).
+> Image from Creating a Procedural Sci-Fi Material Generator in Substance 3D Designer & Toolbag at [80.lv](https://80.lv).
 
 Procedural materials are generated algorithmically rather than being based on static textures or manually painted data. These materials are defined by mathematical functions or rules that describe their appearance, which means they can be created and modified without relying on traditional image-based textures. Procedural materials are extremely flexible, allowing for nearly infinite variation based on parameters, noise patterns, and other inputs.
 
