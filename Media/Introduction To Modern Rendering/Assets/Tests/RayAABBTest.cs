@@ -13,7 +13,7 @@ public class RayAABBTest : MonoBehaviour
     public ComputeShader cs2;
     public RenderTexture rt;
 
-    public Vector3 v0, v1, v2;
+    public Vector3 offset;
     public int aabbCount = 100;
     public float randomRadius = 1;
     public float scale = 1;
@@ -31,7 +31,7 @@ public class RayAABBTest : MonoBehaviour
         {
             int index = i * 2;
             var center = (float3)Random.insideUnitSphere * randomRadius;
-            center += float3(0, 0, randomRadius);
+            center += float3(0, 0, randomRadius) + float3(offset);
             var halfSize = abs(Random.insideUnitSphere) + 0.1f;
             halfSize *= scale;
             aabbs[index + 0] = center - halfSize; // Min

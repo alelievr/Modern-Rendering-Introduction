@@ -25,7 +25,7 @@ This method is detailed in the algorithm from [Real-Time Collision Detection](ht
 ```c
 // Intersects a ray R(t) = p + t*d against an Axis-Aligned Bounding Box (AABB).
 // If there's an intersection, returns intersection distance tmin and point q.
-int IntersectRayAABB(
+bool IntersectRayAABB(
     float3 p,            // Ray origin
     float3 d,            // Ray direction
     float3 aabbMin,      // Minimum corner of the AABB
@@ -45,7 +45,7 @@ int IntersectRayAABB(
         {
             // If the origin is outside the slab, there's no intersection
             if (p[i] < aabbMin[i] || p[i] > aabbMax[i])
-                return 0;
+                return false;
         }
         else
         {
@@ -68,13 +68,13 @@ int IntersectRayAABB(
 
             // If the interval becomes invalid, there is no intersection
             if (tmin > tmax)
-                return 0;
+                return false;
         }
     }
 
     // If we reach here, the ray intersects the AABB on all 3 axes
     q = p + d * tmin; // Compute the intersection point
-    return 1;
+    return true;
 }
 ```
 
@@ -129,7 +129,7 @@ bool TestSegmentAABB(
 
 ## AABB Distance
 
-To calculate the distance to an AABB, you can use symetry, the point in space 
+To calculate the distance to an AABB, we use a simple [Signed Distance Function (SDF)](https://iquilezles.org/articles/distfunctions/). SDFs are an amazing tool for computing distances to geometric primitives. If you're not familiar with them, I highly recommend exploring this concept, as they are very useful in many cases!
 
 ```c
 float sdBox(
@@ -140,11 +140,13 @@ float sdBox(
     float3 q = abs(p) - b;
 
     // Calculate the signed distance:
-    // - The length of the positive offset (outside distance)
+    // - The length of the positive part of q (outside distance)
     // - Add the inside (negative) distance for points inside the box
     return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
 }
 ```
+
+This algorithm leverages a smart use of symetry through the abs instruction and separate the computation in an outside and inside distance. The details are explained in [The SDF of a Box](https://www.youtube.com/watch?v=62-pRVZuS5c) video.
 
 ## OBB
 
@@ -161,10 +163,21 @@ This structure allows an OBB to enclose objects in a rotation-independent manner
 
 The intersection against an OBB is surprisingly easy as we already hae the algorithm to intersect an AABB, we just need to add the rotation part. We can simply do that by rotating the ray with the inverse rotation matrix of the OBB. As you've seen in the [Matrix Inverse](MatricesAndTransformations.md#Matrix-Inverse) section, inverting a rotation matrix is easy, we can just take it's transpose and do a multiply on the ray.
 
+![](../assets/Recordings/AABBIntersection%2002%20-%20OBB.gif)
+
 ## Conclusion
+
+Bounding volumes such as AABBs and OBBs, are essential tools in computer graphics, physics simulations, and collision detection. They allow us to simplify and accelerate complex calculations by providing efficient ways to test for intersections or compute distances to proxy objects.
+
+AABBs are straightforward and computationally inexpensive to work with, making them ideal for approximating intersections to complex geometry and hierarchical acceleration structures. However, their lack of rotation can result in suboptimal bounds around rotated or irregularly shaped objects, which may lead to inefficiencies when used for application such as culling.
+
+OBBs address this limitation by extending AABBs with arbitrary rotations. By aligning the bounding volume closely to the object's orientation, OBBs provide tighter fits and more accurate intersections, particularly for objects that are not axis-aligned. While OBBs come with increased computational complexity, their tighter bounds make them suitable for scenarios where precision is important like in culling.
+
+Both AABBs and OBBs serve distinct purposes and trade-offs depending on the use case. Selecting the appropriate bounding volume depends on the balance needed between simplicity, performance, and accuracy in the context of your application. Familiarizing yourself with these tools and the algorithms to work with each type ensures you’ll be equipped to handle a variety of challenges in 3D mathematics and programming.
 
 ## References
 
 - 📄 [Bounding volume - Wikipedia](https://en.wikipedia.org/wiki/Bounding_volume)
 - 📄 [Distance functions - Inigo Quilez](https://iquilezles.org/articles/distfunctions/)
 - 📄 [Real-Time Collision Detection (Christer Ericson) - PDF](https://www.r-5.org/files/books/computers/algo-list/realtime-3d/Christer_Ericson-Real-Time_Collision_Detection-EN.pdf) (5.3.3 Intersecting Ray or Segment Against Box - page 179)
+- 🎥 [The SDF of a Box - Inigo Quilez](https://www.youtube.com/watch?v=62-pRVZuS5c)

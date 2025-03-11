@@ -16,25 +16,96 @@ struct AABB
     float3 max;
 };
 
-bool TestSegmentAABB(float3 p0, float3 p1, AABB b)
+// Tests if a segment specified by points p0 and p1 intersects an Axis-Aligned Bounding Box (AABB).
+bool TestSegmentAABB(
+    float3 p0,              // Start point of the segment
+    float3 p1,              // End point of the segment
+    AABB aabb
+)
 {
-    float3 e = b.max - b.min;
-    float3 d = p1 - p0;
-    float3 m = p0 + p1 - (float3)b.min - (float3)b.max;// Try world coordinate axes as separating axes
+    // Compute box center-point and half-length extents
+    float3 c = (aabb.min + aabb.max) * 0.5f; // Box center
+    float3 e = aabb.max - c;                // Box half-extent
+
+    // Segment midpoint and halflength vector
+    float3 m = (p0 + p1) * 0.5f;           // Segment midpoint
+    float3 d = p1 - m;                     // Segment halflength vector
+    m = m - c;                             // Translate box and segment to the origin
+
+    // Test world coordinate axes as separating axes
     float adx = abs(d.x);
     if (abs(m.x) > e.x + adx) return false;
     float ady = abs(d.y);
     if (abs(m.y) > e.y + ady) return false;
     float adz = abs(d.z);
     if (abs(m.z) > e.z + adz) return false;
-    // Add in an epsilon term to counteract arithmetic errors when segment is
-    // (near) parallel to a coordinate axis (see text for detail)
-    adx += EPSILON; ady += EPSILON; adz += EPSILON;
-    // Try cross products of segment direction vector with coordinate axes
-    if (abs(m.y * d.z - m.z * d.y) > e.y * adz + e.z * ady) return false;
-    if (abs(m.z * d.x - m.x * d.z) > e.x * adz + e.z * adx) return false;
-    if (abs(m.x * d.y - m.y * d.x) > e.x * ady + e.y * adx) return false;
-    // No separating axis found; segment must be overlapping AABB
+
+    // Add a small epsilon to counteract potential arithmetic errors when the segment is
+    // near-parallel to one of the coordinate axes
+    adx += EPSILON;
+    ady += EPSILON;
+    adz += EPSILON;
+
+    // Test cross products of segment direction vector with coordinate axes
+    if (abs(m.y * d.z - m.z * d.y) > e.y * adz + e.z * ady) return false; // Cross with X-axis
+    if (abs(m.z * d.x - m.x * d.z) > e.x * adz + e.z * adx) return false; // Cross with Y-axis
+    if (abs(m.x * d.y - m.y * d.x) > e.x * ady + e.y * adx) return false; // Cross with Z-axis
+
+    // No separating axis found; segment overlaps the AABB
+    return true;
+}
+
+// Intersects a ray R(t) = p + t*d against an Axis-Aligned Bounding Box (AABB).
+// If there's an intersection, returns intersection distance tmin and point q.
+bool IntersectRayAABB(
+    float3 p,            // Ray origin
+    float3 d,            // Ray direction
+    AABB aabb,
+    out float tmin,      // Intersection distance
+    out float3 q         // Intersection point
+)
+{
+    tmin = 0.0f;
+    q = 0;
+    float tmax = 1e20;
+
+    // Iterate over each axis (x, y, z)
+    for (int i = 0; i < 3; i++)
+    {
+        // If the ray is parallel to the slab (AABB plane pair)
+        if (abs(d[i]) < EPSILON)
+        {
+            // If the origin is outside the slab, there's no intersection
+            if (p[i] < aabb.min[i] || p[i] > aabb.max[i])
+                return false;
+        }
+        else
+        {
+            // Compute the intersection t value of ray with near and far plane of slab
+            float ood = 1.0f / d[i];
+            float t1 = (aabb.min[i] - p[i]) * ood;
+            float t2 = (aabb.max[i] - p[i]) * ood;
+
+            // Make t1 be intersection with near plane, t2 with far plane
+            if (t1 > t2)
+            {
+                float temp = t1; // Swap t1 and t2
+                t1 = t2;
+                t2 = temp;
+            }
+
+            // Compute the intersection of slab intersection intervals
+            tmin = max(tmin, t1);
+            tmax = min(tmax, t2);
+
+            // Exit with no collision as soon as slab intersection becomes empty
+            if (tmin > tmax)
+                return false;
+        }
+    }
+
+    // If we reach here, the ray intersects the AABB on all 3 axes
+    q = p + d * tmin; // Compute the intersection point
     return true;
 }
 
@@ -45,13 +116,12 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     _Output.GetDimensions(width, height);
     float2 uv = float2(id.x / width, id.y / height);
     // 90 degree fov
-    float3 dir = normalize(float3(uv.x * 2 - 1, uv.y * 2 - 1, -1));
+    float3 dir = normalize(float3(uv.x * 2 - 1, uv.y * 2 - 1, 1));
 
-    float t, u, v;
     float hit = 0;
 
     float3 p0 = _RayOrigin;
-    float3 p1 = _RayOrigin - dir * 1000;
+    float3 p1 = _RayOrigin + dir * 1000;
     for (int i = 0; i < _AABBCount; i++)
     {
         AABB aabb;
@@ -59,6 +129,10 @@ void CSMain (uint3 id : SV_DispatchThreadID)
         aabb.max = _AABBs[i * 2 + 1];
         if (TestSegmentAABB(p0, p1, aabb))
             hit++;
+        float tmin;
+        float3 q;
+        // if (IntersectRayAABB(_RayOrigin, dir, aabb, tmin, q))
+        //     hit++;
     }
 
     // _Output[id.xy] = float4(t, u, v, 1.0);

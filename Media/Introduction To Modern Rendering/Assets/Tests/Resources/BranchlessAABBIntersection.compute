@@ -38,7 +38,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     _Output.GetDimensions(width, height);
     float2 uv = float2(id.x / width, id.y / height);
     // 90 degree fov
-    float3 dir = -normalize(float3(uv.x * 2 - 1, uv.y * 2 - 1, -1));
+    float3 dir = normalize(float3(uv.x * 2 - 1, uv.y * 2 - 1, 1));
 
     float t, u, v;
     float hit = 0;
