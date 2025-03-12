@@ -45,7 +45,7 @@ public:
     std::shared_ptr<Resource> rtIndexBuffer;
     std::shared_ptr<Resource> blas;
     uint64_t blasCompactedSize;
-    unsigned blasIndex;
+    unsigned raytracedPrimitiveIndex;
 
     int meshletOffset;
 

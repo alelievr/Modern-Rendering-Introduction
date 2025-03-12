@@ -16,14 +16,17 @@ public:
     static std::vector<uint8_t> meshletTriangles;
     static std::vector<Mesh::Vertex> vertices;
     static std::vector<meshopt_Bounds> bounds;
+    static std::vector<uint32_t> indices;
 
     static std::shared_ptr<Resource> vertexPool;
+    static std::shared_ptr<Resource> indicesPool;
     static std::shared_ptr<Resource> meshletIndicesPool;
     static std::shared_ptr<Resource> meshletTrianglesPool;
     static std::shared_ptr<Resource> meshletsPool;
     static std::shared_ptr<Resource> meshletBoundsPool;
 
     static std::shared_ptr<View> vertexPoolView;
+    static std::shared_ptr<View> indicesPoolView;
     static std::shared_ptr<View> meshletIndicesPoolView;
     static std::shared_ptr<View> meshletTrianglesPoolView;
     static std::shared_ptr<View> meshletsPoolView;

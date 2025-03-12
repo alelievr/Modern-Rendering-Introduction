@@ -104,9 +104,8 @@ void Renderer::CreatePipelineObjects()
     clearColorRenderPass = device->CreateRenderPass(renderPassDesc);
 
     BindKey pathTracerMainColorKey = { ShaderType::kLibrary, ViewType::kRWTexture, 0, 0, 1, UINT32_MAX };
-    std::shared_ptr<BindingSetLayout> pathTracerLayout = device->CreateBindingSetLayout({ camera->cameraDataKeyCompute, pathTracerMainColorKey, Scene::accelerationStructureKey });
-    pathTracerBindingSet = device->CreateBindingSet(pathTracerLayout);
-    pathTracerBindingSet->WriteBindings({ camera->cameraDataDescCompute, { pathTracerMainColorKey, mainColorTextureView }, Scene::accelerationStructureBinding });
+    auto pathTracerLayout = RenderUtils::CreateLayoutSet(device, *camera, { pathTracerMainColorKey, Scene::accelerationStructureKey }, RenderUtils::CameraData | RenderUtils::MeshPool, RenderUtils::Compute);
+    pathTracerBindingSet = RenderUtils::CreateBindingSet(device, pathTracerLayout, *camera, { { pathTracerMainColorKey, mainColorTextureView }, Scene::accelerationStructureBinding }, RenderUtils::CameraData | RenderUtils::MeshPool, RenderUtils::Compute);
 
     //Create HW path tracing pipeline
     std::vector<RayTracingShaderGroup> groups;

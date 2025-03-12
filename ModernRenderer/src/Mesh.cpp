@@ -70,9 +70,6 @@ void Mesh::PrepareBLASData(std::shared_ptr<Device> device)
     rtVertexData->SetName("RT Vertex Data: " + name);
     RenderUtils::UploadBufferData(device, rtVertexData, vertices.data(), vertices.size() * sizeof(vertices[0]));
 
-    // TODO: bindless views of vertex / index data into different spaces, blasIndex is the bindless indexer
-    blasIndex = 0;
-
     // Upload first mesh index data
     rtIndexBuffer = device->CreateBuffer(BindFlag::kIndexBuffer | BindFlag::kCopyDest, indices.size() * sizeof(indices[0]));
     rtIndexBuffer->CommitMemory(MemoryType::kDefault);

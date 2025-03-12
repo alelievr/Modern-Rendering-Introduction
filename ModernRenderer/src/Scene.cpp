@@ -32,7 +32,7 @@ void Scene::LoadRoughnessTestScene(std::shared_ptr<Device> device, const Camera&
 	auto model = importer.GetModel();
 	auto mesh = model.parts[0].mesh;
 
-	int spheresCount = 100;
+	int spheresCount = 10;
 	for (int x = 0; x < spheresCount; x++)
 	{
 		for (int z = 0; z < spheresCount; z++)
@@ -97,10 +97,10 @@ std::shared_ptr<Scene> Scene::LoadHardcodedScene(std::shared_ptr<Device> device,
 
 	//scene->LoadSingleCubeScene(device, camera);
 	//scene->LoadSingleSphereScene(device, camera);
-	scene->LoadRoughnessTestScene(device, camera);
+	//scene->LoadRoughnessTestScene(device, camera);
 	//scene->LoadMultiObjectSphereScene(device, camera);
 	//scene->LoadStanfordBunnyScene(device, camera);
-	//scene->LoadChessScene(device, camera);
+	scene->LoadChessScene(device, camera);
 
 	Texture::LoadAllTextures(device);
 	Material::AllocateMaterialBuffers(device);
@@ -139,7 +139,7 @@ void Scene::UploadInstancesToGPU(std::shared_ptr<Device> device)
 		}
 	}
 
-	size_t instanceDataSize = sizeof(InstanceData) * instances.size();
+	size_t instanceDataSize = sizeof(InstanceData) * instanceData.size();
 	instanceDataBuffer = device->CreateBuffer(BindFlag::kShaderResource | BindFlag::kCopyDest, instanceDataSize);
 	instanceDataBuffer->CommitMemory(MemoryType::kUpload);
 	instanceDataBuffer->UpdateUploadBuffer(0, instanceData.data(), instanceDataSize);
@@ -244,7 +244,7 @@ void Scene::BuildRTAS(std::shared_ptr<Device> device)
 			rt.transform = glm::mat3x4(instance.transform);
 			rt.instance_offset = 0; // This instance offset is used to determine the hit index of the shader table, TODO: multiple shader support
 			rt.instance_mask = 0xff;
-			rt.instance_id = p.mesh->blasIndex; // Pass the index of the BLAS so that the hit shader can find which BLAS was hit
+			rt.instance_id = p.mesh->raytracedPrimitiveIndex; // Pass the index of the first primitive of the mesh so that the hit shader can fetch vertex data
 			rt.acceleration_structure_handle = p.mesh->blas->GetAccelerationStructureHandle();
 		}
     }
