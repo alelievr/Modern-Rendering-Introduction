@@ -1,16 +1,5 @@
 #include "Common.hlsl"
-
-struct VertexData
-{
-    float3 positionOS;
-    float3 normal;
-    float2 uv;
-    float3 tangent;
-};
-
-// Bindless buffer of vertex data
-StructuredBuffer<VertexData> vertexBuffers[] : register(t, space4);
-Buffer<uint> indexBuffers[] : register(t, space5);
+#include "MeshUtils.hlsl"
 
 struct RayPayload
 {
@@ -20,21 +9,26 @@ struct RayPayload
 [shader("closesthit")]
 void Hit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attribs)
 {
-    uint instanceID = InstanceID();
+    uint indexBufferIndex = InstanceID();
     uint triangleID = PrimitiveIndex();
     
-    uint i0 = indexBuffers[instanceID][triangleID];
-    uint i1 = indexBuffers[instanceID][triangleID + 1];
-    uint i2 = indexBuffers[instanceID][triangleID + 2];
+    indexBufferIndex += triangleID * 3;
     
-    VertexData v0 = vertexBuffers[instanceID][i0];
-    VertexData v1 = vertexBuffers[instanceID][i1];
-    VertexData v2 = vertexBuffers[instanceID][i2];
+    
+    
+    uint i0 = indicesBuffer[indexBufferIndex + 0];
+    uint i1 = indicesBuffer[indexBufferIndex + 1];
+    uint i2 = indicesBuffer[indexBufferIndex + 2];
+    
+    VertexData v0 = vertexBuffer[i0];
+    VertexData v1 = vertexBuffer[i1];
+    VertexData v2 = vertexBuffer[i2];
     
     float3 normal = BarycentricInterpolation(v0.normal, v1.normal, v2.normal, attribs.barycentrics);
     
     float2 bary = attribs.barycentrics;
-    payload.color = float3(bary, 0);
+    //payload.color = float3(bary, 0);
+    payload.color = normal * 0.5 + 0.5;
 }
 
 [shader("closesthit")]

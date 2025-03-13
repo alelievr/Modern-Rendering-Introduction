@@ -63,6 +63,7 @@ StructuredBuffer<Meshlet> meshlets : register(t1, space4);
 Buffer<uint> meshletIndices : register(t2, space4);
 Buffer<uint> meshletTriangles : register(t3, space4);
 StructuredBuffer<Bounds> meshletBounds : register(t4, space4);
+Buffer<uint> indicesBuffer : register(t5, space4);
 
 Bounds LoadMeshletBounds(uint meshletIndex, bool culling = false)
 {
