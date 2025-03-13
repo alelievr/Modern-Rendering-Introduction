@@ -19,6 +19,83 @@ ForwardMeshToFragment GetFullscreenTriangleVertex(uint id)
     return v;
 }
 
+struct BarycentricDeriv
+{
+    float3 m_lambda;
+    float3 m_ddx;
+    float3 m_ddy;
+};
+
+BarycentricDeriv CalcFullBary(float4 pt0, float4 pt1, float4 pt2, float2 pixelNdc, float2 winSize)
+{
+    BarycentricDeriv ret = (BarycentricDeriv) 0;
+
+    float3 invW = rcp(float3(pt0.w, pt1.w, pt2.w));
+
+    float2 ndc0 = pt0.xy * invW.x;
+    float2 ndc1 = pt1.xy * invW.y;
+    float2 ndc2 = pt2.xy * invW.z;
+
+    float invDet = rcp(determinant(float2x2(ndc2 - ndc1, ndc0 - ndc1)));
+    ret.m_ddx = float3(ndc1.y - ndc2.y, ndc2.y - ndc0.y, ndc0.y - ndc1.y) * invDet * invW;
+    ret.m_ddy = float3(ndc2.x - ndc1.x, ndc0.x - ndc2.x, ndc1.x - ndc0.x) * invDet * invW;
+    float ddxSum = dot(ret.m_ddx, float3(1, 1, 1));
+    float ddySum = dot(ret.m_ddy, float3(1, 1, 1));
+
+    float2 deltaVec = pixelNdc - ndc0;
+    float interpInvW = invW.x + deltaVec.x * ddxSum + deltaVec.y * ddySum;
+    float interpW = rcp(interpInvW);
+
+    ret.m_lambda.x = interpW * (invW[0] + deltaVec.x * ret.m_ddx.x + deltaVec.y * ret.m_ddy.x);
+    ret.m_lambda.y = interpW * (0.0f + deltaVec.x * ret.m_ddx.y + deltaVec.y * ret.m_ddy.y);
+    ret.m_lambda.z = interpW * (0.0f + deltaVec.x * ret.m_ddx.z + deltaVec.y * ret.m_ddy.z);
+
+    ret.m_ddx *= (2.0f / winSize.x);
+    ret.m_ddy *= (2.0f / winSize.y);
+    ddxSum *= (2.0f / winSize.x);
+    ddySum *= (2.0f / winSize.y);
+
+    ret.m_ddy *= -1.0f;
+    ddySum *= -1.0f;
+
+    float interpW_ddx = 1.0f / (interpInvW + ddxSum);
+    float interpW_ddy = 1.0f / (interpInvW + ddySum);
+
+    ret.m_ddx = interpW_ddx * (ret.m_lambda * interpInvW + ret.m_ddx) - ret.m_lambda;
+    ret.m_ddy = interpW_ddy * (ret.m_lambda * interpInvW + ret.m_ddy) - ret.m_lambda;
+
+    return ret;
+}
+
+float3 InterpolateWithDeriv(BarycentricDeriv deriv, float v0, float v1, float v2)
+{
+    float3 mergedV = float3(v0, v1, v2);
+    float3 ret;
+    ret.x = dot(mergedV, deriv.m_lambda);
+    ret.y = dot(mergedV, deriv.m_ddx);
+    ret.z = dot(mergedV, deriv.m_ddy);
+    return ret;
+}
+
+void InterpolateWithDeriv(BarycentricDeriv bary, float3 v0, float3 v1, float3 v2, out float3 v, out float3 v_ddx, out float3 v_ddy)
+{
+    float3 tvX = InterpolateWithDeriv(bary, v0.x, v1.x, v2.x);
+    float3 tvY = InterpolateWithDeriv(bary, v0.y, v1.y, v2.y);
+    float3 tvZ = InterpolateWithDeriv(bary, v0.z, v1.z, v2.z);
+
+    v.x = tvX.x;
+    v.y = tvY.x;
+    v.z = tvZ.x;
+    
+    v_ddx.x = tvX.y;
+    v_ddx.y = tvY.y;
+    v_ddx.z = tvZ.y;
+    
+    v_ddy.x = tvX.z;
+    v_ddy.y = tvY.z;
+    v_ddy.z = tvZ.z;
+}
+
 [NumThreads(1, 1, 1)]
 [OutputTopology("triangle")]
 void mesh(
@@ -45,19 +122,33 @@ float4 fragment(ForwardMeshToFragment input) : SV_TARGET0
     DecodeVisibility(visibilityData, visibleMeshetID, triangleID);
     
     VisibleMeshlet visibleMeshlet = visibleMeshlets1[visibleMeshetID];
-    
+    Meshlet meshlet = meshlets[visibleMeshlet.meshletIndex];
     InstanceData instance = LoadInstance(visibleMeshlet.instanceIndex);
     
     //Meshlet meshlet = meshlets[visibleMeshlet.meshletIndex];
-    //uint3 primitiveIndices = LoadPrimitive(meshlet.triangleOffset, triangleID);
-    //MeshToFragment attibs = LoadVertexAttributes(visibleMeshlet.meshletIndex, primitiveIndices.x, visibleMeshlet.instanceIndex);
+    uint index0 = meshletIndices[meshlet.vertexOffset + triangleID + 0];
+    uint index1 = meshletIndices[meshlet.vertexOffset + triangleID  + 1];
+    uint index2 = meshletIndices[meshlet.vertexOffset + triangleID + 2];
     
-    //// Cast ray, find barycentric coords, interpolate vertex data
+    uint3 primitiveIndices = LoadPrimitive(meshlet.triangleOffset, triangleID);
+    TransformedVertex attrib0 = LoadVertexAttributes(visibleMeshlet.meshletIndex, index0, visibleMeshlet.instanceIndex);
+    TransformedVertex attrib1 = LoadVertexAttributes(visibleMeshlet.meshletIndex, index1, visibleMeshlet.instanceIndex);
+    TransformedVertex attrib2 = LoadVertexAttributes(visibleMeshlet.meshletIndex, index2, visibleMeshlet.instanceIndex);
+    
+    // Transform vertex
+    BarycentricDeriv bary = CalcFullBary(attrib0.positionCS, attrib1.positionCS, attrib2.positionCS, input.positionCS.xy, cameraResolution.xy);
+    
+    // Interpolate
+    float3 normal, normalDDX, normalDDY;
+    InterpolateWithDeriv(bary, attrib0.normal, attrib1.normal, attrib2.normal, normal, normalDDX, normalDDY);
     
     //// Shade material surface with lighting
     //MaterialData material = materialBuffer.Load(instance.materialIndex);
     
     // Apply fog
     
-    return float4(GetRandomColor(visibleMeshetID), 1);
+    //return float4(GetRandomColor(visibleMeshetID), 1);
+    //return float4(GetRandomColor(triangleID), 1);
+    return float4(attrib0.normal * 0.5 + 0.5, 1);
+    return float4(normal * 0.5 + 0.5, 1);
 }

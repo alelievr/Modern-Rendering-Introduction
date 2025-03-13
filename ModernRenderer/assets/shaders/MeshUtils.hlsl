@@ -14,12 +14,13 @@ struct VertexData
     float3 tangent;
 };
 
-struct MeshToFragment
+struct TransformedVertex
 {
-    float4 positionCS : SV_POSITION;
-    float2 uv : TEXCOORD0;
-    float3 normal : TEXCOORD1;
-    nointerpolation float meshletIndex : TEXCOORD2;
+    float4 positionCS;
+    float2 uv;
+    float3 normal;
+    float3 positionWS;
+    float3 positionOS;
 };
 
 struct VisibleMeshlet
@@ -32,7 +33,7 @@ struct VisibleMeshlet
 struct Meshlet
 {
 	/* offsets within meshlet_vertices and meshlet_triangles arrays with meshlet data */
-    unsigned int vertexoffset;
+    unsigned int vertexOffset;
     unsigned int triangleOffset;
 
 	/* number of vertices and triangles used in the meshlet; data is stored in consecutive range defined by offset and count */
@@ -74,9 +75,9 @@ Bounds LoadMeshletBounds(uint meshletIndex, bool culling = false)
     return bounds;
 }
 
-MeshToFragment LoadVertexAttributes(uint meshletIndex, uint vertexIndex, uint instanceID)
+TransformedVertex LoadVertexAttributes(uint meshletIndex, uint vertexIndex, uint instanceID)
 {
-    MeshToFragment vout;
+    TransformedVertex vout;
     
     // Fetch mesh data from buffers
     VertexData vertex = vertexBuffer.Load(vertexIndex);
@@ -88,8 +89,9 @@ MeshToFragment LoadVertexAttributes(uint meshletIndex, uint vertexIndex, uint in
     float3 positionWS = TransformObjectToWorld(vertex.positionOS, instance.objectToWorld);
     
     vout.positionCS = TransformCameraRelativeWorldToHClip(positionWS);
+    vout.positionOS = vertex.positionOS;
+    vout.positionWS = positionWS;
     vout.uv = vertex.uv;
-    vout.meshletIndex = meshletIndex;
     vout.normal = vertex.normal; // TODO: transform normal
 
     return vout;

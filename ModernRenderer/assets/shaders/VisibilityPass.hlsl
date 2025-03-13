@@ -43,8 +43,8 @@ void mesh(
     
     if (threadID < meshlet.vertexCount)
     {
-        uint vertexIndex = meshletIndices[meshlet.vertexoffset + threadID];
-        MeshToFragment vertex = LoadVertexAttributes(groupID, vertexIndex, instanceID);
+        uint vertexIndex = meshletIndices[meshlet.vertexOffset + threadID];
+        TransformedVertex vertex = LoadVertexAttributes(groupID, vertexIndex, instanceID);
         VisibilityMeshToFragment vout;
         
         vout.positionCS = vertex.positionCS;

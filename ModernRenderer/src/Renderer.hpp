@@ -47,7 +47,6 @@ private:
 
     // Shader programs
     std::shared_ptr<Program> pathTracingProgram;
-    std::shared_ptr<Program> meshShaderProgram;
     std::shared_ptr<Shader> pathTracingLibrary;
     std::shared_ptr<Shader> pathTracingHitLibrary;
     std::shared_ptr<Shader> pathTracingCallableLibrary;

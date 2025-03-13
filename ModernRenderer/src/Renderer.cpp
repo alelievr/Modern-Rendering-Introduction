@@ -67,13 +67,6 @@ void Renderer::AllocateRenderTargets()
 
 void Renderer::CompileShaders()
 {
-    // Create mesh shader program
-    std::shared_ptr<Shader> pixelMeshshader = device->CompileShader(
-        { MODERN_RENDERER_ASSETS_PATH "shaders/PixelShader.hlsl", "main", ShaderType::kPixel, "6_5" });
-    std::shared_ptr<Shader> meshShader = device->CompileShader(
-        { MODERN_RENDERER_ASSETS_PATH "shaders/MeshShader.hlsl", "main", ShaderType::kMesh, "6_5" });
-    meshShaderProgram = device->CreateProgram({ meshShader, pixelMeshshader });
-
     // Create HW path tracing program
     pathTracingLibrary = device->CompileShader(
         { MODERN_RENDERER_ASSETS_PATH "shaders/RayTracing.hlsl", "", ShaderType::kLibrary, "6_5" });
