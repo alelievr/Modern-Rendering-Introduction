@@ -4,7 +4,12 @@
 struct VisibilityMeshToFragment
 {
     float4 positionCS : SV_Position;
-    nointerpolation uint packedVisibilityData : TEXCOORD0;
+};
+
+struct VisibilityPrimitiveAttribute
+{
+    uint packedVisibilityData : SV_PrimitiveID;
+    bool primitiveCulled : SV_CullPrimitive;
 };
 
 [NumThreads(128, 1, 1)]
@@ -13,8 +18,9 @@ void mesh(
     uint threadID : SV_GroupThreadID,
     uint groupID : SV_GroupID,
     out indices uint3 triangles[MAX_OUTPUT_PRIMITIVES],
-    out vertices VisibilityMeshToFragment vertices[MAX_OUTPUT_VERTICES])
-    // TODO: use primitive attributes to send meshlet ID to shaders
+    out vertices VisibilityMeshToFragment vertices[MAX_OUTPUT_VERTICES],
+    out primitives VisibilityPrimitiveAttribute sharedPrimitives[MAX_OUTPUT_PRIMITIVES]
+)
 {
     VisibleMeshlet visibleMeshlet = visibleMeshlets1[groupID]; // TODO: multiple dispatch support
     uint instanceID = visibleMeshlet.instanceIndex;
@@ -29,6 +35,10 @@ void mesh(
     if (primitiveId < meshlet.triangleCount)
     {
         triangles[primitiveId] = LoadPrimitive(meshlet.triangleOffset, primitiveId);
+        VisibilityPrimitiveAttribute attribute;
+        attribute.packedVisibilityData = EncodeVisibility(groupID, threadID);
+        attribute.primitiveCulled = false;
+        sharedPrimitives[primitiveId] = attribute;
     }
     
     if (threadID < meshlet.vertexCount)
@@ -38,13 +48,12 @@ void mesh(
         VisibilityMeshToFragment vout;
         
         vout.positionCS = vertex.positionCS;
-        vout.packedVisibilityData = EncodeVisibility(materialIndex, meshletIndex, threadID);
 
         vertices[threadID] = vout;
     }
 }
 
-uint fragment(VisibilityMeshToFragment input) : SV_TARGET0
+uint fragment(VisibilityMeshToFragment input, VisibilityPrimitiveAttribute prim) : SV_TARGET0
 {
-    return input.packedVisibilityData;
+    return prim.packedVisibilityData;
 }
