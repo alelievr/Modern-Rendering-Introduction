@@ -35,9 +35,20 @@ Mesh shaders are very similar to compute shaders, with a few extra features that
 
 ### Inputs
 
-A Mesh shader reads it's data exactly like a compute shader, usually from buffers storing the meshlet data.
+A Mesh shader reads it's data exactly like a compute shader, usually from buffers storing the meshlet data. This flexibility provides great opportunities to optimize the mesh data by compressing, quantizing or rearranging how its laid out.
+
+For example the meshlet data could be stored in several buffers describing the list of meshlets composing the mesh. In this course we're using the representation implemented by meshoptimizer
+The meshlet data contains 
+
+layout(binding = 0) readonly buffer Meshlets { Meshlet meshlets[]; };
+layout(binding = 1) readonly buffer MeshletVertices { uint meshlet_vertices[]; };
+layout(binding = 2) readonly buffer MeshletTriangles { uint8_t meshlet_triangles[]; };
+layout(binding = 2) readonly buffer VertexBuffer { Vertex vertices[]; };
+
 
 ### Output Vertices
+
+### Output Indices
 
 ### Output Primitives
 
@@ -47,9 +58,9 @@ In DirectX 12 max output geometry per workgroup:
 - 256 vertices
 - 256 triangles
 
-## Amplification Shaders
+## Amplification / Task Shaders
 
-The amplification shader is an optional stage in the mesh shader pipeline that can take any data as input and outputs a list of vertices and primitives for the next stage (Mesh Shader). A vertex stores all the data needed to describe a mesh, usually each vertex has it's position, UVs, normal, etc. but the encoding of such data is fully controllable so you could pack data in any particular way you want as long as you have the code to interpret it correctly in the mesh shader.
+The amplification shader is an optional stage in the mesh shader pipeline that can take any data as input and outputs a list of meshlets for the next stage (Mesh Shader). A vertex stores all the data needed to describe a mesh, usually each vertex has it's position, UVs, normal, etc. but the encoding of such data is fully controllable so you could pack data in any particular way you want as long as you have the code to interpret it correctly in the mesh shader.
 
 // TODO: find another way to say that, too technical too early
 
@@ -58,6 +69,10 @@ This stage is called Amplification because it can generate more geometry as outp
 If this stage is not present, the mesh shader will be called for each vertex
 
 ## Fragment Shaders
+
+While the fragment shader is not part of the mesh shading pipeline as it is also present in the legacy vertex shader path, the mesh shader have a special connection to the fragment shader, allowing to drive properties that used to be auto generated like SV_PrimitiveID. They also allows you to use an 8 bit index buffer instead of 16 or 32, which increases the bandwidth for the rasterizer.
+
+They also allow you to perform per-triangle culling using a semantic called SV_CullPrimitive to avoid sending a triangle to the rasterizer. It's worth noting that this extra flexibility allows to better optimize rendering algorithms by minimizing the work done by fixed-pipeline functions which have a fixed work rate. A good example of that is the triangle culling rate explained in the excellent presentation [Optimizing the Graphics Pipeline with Compute](https://ubm-twvideo01.s3.amazonaws.com/o1/vault/gdc2016/Presentations/Wihlidal_Graham_OptimizingTheGraphics.pdf). A GPU can issue 4 triangle per clock, but in that same time can issue 384 instructions, so if we can cull a triangle faster than that, then we go faster than the hardware and save work for the rasterizer.
 
 ## Implementation
 
@@ -69,5 +84,7 @@ TODO: mesh optimizer + buffer setup + sample mesh shader in HLSL
 
 - 📄 [From Vertex Shader to Mesh Shader - Mesh Shaders on AMD RDNA™ Graphics Cards](https://gpuopen.com/learn/mesh_shaders/mesh_shaders-from_vertex_shader_to_mesh_shader/)
 - 📄 [Mesh Shaders - DirectX-Specs](https://microsoft.github.io/DirectX-Specs/d3d/MeshShader.html)
-- 📄 [Introduction to Turing Mesh Shaders | NVIDIA Technical Blog](https://developer.nvidia.com/blog/introduction-turing-mesh-shaders/)
+- 📄 [Introduction to Turing Mesh Shaders - NVIDIA Technical Blog](https://developer.nvidia.com/blog/introduction-turing-mesh-shaders/)
+- 📄 [Optimizing the Graphics Pipeline with Compute - GDC 2016](https://ubm-twvideo01.s3.amazonaws.com/o1/vault/gdc2016/Presentations/Wihlidal_Graham_OptimizingTheGraphics.pdf)
+- 📄 [meshoptimizer - Github](https://github.com/zeux/meshoptimizer?tab=readme-ov-file#mesh-shading)
 - 🎥 [Mesh Shaders - The Future of Rendering](https://www.youtube.com/watch?v=3EMdMD1PsgY)
