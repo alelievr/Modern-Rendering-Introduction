@@ -226,18 +226,16 @@ float3 LatlongToDirectionCoordinate(float2 coord)
     return direction;
 }
 
-uint EncodeVisibility(uint materialID, uint meshletID, uint triangleID)
+uint EncodeVisibility(uint visibleMeshetID, uint triangleID)
 {
-    return (materialID & 0xFF)
-        | ((meshletID & 0xFFFF) << 8)
-        | ((triangleID & 0xFF) << 24);
+    return (visibleMeshetID & 0x1FFFFFF)
+        | ((triangleID & 0x7F) << 25);
 }
 
-void DecodeVisibility(uint visibility, out uint materialID, out uint meshletID, out uint triangleID)
+void DecodeVisibility(uint visibility, out uint visibleMeshetID, out uint triangleID)
 {
-    materialID = visibility & 0xFF;
-    meshletID = (visibility >> 8) & 0xFFFF;
-    triangleID = visibility >> 24;
+    visibleMeshetID = visibility & 0x1FFFFFF;
+    triangleID = visibility >> 25;
 }
 
 float3 BarycentricInterpolation(float3 v0, float3 v1, float3 v2, float2 bary)

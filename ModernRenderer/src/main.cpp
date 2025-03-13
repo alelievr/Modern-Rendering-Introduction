@@ -11,6 +11,7 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include "GLFW/glfw3native.h"
 #include "RenderSettings.hpp"
+#include "Profiler.hpp"
 
 //#define LOAD_RENDERDOC
 //#define FORCE_BACKGROUND_BLACK
@@ -39,7 +40,7 @@ int main(int argc, char* argv[])
     std::shared_ptr<Adapter> adapter = std::move(instance->EnumerateAdapters()[settings.required_gpu_index]);
     app.SetGpuName(adapter->GetName());
     std::shared_ptr<Device> device = adapter->CreateDevice();
-    std::shared_ptr<CommandQueue> command_queue = device->GetCommandQueue(CommandListType::kGraphics);
+    std::shared_ptr<CommandQueue> commandQueue = device->GetCommandQueue(CommandListType::kGraphics);
     constexpr uint32_t swapchainTextureCount = 2;
     std::shared_ptr<Swapchain> swapchain = device->CreateSwapchain(app.GetNativeWindow(), appSize.width(),
                                                                    appSize.height(), swapchainTextureCount, settings.vsync);
@@ -77,9 +78,11 @@ int main(int argc, char* argv[])
     {
         // Wait for the driver to release the lock
         uint32_t frame_index = swapchain->NextImage(fence, ++fence_value);
-        command_queue->Wait(fence, fence_value);
+        commandQueue->Wait(fence, fence_value);
         fence->Wait(fence_values[frame_index]);
         
+        Profiler::ReadbackStats(commandQueue);
+
         RenderDoc::StartFrameCapture();
 
         // Update camera controls and GPU buffer
@@ -89,14 +92,14 @@ int main(int argc, char* argv[])
         renderer.UpdateCommandList(command_lists[frame_index], currentSwapchain, camera, scene);
         
         // Then execute the rendering commands on the GPU.
-        command_queue->ExecuteCommandLists({ command_lists[frame_index] });
+        commandQueue->ExecuteCommandLists({ command_lists[frame_index] });
 
-        command_queue->Signal(fence, fence_values[frame_index] = ++fence_value);
+        commandQueue->Signal(fence, fence_values[frame_index] = ++fence_value);
         swapchain->Present(fence, fence_values[frame_index]);
 
         RenderDoc::EndFrameCapture();
     }
-    command_queue->Signal(fence, ++fence_value);
+    commandQueue->Signal(fence, ++fence_value);
     fence->Wait(fence_value);
     return 0;
 }

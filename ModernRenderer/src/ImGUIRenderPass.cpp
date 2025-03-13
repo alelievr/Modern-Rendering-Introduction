@@ -13,6 +13,7 @@
 #include <CommandList/DXCommandList.h>
 #include "RenderSettings.hpp"
 #include <View/DXView.h>
+#include "Profiler.hpp"
 
 ImGUIRenderPass::ImGUIRenderPass(std::shared_ptr<Device> device, AppBox& app)
     : device(device)
@@ -77,6 +78,7 @@ void ImGUIRenderPass::OnRender(std::shared_ptr<CommandList> cmd)
     ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
     RenderSettings::RenderImGUISettingsWindow();
+    Profiler::DrawImGUIPanel();
 
     ImGui::Render();
     ImDrawData* draw_data = ImGui::GetDrawData();

@@ -13,3 +13,6 @@
 [submodule "ModernRenderer/3rdparty/meshoptimizer"]
 	path = ModernRenderer/3rdparty/meshoptimizer
 	url = https://github.com/zeux/meshoptimizer
+[submodule "ModernRenderer/3rdparty/LegitProfiler"]
+	path = ModernRenderer/3rdparty/LegitProfiler
+	url = https://github.com/Raikiri/LegitProfiler

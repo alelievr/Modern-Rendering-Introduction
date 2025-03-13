@@ -22,7 +22,7 @@ hidden: true
 - Simple Camera [complete]
 - Plane intersection [complete]
 - Sphere intersection [kinda complete]
-- Box / AABB intersection
+- Box / AABB intersection [started]
 - Triangle intersection [complete]
 - Matrices + transformations [complete]
 - Integrals in Rendering
@@ -42,6 +42,9 @@ hidden: true
 - Bindless Bindings [complete]
 - The Render Pipeline [complete]
 - Render Passes
+- Visibility Pass
+- Forward Opaque Pass
+- Sky Pass
 
 ## Materials
 - Surface Roughness
@@ -66,6 +69,8 @@ hidden: true
 
 ## Optimization Techniques
 - Frustum Culling
+- Meshlet Culling
+- Triangle Culling
 - Occlusion Culling
 
 ## Miscellaneous

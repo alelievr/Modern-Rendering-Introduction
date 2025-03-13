@@ -33,6 +33,7 @@ include_directories(
     ${project_root}/3rdparty/stb
     ${project_root}/3rdparty/meshoptimizer/src
     ${project_root}/3rdparty/imgui
+    ${project_root}/3rdparty/LegitProfiler
 )
 
 # ImGUI Sources
@@ -70,6 +71,7 @@ add_executable(ModernRenderer WIN32
     src/BoundingVolumes.cpp
     src/ImGUIRenderPass.cpp
     src/RenderSettings.cpp
+    src/Profiler.cpp
 )
 
 if (WIN32)
