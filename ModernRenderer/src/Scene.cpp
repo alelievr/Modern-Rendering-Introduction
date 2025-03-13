@@ -32,7 +32,7 @@ void Scene::LoadRoughnessTestScene(std::shared_ptr<Device> device, const Camera&
 	auto model = importer.GetModel();
 	auto mesh = model.parts[0].mesh;
 
-	int spheresCount = 100;
+	int spheresCount = 10;
 	for (int x = 0; x < spheresCount; x++)
 	{
 		for (int z = 0; z < spheresCount; z++)

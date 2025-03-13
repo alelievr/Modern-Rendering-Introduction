@@ -3,6 +3,7 @@
 #include <CommandList/DXCommandList.h>
 #include "RenderUtils.hpp"
 #include "RenderSettings.hpp"
+#include "Profiler.hpp"
 
 Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
 {
@@ -10,6 +11,8 @@ Renderer::Renderer(std::shared_ptr<Device> device, AppBox& app, Camera& camera)
     this->appSize = app.GetAppSize();
     this->camera = &camera;
     imGUI = std::make_shared<ImGUIRenderPass>(device, app);
+
+    Profiler::Init(device);
 
 	app.SubscribeEvents((InputEvents*)&controls, nullptr);
 
@@ -179,6 +182,9 @@ void Renderer::UpdateCommandList(std::shared_ptr<CommandList> cmd, std::shared_p
     cmd->SetViewport(0, 0, appSize.width(), appSize.height());
     cmd->SetScissorRect(0, 0, appSize.width(), appSize.height());
 
+    Profiler::BeginFrame();
+    Profiler::BeginMarker(cmd, "Total Frame");
+
 	if (controls.rendererMode == RendererMode::Rasterization)
 	{
 		RenderRasterization(cmd, backBuffer, camera, scene);
@@ -207,6 +213,9 @@ void Renderer::UpdateCommandList(std::shared_ptr<CommandList> cmd, std::shared_p
     cmd->CopyTexture(mainColorTexture, backBuffer, { { appSize.width(), appSize.height(), 1 } });
     cmd->ResourceBarrier({ { backBuffer, ResourceState::kCopyDest, ResourceState::kPresent } });
     cmd->ResourceBarrier({ { mainColorTexture, ResourceState::kCopySource, ResourceState::kCommon } });
+
+    Profiler::EndMarker(cmd);
+    Profiler::EndFrame(cmd);
 
     cmd->EndEvent();
     cmd->Close();
