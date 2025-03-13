@@ -1,15 +1,11 @@
 #pragma once
 
 #include "glm/glm.hpp"
-#include <memory>
-#include <ios>
-#include <sstream>
-#include <algorithm>
-#include <chrono>
 #include "ImGuiProfilerRenderer.h"
 
 #include "Instance/Instance.h"
 #include <Device/DXDevice.h>
+#include <stack>
 
 class Profiler
 {
@@ -32,8 +28,8 @@ private:
 	ComPtr<ID3D12QueryHeap> queryHeap;
 	std::shared_ptr<Resource> readbackBuffer;
 	int frameQueryIndex = 0;
-	int queryOffset = 0;
 	std::vector<Marker> frameMarkers;
+	std::stack<unsigned> markerIndexStack;
 
 	Profiler() = default;
 	~Profiler();

@@ -1,6 +1,7 @@
 #include "Sky.hpp"
 #include <filesystem>
 #include "RenderUtils.hpp"
+#include "Profiler.hpp"
 
 void ConvertFloatArrayToHalfInPlace(float* image, int width, int height)
 {
@@ -110,6 +111,8 @@ void Sky::Render(std::shared_ptr<CommandList> cmd, std::shared_ptr<Resource> col
         skyFramebuffer = device->CreateFramebuffer(desc);
     }
 
+    Profiler::BeginMarker(cmd, "Sky Pass");
+
     ClearDesc clearDesc = { { { 0.0, 0.2, 0.4, 1.0 } } }; // Clear Color
     cmd->BindPipeline(skyPipeline);
     cmd->BindBindingSet(skyBindingSet);
@@ -124,4 +127,6 @@ void Sky::Render(std::shared_ptr<CommandList> cmd, std::shared_ptr<Resource> col
     cmd->ResourceBarrier({ { colorTexture, ResourceState::kRenderTarget, ResourceState::kCommon } });
     cmd->ResourceBarrier({ { depthTexture, ResourceState::kDepthStencilWrite, ResourceState::kCommon } });
     // TODO: render pass set, etc.
+
+    Profiler::EndMarker(cmd);
 }

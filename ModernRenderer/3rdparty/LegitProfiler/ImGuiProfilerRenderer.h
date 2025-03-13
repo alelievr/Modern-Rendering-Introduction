@@ -1,5 +1,11 @@
 #pragma once
 
+#include <memory>
+#include <ios>
+#include <sstream>
+#include <algorithm>
+#include <chrono>
+
 #include "ProfilerTask.h"
 #include "imgui.h"
 #include <array>
@@ -18,7 +24,7 @@ namespace ImGuiUtils
     int frameWidth;
     int frameSpacing;
     bool useColoredLegendText;
-    float maxFrameTime = 1.0f / 30.0f;
+    double maxFrameTime = 1.0f / 60.0f;
 
     ProfilerGraph(size_t framesCount)
     {
@@ -70,8 +76,27 @@ namespace ImGuiUtils
       RebuildTaskStats(currFrameIndex, 300/*frames.size()*/);
     }
 
+    void UpdateMaxFrameTime(int frameIndexOffset)
+    {
+        double max = 0;
+
+        for (size_t frameNumber = 0; frameNumber < frames.size(); frameNumber++)
+        {
+            size_t frameIndex = (currFrameIndex - frameIndexOffset - 1 - frameNumber + 2 * frames.size()) % frames.size();
+
+            auto& frame = frames[frameIndex];
+
+            if (frame.tasks.size() > 1)
+              max = std::max(max, frame.tasks[0].GetLength());
+        }
+
+        maxFrameTime = max * 1.2; // Add 20% visual margin
+    }
+
     void RenderTimings(int graphWidth, int legendWidth, int height, int frameIndexOffset)
     {
+      UpdateMaxFrameTime(frameIndexOffset);
+
       ImDrawList* drawList = ImGui::GetWindowDrawList();
       const glm::vec2 widgetPos = Vec2(ImGui::GetCursorScreenPos());
       RenderGraph(drawList, widgetPos, glm::vec2(graphWidth, height), frameIndexOffset);
@@ -79,10 +104,6 @@ namespace ImGuiUtils
       ImGui::Dummy(ImVec2(float(graphWidth + legendWidth), float(height)));
     }
 
-    /*void bla()
-    {
-
-    }*/
   private:
     void RebuildTaskStats(size_t endFrame, size_t framesCount)
     {
@@ -132,8 +153,8 @@ namespace ImGuiUtils
         auto &frame = frames[frameIndex];
         for (const auto& task : frame.tasks)
         {
-          float taskStartHeight = (float(task.startTime) / maxFrameTime) * graphSize.y;
-          float taskEndHeight = (float(task.endTime) / maxFrameTime) * graphSize.y;
+          double taskStartHeight = (double(task.startTime) / maxFrameTime) * (double)graphSize.y;
+          double taskEndHeight = (double(task.endTime) / maxFrameTime) * (double)graphSize.y;
           //taskMaxCosts[task.name] = std::max(taskMaxCosts[task.name], task.endTime - task.startTime);
           if (abs(taskEndHeight - taskStartHeight) > heightThreshold)
             Rect(drawList, taskPos + glm::vec2(0.0f, -taskStartHeight), taskPos + glm::vec2(frameWidth, -taskEndHeight), task.color, true);
@@ -142,14 +163,14 @@ namespace ImGuiUtils
     }
     void RenderLegend(ImDrawList *drawList, glm::vec2 legendPos, glm::vec2 legendSize, size_t frameIndexOffset)
     {
-      float markerLeftRectMargin = 3.0f;
+      float markerLeftRectMargin = 0.0f;
       float markerLeftRectWidth = 5.0f;
       float markerMidWidth = 30.0f;
       float markerRightRectWidth = 10.0f;
       float markerRigthRectMargin = 3.0f;
       float markerRightRectHeight = 10.0f;
       float markerRightRectSpacing = 4.0f;
-      float nameOffset = 30.0f;
+      float nameOffset = 40.0f;
       glm::vec2 textMargin = glm::vec2(5.0f, -3.0f);
 
       auto &currFrame = frames[(currFrameIndex - frameIndexOffset - 1 + 2 * frames.size()) % frames.size()];
@@ -381,7 +402,7 @@ namespace ImGuiUtils
       int maxGraphHeight = 300;
       int availableGraphHeight = (int(canvasSize.y) - sizeMargin) / 2;
       int graphHeight = std::min(maxGraphHeight, availableGraphHeight);
-      int legendWidth = 200;
+      int legendWidth = 250;
       int graphWidth = int(canvasSize.x) - legendWidth;
       gpuGraph.RenderTimings(graphWidth, legendWidth, graphHeight, frameOffset);
       cpuGraph.RenderTimings(graphWidth, legendWidth, graphHeight, frameOffset);

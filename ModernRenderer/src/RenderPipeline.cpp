@@ -1,5 +1,6 @@
 #include "RenderPipeline.hpp"
 #include "RenderSettings.hpp"
+#include "Profiler.hpp"
 
 RenderPipeline::RenderPipeline(std::shared_ptr<Device> device, const AppSize& appSize,
     Camera& camera, std::shared_ptr<Resource> colorTexture, std::shared_ptr<View> colorTextureView,
@@ -59,7 +60,7 @@ void RenderPipeline::DrawOpaqueObjects(std::shared_ptr<CommandList> cmd, std::sh
 
 void RenderPipeline::FrustumCulling(std::shared_ptr<CommandList> cmd)
 {
-    cmd->BeginEvent("Frustum Culling");
+    Profiler::BeginMarker(cmd, "Frustum Culling");
     auto dxCmd = ((DXCommandList*)cmd.get())->GetCommandList();
 
     if (!meshletCullingIndirectCountBuffer)
@@ -179,12 +180,13 @@ void RenderPipeline::FrustumCulling(std::shared_ptr<CommandList> cmd)
     cmd->ResourceBarrier({ { meshletCullingIndirectCountBuffer, ResourceState::kUnorderedAccess, ResourceState::kIndirectArgument } });
     cmd->ResourceBarrier({ { visibleMeshletsCountBuffer, ResourceState::kGenericRead, ResourceState::kCommon } });
     cmd->EndEvent();
-    cmd->EndEvent();
+
+    Profiler::EndMarker(cmd);
 }
 
 void RenderPipeline::MeshletCulling(std::shared_ptr<CommandList> cmd)
 {
-    cmd->BeginEvent("Meshlet Culling");
+    Profiler::BeginMarker(cmd, "Meshlet Culling");
     auto dxCmd = ((DXCommandList*)cmd.get())->GetCommandList();
 
     if (!meshletCullingProgram.program)
@@ -247,7 +249,7 @@ void RenderPipeline::MeshletCulling(std::shared_ptr<CommandList> cmd)
     cmd->ResourceBarrier({ { meshletCullingIndirectCountBuffer, ResourceState::kUnorderedAccess, ResourceState::kIndirectArgument } });
     cmd->ResourceBarrier({ { meshletCullingIndirectArgsBuffer, ResourceState::kUnorderedAccess, ResourceState::kIndirectArgument } });
     cmd->EndEvent();
-    cmd->EndEvent();
+    Profiler::EndMarker(cmd);
 }
 
 void RenderPipeline::RenderVisibility(std::shared_ptr<CommandList> cmd)
@@ -317,7 +319,7 @@ void RenderPipeline::RenderVisibility(std::shared_ptr<CommandList> cmd)
     if (!frustumCullingCommandSignature)
         frustumCullingCommandSignature = RenderUtils::CreateIndirectRootConstantCommandSignature(device, indirectVisibilityLayoutSet, false);
 
-    cmd->BeginEvent("Visibility Pass");
+    Profiler::BeginMarker(cmd, "Visibility Pass");
     cmd->ResourceBarrier({ { visibilityTexture, ResourceState::kCommon, ResourceState::kRenderTarget } });
     cmd->ResourceBarrier({ { depthTexture, ResourceState::kCommon, ResourceState::kDepthStencilWrite}});
 
@@ -345,7 +347,7 @@ void RenderPipeline::RenderVisibility(std::shared_ptr<CommandList> cmd)
     
     cmd->ResourceBarrier({ { visibilityTexture, ResourceState::kRenderTarget, ResourceState::kCommon } });
     cmd->ResourceBarrier({ { depthTexture, ResourceState::kDepthStencilWrite, ResourceState::kCommon } });
-    cmd->EndEvent();
+    Profiler::EndMarker(cmd);
 }
 
 void RenderPipeline::RenderForwardOpaque(std::shared_ptr<CommandList> cmd)
@@ -407,7 +409,7 @@ void RenderPipeline::RenderForwardOpaque(std::shared_ptr<CommandList> cmd)
         forwardPipeline = device->CreateGraphicsPipeline(meshShaderPipelineDesc);
     }
 
-    cmd->BeginEvent("Forward Opaque Pass");
+    Profiler::BeginMarker(cmd, "Forward Opaque Pass");
     cmd->ResourceBarrier({ { colorTexture, ResourceState::kCommon, ResourceState::kRenderTarget } });
     cmd->ResourceBarrier({ { depthTexture, ResourceState::kCommon, ResourceState::kDepthStencilWrite} });
 
@@ -422,7 +424,7 @@ void RenderPipeline::RenderForwardOpaque(std::shared_ptr<CommandList> cmd)
 
     cmd->ResourceBarrier({ { colorTexture, ResourceState::kRenderTarget, ResourceState::kCommon } });
     cmd->ResourceBarrier({ { depthTexture, ResourceState::kDepthStencilWrite, ResourceState::kCommon } });
-    cmd->EndEvent();
+    Profiler::EndMarker(cmd);
 }
 
 void RenderPipeline::Render(std::shared_ptr<CommandList> cmd, std::shared_ptr<Resource> backBuffer, std::shared_ptr<Scene> scene)

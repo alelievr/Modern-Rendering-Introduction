@@ -21,7 +21,6 @@ void Profiler::Init(std::shared_ptr<Device> device)
 	instance.readbackBuffer->SetName("Timings Readback Buffer");
 
 	instance.profilersWindow = new ImGuiUtils::ProfilersWindow();
-	instance.profilersWindow->frameWidth = 200;
 }
 
 Profiler::~Profiler()
@@ -49,20 +48,25 @@ void Profiler::EndFrame(std::shared_ptr<CommandList> cmd)
 
 void Profiler::BeginMarker(std::shared_ptr<CommandList> cmd, const std::string& name)
 {
+	cmd->BeginEvent(name);
+
 	cmd->As<DXCommandList>().GetCommandList()->EndQuery(instance.queryHeap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, instance.frameQueryIndex);
 	Marker marker;
 	marker.name = name;
 	marker.startIndex = instance.frameQueryIndex;
 
+	instance.markerIndexStack.push(instance.frameMarkers.size());
 	instance.frameMarkers.push_back(marker);
-	instance.queryOffset = ++instance.frameQueryIndex;
+	instance.frameQueryIndex++;
 }
 
 void Profiler::EndMarker(std::shared_ptr<CommandList> cmd)
 {
+	cmd->EndEvent();
 	if (instance.frameMarkers.empty()) return;
-	instance.queryOffset--;
-	auto& marker = instance.frameMarkers[instance.queryOffset];
+	unsigned index = instance.markerIndexStack.top();
+	instance.markerIndexStack.pop();
+	auto& marker = instance.frameMarkers[index];
 	cmd->As<DXCommandList>().GetCommandList()->EndQuery(instance.queryHeap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, instance.frameQueryIndex);
 	marker.endIndex = instance.frameQueryIndex;
 	instance.frameQueryIndex++;
@@ -99,13 +103,15 @@ void Profiler::ReadbackStats(std::shared_ptr<CommandQueue> cmdQueue)
 	auto nativeQueue = dxQueue->GetQueue();
 	nativeQueue->GetTimestampFrequency(&frequency);
 
+	double firstMarkerFrameSec = (double)timings[0] / frequency;
+
 	for (auto& marker : instance.frameMarkers)
 	{
 		marker.startTime = timings[marker.startIndex];
 		marker.endTime = timings[marker.endIndex];
 		marker.elapsedTimeMillis = (double)(marker.endTime - marker.startTime) / frequency * 1000.0;
-		double startTimeSec = (double)marker.startTime / frequency;
-		double endTimeSec = (double)marker.endTime / frequency;
+		double startTimeSec = (double)marker.startTime / frequency - firstMarkerFrameSec;
+		double endTimeSec = (double)marker.endTime / frequency - firstMarkerFrameSec;
 		legit::ProfilerTask task = { startTimeSec, endTimeSec, marker.name, GetColorFromString(marker.name) };
 		instance.frameGPUTimes.push_back(task);
 	}
