@@ -86,7 +86,7 @@ namespace ImGuiUtils
 
             auto& frame = frames[frameIndex];
 
-            if (frame.tasks.size() > 1)
+            if (frame.tasks.size() >= 1)
               max = std::max(max, frame.tasks[0].GetLength());
         }
 

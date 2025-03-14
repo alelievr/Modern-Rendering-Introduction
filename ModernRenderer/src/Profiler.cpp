@@ -75,9 +75,9 @@ void Profiler::EndMarker(std::shared_ptr<CommandList> cmd)
 uint32_t GetColorFromString(const std::string& input)
 {
 	std::hash<std::string> hasher;
-	float hue = (hasher(input) % 360) / 360.0f;
+	float hue = (hasher(input) * 2654435761u % 360) / 360.0f;
 
-	float s = 0.9f, v = 0.9f;
+	float s = 0.7f, v = 0.95f;
 
 	hue -= std::floor(hue);
 	float r = std::fmax(0.0f, std::abs(hue * 6 - 3) - 1);
@@ -103,15 +103,15 @@ void Profiler::ReadbackStats(std::shared_ptr<CommandQueue> cmdQueue)
 	auto nativeQueue = dxQueue->GetQueue();
 	nativeQueue->GetTimestampFrequency(&frequency);
 
-	double firstMarkerFrameSec = (double)timings[0] / frequency;
+	uint64_t firstMarkerFrameSec = timings[0];
 
 	for (auto& marker : instance.frameMarkers)
 	{
 		marker.startTime = timings[marker.startIndex];
 		marker.endTime = timings[marker.endIndex];
 		marker.elapsedTimeMillis = (double)(marker.endTime - marker.startTime) / frequency * 1000.0;
-		double startTimeSec = (double)marker.startTime / frequency - firstMarkerFrameSec;
-		double endTimeSec = (double)marker.endTime / frequency - firstMarkerFrameSec;
+		double startTimeSec = (double)(marker.startTime - firstMarkerFrameSec) / frequency;
+		double endTimeSec = (double)(marker.endTime - firstMarkerFrameSec) / frequency;
 		legit::ProfilerTask task = { startTimeSec, endTimeSec, marker.name, GetColorFromString(marker.name) };
 		instance.frameGPUTimes.push_back(task);
 	}

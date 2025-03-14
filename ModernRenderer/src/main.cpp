@@ -80,9 +80,9 @@ int main(int argc, char* argv[])
         uint32_t frame_index = swapchain->NextImage(fence, ++fence_value);
         commandQueue->Wait(fence, fence_value);
         fence->Wait(fence_values[frame_index]);
-        
-        Profiler::ReadbackStats(commandQueue);
 
+        Profiler::ReadbackStats(commandQueue);
+        
         RenderDoc::StartFrameCapture();
 
         // Update camera controls and GPU buffer
