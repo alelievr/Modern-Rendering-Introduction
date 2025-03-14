@@ -83,13 +83,13 @@ TransformedVertex LoadVertexAttributes(uint meshletIndex, uint vertexIndex, uint
     VertexData vertex = vertexBuffer.Load(vertexIndex);
     InstanceData instance = LoadInstance(instanceID);
     
+    vout.positionOS = vertex.positionOS;
+    
     // Apply camera relative rendering
     vertex.positionOS = GetCameraRelativePosition(vertex.positionOS);
-    
     float3 positionWS = TransformObjectToWorld(vertex.positionOS, instance.objectToWorld);
     
     vout.positionCS = TransformCameraRelativeWorldToHClip(positionWS);
-    vout.positionOS = vertex.positionOS;
     vout.positionWS = positionWS;
     vout.uv = vertex.uv;
     vout.normal = vertex.normal; // TODO: transform normal

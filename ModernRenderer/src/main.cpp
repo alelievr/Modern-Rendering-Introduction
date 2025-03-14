@@ -13,7 +13,7 @@
 #include "RenderSettings.hpp"
 #include "Profiler.hpp"
 
-//#define LOAD_RENDERDOC
+#define LOAD_RENDERDOC
 //#define FORCE_BACKGROUND_BLACK
 
 int main(int argc, char* argv[])

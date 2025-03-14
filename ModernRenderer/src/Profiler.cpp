@@ -21,6 +21,8 @@ void Profiler::Init(std::shared_ptr<Device> device)
 	instance.readbackBuffer->SetName("Timings Readback Buffer");
 
 	instance.profilersWindow = new ImGuiUtils::ProfilersWindow();
+	instance.profilersWindow->frameWidth = 1;
+	instance.profilersWindow->frameSpacing = 0;
 }
 
 Profiler::~Profiler()

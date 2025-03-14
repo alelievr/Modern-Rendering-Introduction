@@ -95,12 +95,12 @@ std::shared_ptr<Scene> Scene::LoadHardcodedScene(std::shared_ptr<Device> device,
 {
 	std::shared_ptr<Scene> scene = std::make_shared<Scene>();
 
-	//scene->LoadSingleCubeScene(device, camera);
+	scene->LoadSingleCubeScene(device, camera);
 	//scene->LoadSingleSphereScene(device, camera);
 	//scene->LoadRoughnessTestScene(device, camera);
 	//scene->LoadMultiObjectSphereScene(device, camera);
 	//scene->LoadStanfordBunnyScene(device, camera);
-	scene->LoadChessScene(device, camera);
+	//scene->LoadChessScene(device, camera);
 
 	Texture::LoadAllTextures(device);
 	Material::AllocateMaterialBuffers(device);

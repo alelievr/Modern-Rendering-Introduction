@@ -26,41 +26,61 @@ struct BarycentricDeriv
     float3 m_ddy;
 };
 
-BarycentricDeriv CalcFullBary(float4 pt0, float4 pt1, float4 pt2, float2 pixelNdc, float2 winSize)
+BarycentricDeriv CalcFullBary(float4 pt0, float4 pt1, float4 pt2, float2 pixelNdc, float2 two_over_windowsize)
 {
-    BarycentricDeriv ret = (BarycentricDeriv) 0;
-
+    BarycentricDeriv ret;
     float3 invW = rcp(float3(pt0.w, pt1.w, pt2.w));
-
+	//Project points on screen to calculate post projection positions in 2D
     float2 ndc0 = pt0.xy * invW.x;
     float2 ndc1 = pt1.xy * invW.y;
     float2 ndc2 = pt2.xy * invW.z;
 
+	// Computing partial derivatives and prospective correct attribute interpolation with barycentric coordinates
+	// Equation for calculation taken from Appendix A of DAIS paper:
+	// https://cg.ivd.kit.edu/publications/2015/dais/DAIS.pdf
+
+	// Calculating inverse of determinant(rcp of area of triangle).
     float invDet = rcp(determinant(float2x2(ndc2 - ndc1, ndc0 - ndc1)));
+
+	//determining the partial derivatives
+	// ddx[i] = (y[i+1] - y[i-1])/Determinant
     ret.m_ddx = float3(ndc1.y - ndc2.y, ndc2.y - ndc0.y, ndc0.y - ndc1.y) * invDet * invW;
     ret.m_ddy = float3(ndc2.x - ndc1.x, ndc0.x - ndc2.x, ndc1.x - ndc0.x) * invDet * invW;
+	// sum of partial derivatives.
     float ddxSum = dot(ret.m_ddx, float3(1, 1, 1));
     float ddySum = dot(ret.m_ddy, float3(1, 1, 1));
-
+	
+	// Delta vector from pixel's screen position to vertex 0 of the triangle.
     float2 deltaVec = pixelNdc - ndc0;
+
+	// Calculating interpolated W at point.
     float interpInvW = invW.x + deltaVec.x * ddxSum + deltaVec.y * ddySum;
     float interpW = rcp(interpInvW);
-
+	// The barycentric co-ordinate (m_lambda) is determined by perspective-correct interpolation. 
+	// Equation taken from DAIS paper.
     ret.m_lambda.x = interpW * (invW[0] + deltaVec.x * ret.m_ddx.x + deltaVec.y * ret.m_ddy.x);
     ret.m_lambda.y = interpW * (0.0f + deltaVec.x * ret.m_ddx.y + deltaVec.y * ret.m_ddy.y);
     ret.m_lambda.z = interpW * (0.0f + deltaVec.x * ret.m_ddx.z + deltaVec.y * ret.m_ddy.z);
 
-    ret.m_ddx *= (2.0f / winSize.x);
-    ret.m_ddy *= (2.0f / winSize.y);
-    ddxSum *= (2.0f / winSize.x);
-    ddySum *= (2.0f / winSize.y);
+	//Scaling from NDC to pixel units
+    ret.m_ddx *= two_over_windowsize.x;
+    ret.m_ddy *= two_over_windowsize.y;
+    ddxSum *= two_over_windowsize.x;
+    ddySum *= two_over_windowsize.y;
 
     ret.m_ddy *= -1.0f;
     ddySum *= -1.0f;
 
+	// This part fixes the derivatives error happening for the projected triangles.
+	// Instead of calculating the derivatives constantly across the 2D triangle we use a projected version
+	// of the gradients, this is more accurate and closely matches GPU raster behavior.
+	// Final gradient equation: ddx = (((lambda/w) + ddx) / (w+|ddx|)) - lambda
+
+	// Calculating interpW at partial derivatives position sum.
     float interpW_ddx = 1.0f / (interpInvW + ddxSum);
     float interpW_ddy = 1.0f / (interpInvW + ddySum);
 
+	// Calculating perspective projected derivatives.
     ret.m_ddx = interpW_ddx * (ret.m_lambda * interpInvW + ret.m_ddx) - ret.m_lambda;
     ret.m_ddy = interpW_ddy * (ret.m_lambda * interpInvW + ret.m_ddy) - ret.m_lambda;
 
@@ -96,15 +116,26 @@ void InterpolateWithDeriv(BarycentricDeriv bary, float3 v0, float3 v1, float3 v2
     v_ddy.z = tvZ.z;
 }
 
+void InterpolateWithDeriv(BarycentricDeriv bary, float2 v0, float2 v1, float2 v2, out float2 v, out float2 v_ddx, out float2 v_ddy)
+{
+    float3 tvX = InterpolateWithDeriv(bary, v0.x, v1.x, v2.x);
+    float3 tvY = InterpolateWithDeriv(bary, v0.y, v1.y, v2.y);
+
+    v.x = tvX.x;
+    v.y = tvY.x;
+    
+    v_ddx.x = tvX.y;
+    v_ddx.y = tvY.y;
+    
+    v_ddy.x = tvX.z;
+    v_ddy.y = tvY.z;
+}
+
 [NumThreads(1, 1, 1)]
 [OutputTopology("triangle")]
 void mesh(
-    uint threadId : SV_GroupThreadID,
-    uint groupID : SV_GroupID,
-    uint groupIndex : SV_GroupIndex,
     out indices uint3 triangles[1],
     out vertices ForwardMeshToFragment vertices[3])
-    // TODO: use primitive attributes to send meshlet ID to shaders
 {
     SetMeshOutputCounts(3, 1);
     
@@ -123,12 +154,15 @@ float4 fragment(ForwardMeshToFragment input) : SV_TARGET0
     
     VisibleMeshlet visibleMeshlet = visibleMeshlets1[visibleMeshetID];
     Meshlet meshlet = meshlets[visibleMeshlet.meshletIndex];
+    uint3 prim = LoadPrimitive(meshlet.triangleOffset, triangleID);
+    
     InstanceData instance = LoadInstance(visibleMeshlet.instanceIndex);
     
     //Meshlet meshlet = meshlets[visibleMeshlet.meshletIndex];
-    uint index0 = meshletIndices[meshlet.vertexOffset + triangleID + 0];
-    uint index1 = meshletIndices[meshlet.vertexOffset + triangleID  + 1];
-    uint index2 = meshletIndices[meshlet.vertexOffset + triangleID + 2];
+    uint3 index = prim + meshlet.vertexOffset;
+    uint index0 = meshletIndices[index.x];
+    uint index1 = meshletIndices[index.y];
+    uint index2 = meshletIndices[index.z];
     
     uint3 primitiveIndices = LoadPrimitive(meshlet.triangleOffset, triangleID);
     TransformedVertex attrib0 = LoadVertexAttributes(visibleMeshlet.meshletIndex, index0, visibleMeshlet.instanceIndex);
@@ -136,19 +170,34 @@ float4 fragment(ForwardMeshToFragment input) : SV_TARGET0
     TransformedVertex attrib2 = LoadVertexAttributes(visibleMeshlet.meshletIndex, index2, visibleMeshlet.instanceIndex);
     
     // Transform vertex
-    BarycentricDeriv bary = CalcFullBary(attrib0.positionCS, attrib1.positionCS, attrib2.positionCS, input.positionCS.xy, cameraResolution.xy);
+    BarycentricDeriv bary = CalcFullBary(attrib0.positionCS, attrib1.positionCS, attrib2.positionCS, input.uv.xy * 2 - 1, cameraResolution.zw * 2);
     
     // Interpolate
     float3 normal, normalDDX, normalDDY;
     InterpolateWithDeriv(bary, attrib0.normal, attrib1.normal, attrib2.normal, normal, normalDDX, normalDDY);
+    float2 uv, uvDDX, uvDDY;
+    InterpolateWithDeriv(bary, attrib0.uv, attrib1.uv, attrib2.uv, uv, uvDDX, uvDDY);
     
     //// Shade material surface with lighting
     //MaterialData material = materialBuffer.Load(instance.materialIndex);
     
     // Apply fog
     
+    float2 ndc0 = attrib0.positionCS.xy / attrib0.positionCS.w;
+    float2 ndc1 = attrib1.positionCS.xy / attrib1.positionCS.w;
+    float2 ndc2 = attrib2.positionCS.xy / attrib2.positionCS.w;
+    float2 ndc = ndc0 * uv.x + ndc1 * uv.y;
+    
+    float2 pndc = input.uv.xy * 2 - 1;
+    
     //return float4(GetRandomColor(visibleMeshetID), 1);
     //return float4(GetRandomColor(triangleID), 1);
-    return float4(attrib0.normal * 0.5 + 0.5, 1);
+    return float4(ndc * 0.5 + 0.5, 1, 1);
+    return float4(pndc * 0.5 + 0.5, 1, 1);
+    return float4(attrib2.positionCS.xy, 1, 1);
+    return float4(bary.m_lambda, 1);
+    return float4(attrib0.uv.x, attrib1.uv.x, attrib2.uv.x, 1);
+    return float4(uv, 0, 1);
+    return float4(normal * 0.5 + 0.5, 1);
     return float4(normal * 0.5 + 0.5, 1);
 }

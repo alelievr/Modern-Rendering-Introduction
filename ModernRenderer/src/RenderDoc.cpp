@@ -14,6 +14,23 @@ void RenderDoc::EnqueueCaptureNextFrame()
     captureNextFrame = true;
 }
 
+typedef UINT64(*PIXGetAttachedCaptureTypesFunc)();
+
+bool IsPixAttached()
+{
+    HMODULE pixModule = LoadLibraryA("WinPixEventRuntime.dll");
+    if (!pixModule)
+        return false;
+
+    PIXGetAttachedCaptureTypesFunc PIXGetAttachedCaptureTypes =
+        (PIXGetAttachedCaptureTypesFunc)GetProcAddress(pixModule, "PIXGetAttachedCaptureTypes");
+
+    bool attached = PIXGetAttachedCaptureTypes && (PIXGetAttachedCaptureTypes() != 0);
+
+    FreeLibrary(pixModule);
+    return attached;
+}
+
 bool GetRegistryValue(const wchar_t* subKey, std::wstring& outValue) {
 
     HKEY hKey;
@@ -35,6 +52,10 @@ bool GetRegistryValue(const wchar_t* subKey, std::wstring& outValue) {
 
 void RenderDoc::LoadRenderDoc()
 {
+    // If there is already PIX attached, then we don't need RenderDoc
+    if (IsPixAttached())
+        return;
+
     HMODULE mod = GetModuleHandleA("renderdoc.dll");
 
     if (mod == nullptr)
