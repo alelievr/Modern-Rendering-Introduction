@@ -133,6 +133,13 @@ float3 TransformObjectToWorld(float3 positionOS, float4x4 objectToWorld)
     return mul(float4(positionOS, 1.0), objectToWorld).xyz;
 }
 
+float3 TransformObjectToWorldNormal(float3 normalOS, float4x4 objectToWorld)
+{
+    float3 normalWS = mul(normalOS, (float3x3)objectToWorld);
+
+    return normalize(normalWS);
+}
+
 float3 TransformHClipToCameraRelativeWorld(float4 positionHClip)
 {
     float3 positionNDC = float3((positionHClip.xy * cameraResolution.zw) * 2 - 1, positionHClip.z);

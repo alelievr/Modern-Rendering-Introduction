@@ -164,7 +164,6 @@ float4 fragment(ForwardMeshToFragment input) : SV_TARGET0
     uint index1 = meshletIndices[index.y];
     uint index2 = meshletIndices[index.z];
     
-    uint3 primitiveIndices = LoadPrimitive(meshlet.triangleOffset, triangleID);
     TransformedVertex attrib0 = LoadVertexAttributes(visibleMeshlet.meshletIndex, index0, visibleMeshlet.instanceIndex);
     TransformedVertex attrib1 = LoadVertexAttributes(visibleMeshlet.meshletIndex, index1, visibleMeshlet.instanceIndex);
     TransformedVertex attrib2 = LoadVertexAttributes(visibleMeshlet.meshletIndex, index2, visibleMeshlet.instanceIndex);

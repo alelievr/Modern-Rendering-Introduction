@@ -22,7 +22,7 @@ hidden: true
 - Simple Camera [complete]
 - Plane intersection [complete]
 - Sphere intersection [kinda complete]
-- Box / AABB intersection [started]
+- Box / AABB intersection [complete]
 - Triangle intersection [complete]
 - Matrices + transformations [complete]
 - Integrals in Rendering
@@ -37,7 +37,7 @@ hidden: true
 - Compute Shaders [complete]
 - Ray Tracing [complete]
 - Hardware Ray Tracing [started]
-- Mesh Shaders [started]
+- Mesh Shaders [complete]
 - Rasterization [complete]
 - Bindless Bindings [complete]
 - The Render Pipeline [complete]
