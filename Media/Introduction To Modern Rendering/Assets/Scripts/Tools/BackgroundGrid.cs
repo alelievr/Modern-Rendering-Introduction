@@ -27,6 +27,10 @@ public class BackgroundGrid : MonoBehaviour
     public Color zAxisColor = Color.blue;
     public Color neutralAxisColor = Color.white;
 
+    public bool showXAxis = true;
+    public bool showYAxis = true;
+    public bool showZAxis = true;
+    
     public int lineCount = 10;
 
     List<LineRenderer> lineRenderers = new List<LineRenderer>();
@@ -45,16 +49,18 @@ public class BackgroundGrid : MonoBehaviour
             {
                 float w = mainLineWidth;
                 var color = mainColor;
-                if (z == 0 && x == 0)
+                bool transparent = true;
+                if (z == 0 && x == 0 && showYAxis)
                 {
                     if (orientation == Orientation.XZ)
                         color = coloredAxis ? zAxisColor : neutralAxisColor;
                     else
                         color = coloredAxis ? yAxisColor : neutralAxisColor;
+                    transparent = false;
                     w += 0.01f;
                 }
                 // Main line
-                AddLine(new Vector3(x, -lineLength, z), new Vector3(x, lineLength, z), color, w);
+                AddLine(new Vector3(x, -lineLength, z), new Vector3(x, lineLength, z), color, w, transparent);
                 // Secondary line
                 if (x != lineAxisCount && showSecondaryLines)
                     AddLine(new Vector3(x + 0.5f, -lineLength, z), new Vector3(x + 0.5f, lineLength, z), secondaryColor, secondaryLineWidth);
@@ -65,12 +71,14 @@ public class BackgroundGrid : MonoBehaviour
             {
                 float w = mainLineWidth;
                 var color = mainColor;
-                if (z == 0 && y == 0)
+                bool transparent = true;
+                if (z == 0 && y == 0 && showXAxis)
                 {
                     color = coloredAxis ? xAxisColor : neutralAxisColor;
+                    transparent = false;
                     w += 0.01f;
                 }
-                AddLine(new Vector3(-lineLength, y, z), new Vector3(lineLength, y, z), color, w);
+                AddLine(new Vector3(-lineLength, y, z), new Vector3(lineLength, y, z), color, w, transparent);
                 if (y != lineAxisCount && showSecondaryLines)
                     AddLine(new Vector3(-lineLength, y + 0.5f, z), new Vector3(lineLength, y + 0.5f, z), secondaryColor, secondaryLineWidth);
             }
@@ -85,12 +93,14 @@ public class BackgroundGrid : MonoBehaviour
                 {
                     float w = mainLineWidth;
                     var color = mainColor;
-                    if (x == 0 && y == 0)
+                    bool transparent = true;
+                    if (x == 0 && y == 0 && showZAxis)
                     {
                         color = coloredAxis ? zAxisColor : neutralAxisColor;
+                        transparent = false;
                         w += 0.01f;
                     }
-                    AddLine(new Vector3(x, y, -lineLength), new Vector3(x, y, lineLength), color, w);
+                    AddLine(new Vector3(x, y, -lineLength), new Vector3(x, y, lineLength), color, w, transparent);
                     if ((y != lineAxisCount || x != lineAxisCount) && showSecondaryLines)
                         AddLine(new Vector3(x + 0.5f, y + 0.5f, -lineLength), new Vector3(x + 0.5f, y + 0.5f, lineLength), secondaryColor, secondaryLineWidth);
                 }
@@ -98,17 +108,21 @@ public class BackgroundGrid : MonoBehaviour
         }
     }
 
-    void AddLine(Vector3 start, Vector3 end, Color color, float width)
+    void AddLine(Vector3 start, Vector3 end, Color color, float width, bool transparent = true)
     {
         if (orientation == Orientation.XZ)
         {
             start = new Vector3(start.x, start.z, start.y);
             end = new Vector3(end.x, end.z, end.y);
         }
+
+        var mat = transparent ? new Material(Shader.Find("Sprites/Default")) : new Material(Resources.Load<Material>("Opaque Axis Lines"));
+        if (!transparent)
+            mat.SetColor("_Color", color);
         GameObject line = new GameObject("Line");
         line.transform.SetParent(transform);
         LineRenderer lineRenderer = line.AddComponent<LineRenderer>();
-        lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+        lineRenderer.material = mat;
         lineRenderer.startColor = color;
         lineRenderer.endColor = color;
         lineRenderer.startWidth = width;

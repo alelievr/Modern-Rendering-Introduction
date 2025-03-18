@@ -92,7 +92,7 @@ TransformedVertex LoadVertexAttributes(uint meshletIndex, uint vertexIndex, uint
     vout.positionCS = TransformCameraRelativeWorldToHClip(positionWS);
     vout.positionWS = positionWS;
     vout.uv = vertex.uv;
-    vout.normal = TransformObjectToWorldNormal(vertex.normal);
+    vout.normal = TransformObjectToWorldNormal(vertex.normal, instance.objectToWorld);
 
     return vout;
 }
