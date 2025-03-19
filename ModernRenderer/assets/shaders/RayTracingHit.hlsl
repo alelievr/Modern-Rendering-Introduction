@@ -28,7 +28,7 @@ void Hit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr
     
     float2 bary = attribs.barycentrics;
     payload.color = float3(bary, 1 - bary.x - bary.y);
-    //payload.color = normal * 0.5 + 0.5;
+    payload.color = normal * 0.5 + 0.5;
 }
 
 [shader("closesthit")]

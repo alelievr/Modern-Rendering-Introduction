@@ -26,6 +26,7 @@ struct BarycentricDeriv
     float3 m_ddy;
 };
 
+// http://filmicworlds.com/blog/visibility-buffer-rendering-with-material-graphs/
 BarycentricDeriv CalcFullBary(float4 pt0, float4 pt1, float4 pt2, float2 pixelNdc, float2 two_over_windowsize)
 {
     BarycentricDeriv ret;
@@ -164,12 +165,14 @@ float4 fragment(ForwardMeshToFragment input) : SV_TARGET0
     uint index1 = meshletIndices[index.y];
     uint index2 = meshletIndices[index.z];
     
+    // Load And Transform vertices
     TransformedVertex attrib0 = LoadVertexAttributes(visibleMeshlet.meshletIndex, index0, visibleMeshlet.instanceIndex);
     TransformedVertex attrib1 = LoadVertexAttributes(visibleMeshlet.meshletIndex, index1, visibleMeshlet.instanceIndex);
     TransformedVertex attrib2 = LoadVertexAttributes(visibleMeshlet.meshletIndex, index2, visibleMeshlet.instanceIndex);
     
-    // Transform vertex
-    BarycentricDeriv bary = CalcFullBary(attrib0.positionCS, attrib1.positionCS, attrib2.positionCS, input.uv.xy * 2 - 1, cameraResolution.zw * 2);
+    float2 pixelNDC = input.positionCS.xy * cameraResolution.zw * 2 - 1;
+    pixelNDC.y = -pixelNDC.y;
+    BarycentricDeriv bary = CalcFullBary(attrib0.positionCS, attrib1.positionCS, attrib2.positionCS, pixelNDC, cameraResolution.zw * 2);
     
     // Interpolate
     float3 normal, normalDDX, normalDDY;
@@ -182,21 +185,7 @@ float4 fragment(ForwardMeshToFragment input) : SV_TARGET0
     
     // Apply fog
     
-    float2 ndc0 = attrib0.positionCS.xy / attrib0.positionCS.w;
-    float2 ndc1 = attrib1.positionCS.xy / attrib1.positionCS.w;
-    float2 ndc2 = attrib2.positionCS.xy / attrib2.positionCS.w;
-    float2 ndc = ndc0 * uv.x + ndc1 * uv.y;
-    
-    float2 pndc = input.uv.xy * 2 - 1;
-    
     //return float4(GetRandomColor(visibleMeshetID), 1);
     //return float4(GetRandomColor(triangleID), 1);
-    return float4(ndc * 0.5 + 0.5, 1, 1);
-    return float4(pndc * 0.5 + 0.5, 1, 1);
-    return float4(attrib2.positionCS.xy, 1, 1);
-    return float4(bary.m_lambda, 1);
-    return float4(attrib0.uv.x, attrib1.uv.x, attrib2.uv.x, 1);
-    return float4(uv, 0, 1);
-    return float4(normal * 0.5 + 0.5, 1);
     return float4(normal * 0.5 + 0.5, 1);
 }
