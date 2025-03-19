@@ -159,7 +159,6 @@ float4 fragment(ForwardMeshToFragment input) : SV_TARGET0
     
     InstanceData instance = LoadInstance(visibleMeshlet.instanceIndex);
     
-    //Meshlet meshlet = meshlets[visibleMeshlet.meshletIndex];
     uint3 index = prim + meshlet.vertexOffset;
     uint index0 = meshletIndices[index.x];
     uint index1 = meshletIndices[index.y];
@@ -180,12 +179,13 @@ float4 fragment(ForwardMeshToFragment input) : SV_TARGET0
     float2 uv, uvDDX, uvDDY;
     InterpolateWithDeriv(bary, attrib0.uv, attrib1.uv, attrib2.uv, uv, uvDDX, uvDDY);
     
-    //// Shade material surface with lighting
-    //MaterialData material = materialBuffer.Load(instance.materialIndex);
+    // Shade material surface with lighting
+    MaterialData material = materialBuffer.Load(instance.materialIndex);
     
     // Apply fog
     
     //return float4(GetRandomColor(visibleMeshetID), 1);
     //return float4(GetRandomColor(triangleID), 1);
-    return float4(normal * 0.5 + 0.5, 1);
+    //return float4(normal * 0.5 + 0.5, 1);
+    return float4(material.diffuseRoughness.xxx, 1);
 }

@@ -7,6 +7,8 @@
 
 std::shared_ptr<Resource> Scene::instanceDataBuffer;
 std::shared_ptr<View> Scene::instanceDataView;
+std::shared_ptr<Resource> Scene::rtInstanceDataBuffer;
+std::shared_ptr<View> Scene::rtInstanceDataView;
 std::shared_ptr<Resource> Scene::visibleMeshletsBuffer0;
 std::shared_ptr<View> Scene::visibleMeshletsView0;
 std::shared_ptr<Resource> Scene::visibleMeshletsBuffer1;
@@ -96,8 +98,8 @@ std::shared_ptr<Scene> Scene::LoadHardcodedScene(std::shared_ptr<Device> device,
 	std::shared_ptr<Scene> scene = std::make_shared<Scene>();
 
 	//scene->LoadSingleCubeScene(device, camera);
-	scene->LoadSingleSphereScene(device, camera);
-	//scene->LoadRoughnessTestScene(device, camera);
+	//scene->LoadSingleSphereScene(device, camera);
+	scene->LoadRoughnessTestScene(device, camera);
 	//scene->LoadMultiObjectSphereScene(device, camera);
 	//scene->LoadStanfordBunnyScene(device, camera);
 	//scene->LoadChessScene(device, camera);
@@ -121,6 +123,7 @@ void Scene::UploadInstancesToGPU(std::shared_ptr<Device> device)
 
 	// Prepate and upload instance data
 	std::vector<InstanceData> instanceData;
+	std::vector<RTInstanceData> rtInstanceData;
 	size_t maxMeshletsVisible = 0;
 	int index = 0;
 	for (auto& instance : instances)
@@ -134,6 +137,12 @@ void Scene::UploadInstancesToGPU(std::shared_ptr<Device> device)
 			data.meshletCount = p.mesh->meshletCount;
 			data.obb = OBB(p.mesh->aabb, instance.transform);
 			instanceData.push_back(data);
+
+			RTInstanceData rtData;
+			rtData.indexBufferOffset = p.mesh->raytracedPrimitiveIndex;
+			rtData.materialIndex = p.material->materialIndex;
+			rtInstanceData.push_back(rtData);
+
 			instance.instanceDataOffset = index++;
 			maxMeshletsVisible += p.mesh->meshletCount;
 		}
@@ -143,7 +152,7 @@ void Scene::UploadInstancesToGPU(std::shared_ptr<Device> device)
 	instanceDataBuffer = device->CreateBuffer(BindFlag::kShaderResource | BindFlag::kCopyDest, instanceDataSize);
 	instanceDataBuffer->CommitMemory(MemoryType::kUpload);
 	instanceDataBuffer->UpdateUploadBuffer(0, instanceData.data(), instanceDataSize);
-	instanceDataBuffer->SetName("InstanceDataBuffer");
+	instanceDataBuffer->SetName("Instance Data");
 
 	ViewDesc viewDesc = {};
 	viewDesc.view_type = ViewType::kStructuredBuffer;
@@ -151,6 +160,16 @@ void Scene::UploadInstancesToGPU(std::shared_ptr<Device> device)
 	viewDesc.buffer_size = instanceDataSize;
 	viewDesc.structure_stride = sizeof(InstanceData);
 	instanceDataView = device->CreateView(instanceDataBuffer, viewDesc);
+
+	size_t rtInstanceDataSize = sizeof(RTInstanceData) * rtInstanceData.size();
+	rtInstanceDataBuffer = device->CreateBuffer(BindFlag::kShaderResource | BindFlag::kCopyDest, rtInstanceDataSize);
+	rtInstanceDataBuffer->CommitMemory(MemoryType::kUpload);
+	rtInstanceDataBuffer->UpdateUploadBuffer(0, rtInstanceData.data(), rtInstanceDataSize);
+	rtInstanceDataBuffer->SetName("RT Instance Data");
+
+	viewDesc.buffer_size = rtInstanceDataSize;
+	viewDesc.structure_stride = sizeof(RTInstanceData);
+	rtInstanceDataView = device->CreateView(rtInstanceDataBuffer, viewDesc);
 
 	// Create 2 meshlet buffers for the culling results that have 2 passes
 	size_t visibleMeshletsSize = sizeof(int) * 2 * maxMeshletsVisible;
@@ -170,17 +189,20 @@ void Scene::UploadInstancesToGPU(std::shared_ptr<Device> device)
 	visibleMeshletsView1 = device->CreateView(visibleMeshletsBuffer1, viewDesc);
 
 	auto instanceDataMeshBindKey = BindKey{ ShaderType::kUnknown, ViewType::kStructuredBuffer, 2, 0 };
+	auto rtInstanceDataMeshBindKey = BindKey{ ShaderType::kUnknown, ViewType::kStructuredBuffer, 3, 0 };
 	auto visibleMeshletsBindKey0 = BindKey{ ShaderType::kUnknown, ViewType::kRWStructuredBuffer, 0, 4 };
 	auto visibleMeshletsBindKey1 = BindKey{ ShaderType::kUnknown, ViewType::kRWStructuredBuffer, 1, 4 };
 
 	bindingDescs = {
 		BindingDesc{ instanceDataMeshBindKey, instanceDataView },
+		BindingDesc{ rtInstanceDataMeshBindKey, rtInstanceDataView },
 		BindingDesc{ visibleMeshletsBindKey0, visibleMeshletsView0 },
 		BindingDesc{ visibleMeshletsBindKey1, visibleMeshletsView1 },
 	};
 
 	bindKeys = {
 		instanceDataMeshBindKey,
+		rtInstanceDataMeshBindKey,
 		visibleMeshletsBindKey0,
 		visibleMeshletsBindKey1,
 	};
@@ -235,6 +257,7 @@ void Scene::BuildRTAS(std::shared_ptr<Device> device)
 	}
 
 	// Create instances for the TLAS
+	unsigned index = 0; // index into the rtInstanceData array.
     std::vector<RaytracingGeometryInstance> rtInstances;
     for (const auto& instance : instances)
 	{
@@ -244,18 +267,18 @@ void Scene::BuildRTAS(std::shared_ptr<Device> device)
 			rt.transform = glm::mat3x4(instance.transform);
 			rt.instance_offset = 0; // This instance offset is used to determine the hit index of the shader table, TODO: multiple shader support
 			rt.instance_mask = 0xff;
-			rt.instance_id = p.mesh->raytracedPrimitiveIndex; // Pass the index of the first primitive of the mesh so that the hit shader can fetch vertex data
+			rt.instance_id = index++; // Pass the index of the first primitive of the mesh so that the hit shader can fetch vertex data
 			rt.acceleration_structure_handle = p.mesh->blas->GetAccelerationStructureHandle();
 		}
     }
 
 	tlas = device->CreateAccelerationStructure(AccelerationStructureType::kTopLevel, tlasBuffer, 0);
 
-	rtInstanceDataBuffer = device->CreateBuffer(BindFlag::kRayTracing, rtInstances.size() * sizeof(RaytracingGeometryInstance));
-	rtInstanceDataBuffer->CommitMemory(MemoryType::kUpload);
-	rtInstanceDataBuffer->SetName("Instance Data");
-	rtInstanceDataBuffer->UpdateUploadBuffer(0, rtInstances.data(), rtInstances.size() * sizeof(RaytracingGeometryInstance));
-    cmd->BuildTopLevelAS({}, tlas, scratch, 0, rtInstanceDataBuffer, 0, rtInstances.size(), BuildAccelerationStructureFlags::kNone);
+	rtGeomInstanceDataBuffer = device->CreateBuffer(BindFlag::kRayTracing, rtInstances.size() * sizeof(RaytracingGeometryInstance));
+	rtGeomInstanceDataBuffer->CommitMemory(MemoryType::kUpload);
+	rtGeomInstanceDataBuffer->SetName("Instance Data");
+	rtGeomInstanceDataBuffer->UpdateUploadBuffer(0, rtInstances.data(), rtInstances.size() * sizeof(RaytracingGeometryInstance));
+    cmd->BuildTopLevelAS({}, tlas, scratch, 0, rtGeomInstanceDataBuffer, 0, rtInstances.size(), BuildAccelerationStructureFlags::kNone);
     cmd->UAVResourceBarrier(tlas);
 
     cmd->Close();

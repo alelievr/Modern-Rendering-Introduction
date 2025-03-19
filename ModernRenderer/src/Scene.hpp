@@ -47,6 +47,9 @@ public:
 	static std::shared_ptr<Resource> instanceDataBuffer;
 	static std::shared_ptr<View> instanceDataView;
 
+	static std::shared_ptr<Resource> rtInstanceDataBuffer;
+	static std::shared_ptr<View> rtInstanceDataView;
+
 	static std::shared_ptr<Resource> visibleMeshletsBuffer0;
 	static std::shared_ptr<View> visibleMeshletsView0;
 
@@ -69,13 +72,19 @@ public:
 		OBB obb;
 	};
 
+	struct RTInstanceData
+	{
+		unsigned indexBufferOffset;
+		unsigned materialIndex;
+	};
+
 	std::vector<ModelInstance> instances;
 	std::wstring name;
 	std::shared_ptr<View> tlasView;
 	std::shared_ptr<Resource> tlas;
 	std::shared_ptr<Resource> tlasBuffer;
 	std::shared_ptr<Resource> blasBuffer;
-	std::shared_ptr<Resource> rtInstanceDataBuffer;
+	std::shared_ptr<Resource> rtGeomInstanceDataBuffer;
 	std::shared_ptr<Resource> scratch;
 
 	Sky sky;

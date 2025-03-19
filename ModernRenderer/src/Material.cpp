@@ -15,6 +15,7 @@ Material::~Material()
 std::shared_ptr<Material> Material::CreateMaterial()
 {
 	auto shared = std::make_shared<Material>();
+	instances.push_back(shared);
 	return shared;
 }
 

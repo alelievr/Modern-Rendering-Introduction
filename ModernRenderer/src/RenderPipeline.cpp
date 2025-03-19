@@ -390,6 +390,7 @@ void RenderPipeline::RenderForwardOpaque(std::shared_ptr<CommandList> cmd)
 
     if (!forwardPipeline)
     {
+        // TODO: transform that into a compute
         ShaderDesc forwardMeshShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/ForwardPass.hlsl", "mesh", ShaderType::kMesh, "6_5" };
         std::shared_ptr<Shader> forwardMeshShader = device->CompileShader(forwardMeshShaderDesc);
         ShaderDesc forwardFragmentShaderDesc = { MODERN_RENDERER_ASSETS_PATH "shaders/ForwardPass.hlsl", "fragment", ShaderType::kPixel, "6_5" };

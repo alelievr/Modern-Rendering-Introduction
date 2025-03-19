@@ -9,16 +9,18 @@ struct RayPayload
 [shader("closesthit")]
 void Hit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attribs)
 {
-    uint indexBufferIndex = InstanceID();
+    uint rtInstanceDataIndex = InstanceID();
+    RTInstanceData data = rtInstanceData[rtInstanceDataIndex];
     uint triangleID = PrimitiveIndex();
     
-    indexBufferIndex += triangleID * 3;
+    MaterialData material = LoadMaterialData(data.materialIndex);
     
+    uint indexBufferOffset = data.indexBufferOffset;
+    indexBufferOffset += triangleID * 3;
     
-    
-    uint i0 = indicesBuffer[indexBufferIndex + 0];
-    uint i1 = indicesBuffer[indexBufferIndex + 1];
-    uint i2 = indicesBuffer[indexBufferIndex + 2];
+    uint i0 = indicesBuffer[indexBufferOffset + 0];
+    uint i1 = indicesBuffer[indexBufferOffset + 1];
+    uint i2 = indicesBuffer[indexBufferOffset + 2];
     
     VertexData v0 = vertexBuffer[i0];
     VertexData v1 = vertexBuffer[i1];
@@ -29,6 +31,7 @@ void Hit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr
     float2 bary = attribs.barycentrics;
     payload.color = float3(bary, 1 - bary.x - bary.y);
     payload.color = normal * 0.5 + 0.5;
+    payload.color = material.diffuseRoughness;
 }
 
 [shader("closesthit")]

@@ -47,7 +47,14 @@ struct InstanceData
     OBB obb;
 };
 
+struct RTInstanceData
+{
+    uint indexBufferOffset;
+    uint materialIndex;
+};
+
 StructuredBuffer<InstanceData> instanceData : register(t2, space0);
+StructuredBuffer<RTInstanceData> rtInstanceData : register(t3, space0);
 
 // Keep in sync with GPUMaterial in Material.hpp
 struct MaterialData
@@ -198,7 +205,7 @@ float3 GetRandomColor(uint seed)
 }
 
 // Generates a triangle in homogeneous clip space, s.t.
-// v0 = (-1, -1, 1), v1 = (3, -1, 1), v2 = (-1, 3, 1).
+// v0 = (0, 0), v1 = (2, 0), v2 = (0, 2).
 float2 GetFullScreenTriangleTexCoord(uint vertexID)
 {
     return float2((vertexID << 1) & 2, (vertexID & 2));
