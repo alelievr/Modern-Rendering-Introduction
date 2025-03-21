@@ -21,7 +21,7 @@ bool IsPixAttached()
     HMODULE pixModule = LoadLibraryA("WinPixEventRuntime.dll");
     if (!pixModule)
         return false;
-
+    return true;
     PIXGetAttachedCaptureTypesFunc PIXGetAttachedCaptureTypes =
         (PIXGetAttachedCaptureTypesFunc)GetProcAddress(pixModule, "PIXGetAttachedCaptureTypes");
 

@@ -42,10 +42,12 @@ public:
 	static std::vector<BindKey> textureBufferBindKeys;
 
 	void LoadTextureData();
+	void LoadAndUpload3DTextureData(std::shared_ptr<Device> device);
 	Texture(PBRTextureType type, const std::string& path);
 
 	~Texture();
 
-	static void LoadAllTextures(std::shared_ptr<Device> device);
+	static void LoadAllMaterialTextures(std::shared_ptr<Device> device);
 	static std::shared_ptr<Texture> GetOrCreate(PBRTextureType type, const std::string& path);
+	static std::shared_ptr<Texture> Create3D(std::shared_ptr<Device> device, const std::string& path);
 };

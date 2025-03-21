@@ -48,6 +48,15 @@ void Renderer::AllocateRenderTargets()
     depth2DDesc.dimension = ViewDimension::kTexture2D;
     mainDepthTextureView = device->CreateView(mainDepthTexture, depth2DDesc);
 
+    pathTracingAccumulationTexture = device->CreateTexture(TextureType::k2D, BindFlag::kRenderTarget | BindFlag::kUnorderedAccess | BindFlag::kShaderResource | BindFlag::kCopySource, gli::format::FORMAT_RGBA32_SFLOAT_PACK32, 1, appSize.width(), appSize.height(), 1, 1);
+    pathTracingAccumulationTexture->CommitMemory(MemoryType::kDefault);
+    pathTracingAccumulationTexture->SetName("Path Tracing Accumulation");
+
+    ViewDesc pathTracingAccumulationViewDesc = {};
+    pathTracingAccumulationViewDesc.view_type = ViewType::kRWTexture;
+    pathTracingAccumulationViewDesc.dimension = ViewDimension::kTexture2D;
+    pathTracingAccumulationView = device->CreateView(pathTracingAccumulationTexture, pathTracingAccumulationViewDesc);
+
     // Create the framebuffer
     ViewDesc stencil2DDesc = {};
     stencil2DDesc.view_type = ViewType::kDepthStencil;
@@ -100,8 +109,8 @@ void Renderer::CreatePipelineObjects()
     clearColorRenderPass = device->CreateRenderPass(renderPassDesc);
 
     BindKey pathTracerMainColorKey = { ShaderType::kLibrary, ViewType::kRWTexture, 0, 0, 1, UINT32_MAX };
-    auto pathTracerLayout = RenderUtils::CreateLayoutSet(device, *camera, { pathTracerMainColorKey, Scene::accelerationStructureKey }, RenderUtils::All, RenderUtils::Compute);
-    pathTracerBindingSet = RenderUtils::CreateBindingSet(device, pathTracerLayout, *camera, { { pathTracerMainColorKey, mainColorTextureView }, Scene::accelerationStructureBinding }, RenderUtils::All, RenderUtils::Compute);
+    pathTracerBindingSetLayout = RenderUtils::CreateLayoutSet(device, *camera, { pathTracerMainColorKey, Scene::accelerationStructureKey }, RenderUtils::All, RenderUtils::Compute);
+    pathTracerBindingSet = RenderUtils::CreateBindingSet(device, pathTracerBindingSetLayout, *camera, { { pathTracerMainColorKey, pathTracingAccumulationView }, Scene::accelerationStructureBinding }, RenderUtils::All, RenderUtils::Compute);
 
     //Create HW path tracing pipeline
     std::vector<RayTracingShaderGroup> groups;
@@ -110,7 +119,7 @@ void Renderer::CreatePipelineObjects()
     groups.push_back({ RayTracingShaderGroupType::kTrianglesHitGroup, 0, pathTracingHitLibrary->GetId("Hit") });
     groups.push_back({ RayTracingShaderGroupType::kTrianglesHitGroup, 0, pathTracingHitLibrary->GetId("closest_green") });
     groups.push_back({ RayTracingShaderGroupType::kGeneral, pathTracingCallableLibrary->GetId("callable") });
-    pathTracerPipeline = device->CreateRayTracingPipeline({ pathTracingProgram, pathTracerLayout, groups });
+    pathTracerPipeline = device->CreateRayTracingPipeline({ pathTracingProgram, pathTracerBindingSetLayout, groups });
 
     //Create the shader table for HW path tracing
     std::shared_ptr<Resource> shaderTable =
@@ -149,6 +158,19 @@ void Renderer::CreatePipelineObjects()
         device->GetShaderTableAlignment(),
         device->GetShaderTableAlignment(),
     };
+
+    BindKey pathTracerAccumulationMainColorKey = { ShaderType::kCompute, ViewType::kTexture, 0, 0 };
+    BindKey mainColorKey = { ShaderType::kCompute, ViewType::kRWTexture, 0, 0 };
+    pathTracerResolveBindingSetLayout = RenderUtils::CreateLayoutSet(device, *camera, { pathTracerAccumulationMainColorKey, mainColorKey }, RenderUtils::All, RenderUtils::Compute);
+    pathTracerResolveBindingSet = RenderUtils::CreateBindingSet(device, pathTracerResolveBindingSetLayout, *camera, { { pathTracerAccumulationMainColorKey, pathTracingAccumulationView }, { mainColorKey, mainColorTextureView } }, RenderUtils::All, RenderUtils::Compute);
+    pathTracingResolve = RenderUtils::CreateComputePipeline(device, "shaders/PathTracingResolve.hlsl", "main", pathTracerResolveBindingSetLayout);
+
+    BindKey pathTracerClearMainColorKey = { ShaderType::kCompute, ViewType::kRWTexture, 0, 0 };
+    pathTracerClearBindingSetLayout = RenderUtils::CreateLayoutSet(device, *camera, { pathTracerClearMainColorKey }, RenderUtils::All, RenderUtils::Compute);
+    pathTracerClearBindingSet = RenderUtils::CreateBindingSet(device, pathTracerClearBindingSetLayout, *camera, { { pathTracerClearMainColorKey, pathTracingAccumulationView } }, RenderUtils::All, RenderUtils::Compute);
+    pathTracingClear = RenderUtils::CreateComputePipeline(device, "shaders/PathTracingResolve.hlsl", "clear", pathTracerClearBindingSetLayout);
+
+    vec2BlueNoiseTexture = Texture::Create3D(device, MODERN_RENDERER_ASSETS_PATH "STBN/stbn_vec2_2Dx1D_128x128x64");
 }
 
 void Renderer::Controls::OnKey(int key, int action)
@@ -213,14 +235,34 @@ void Renderer::UpdateCommandList(std::shared_ptr<CommandList> cmd, std::shared_p
     cmd->Close();
 }
 
-void Renderer::RenderRasterization(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, const Camera& camera, std::shared_ptr<Scene> scene)
+void Renderer::RenderRasterization(std::shared_ptr<CommandList> cmd, std::shared_ptr<Resource> backBuffer, const Camera& camera, std::shared_ptr<Scene> scene)
 {
-    renderPipeline->Render(commandList, backBuffer, scene);
+    renderPipeline->Render(cmd, backBuffer, scene);
 }
 
-void Renderer::RenderPathTracing(std::shared_ptr<CommandList> commandList, std::shared_ptr<Resource> backBuffer, const Camera& camera, std::shared_ptr<Scene> scene)
+void Renderer::RenderPathTracing(std::shared_ptr<CommandList> cmd, std::shared_ptr<Resource> backBuffer, const Camera& camera, std::shared_ptr<Scene> scene)
 {
-    commandList->BindPipeline(pathTracerPipeline);
-    commandList->BindBindingSet(pathTracerBindingSet);
-    commandList->DispatchRays(shaderTables, appSize.width(), appSize.height(), 1);
+    if (camera.HasMoved())
+    {
+		cmd->ResourceBarrier({ { pathTracingAccumulationTexture, ResourceState::kCommon, ResourceState::kUnorderedAccess } });
+		cmd->BindPipeline(pathTracingClear.pipeline);
+		cmd->BindBindingSet(pathTracerClearBindingSet);
+        cmd->Dispatch(appSize.width() / 8, appSize.height() / 8, 1);
+        cmd->ResourceBarrier({ { pathTracingAccumulationTexture, ResourceState::kUnorderedAccess, ResourceState::kCommon } });
+	}
+
+    cmd->ResourceBarrier({ { pathTracingAccumulationTexture, ResourceState::kCommon, ResourceState::kUnorderedAccess } });
+    cmd->BindPipeline(pathTracerPipeline);
+    cmd->BindBindingSet(pathTracerBindingSet);
+    for (int i = 0; i < RenderSettings::integrationCountPerFrame; i++)
+        cmd->DispatchRays(shaderTables, appSize.width(), appSize.height(), 1);
+    cmd->ResourceBarrier({ { pathTracingAccumulationTexture, ResourceState::kUnorderedAccess, ResourceState::kCommon } });
+
+    cmd->ResourceBarrier({ { mainColorTexture, ResourceState::kCommon, ResourceState::kUnorderedAccess } });
+    cmd->ResourceBarrier({ { pathTracingAccumulationTexture, ResourceState::kCommon, ResourceState::kGenericRead } });
+    cmd->BindPipeline(pathTracingResolve.pipeline);
+    cmd->BindBindingSet(pathTracerResolveBindingSet);
+    cmd->Dispatch(appSize.width() / 8, appSize.height() / 8, 1);
+    cmd->ResourceBarrier({ { pathTracingAccumulationTexture, ResourceState::kGenericRead, ResourceState::kCommon } });
+    cmd->ResourceBarrier({ { mainColorTexture, ResourceState::kUnorderedAccess, ResourceState::kCommon } });
 }
