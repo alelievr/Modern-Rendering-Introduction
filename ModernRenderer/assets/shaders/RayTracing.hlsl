@@ -30,7 +30,7 @@ void ray_gen()
 
     RayPayload payload;
     TraceRay(_RTAS, 0, 0xFF, 0, 0, 0, ray, payload);
-    _Output[DispatchRaysIndex().xy] = float4(payload.color, 1);
+    _Output[DispatchRaysIndex().xy] += float4(payload.color, 1);
 }
 
 [shader("miss")]

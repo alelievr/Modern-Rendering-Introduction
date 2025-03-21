@@ -65,6 +65,7 @@ private:
 
     std::shared_ptr<Device> device;
     GLFWwindow* window;
+    bool movedSinceLastFrame;
 
     // Disable copy constructor
     Camera(const Camera&) = delete;
@@ -98,4 +99,5 @@ public:
     Camera(std::shared_ptr<Device> device, AppBox& app);
 
     void UpdateCamera(const AppSize& size);
+    bool HasMoved() const;
 };

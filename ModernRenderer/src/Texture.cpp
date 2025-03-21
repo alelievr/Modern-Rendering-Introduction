@@ -29,6 +29,44 @@ void Texture::LoadTextureData()
     }
 }
 
+void Texture::LoadAndUpload3DTextureData(std::shared_ptr<Device> device)
+{
+    // STBN has 64 depth slices
+    for (int i = 0; i < 64; i++)
+    {
+        std::string path = path + "_" + std::to_string(i) + ".png";
+
+        int width, height, channels;
+	    unsigned char* image = stbi_load(path.c_str(), &width, &height, &channels, 0);
+        
+        gli::format format;
+        if (channels == 1)
+            format = gli::FORMAT_R8_SNORM_PACK8;
+        else if (channels == 2)
+            format = gli::FORMAT_RG8_SNORM_PACK8;
+		else if (channels == 3)
+			format = gli::FORMAT_RGB8_SNORM_PACK8;
+		else if (channels == 4)
+			format = gli::FORMAT_RGBA8_SNORM_PACK8;
+		else
+			throw std::exception("Unsupported number of channels");
+
+        if (!resource)
+        {
+            resource = device->CreateTexture(
+                TextureType::k3D,
+                BindFlag::kShaderResource | BindFlag::kCopyDest,
+                format,
+                1, width, height, 64, 1
+            );
+            resource->CommitMemory(MemoryType::kDefault);
+	        resource->SetName(path);
+        }
+        RenderUtils::UploadTextureData(resource, device, i, image, width, height, channels, 1);
+        stbi_image_free(image);
+    }
+}
+
 Texture::Texture(PBRTextureType type, const std::string& path)
 {
     this->type = type;
@@ -40,7 +78,7 @@ Texture::~Texture()
     textures.erase(std::remove(textures.begin(), textures.end(), instance), textures.end());
 }
 
-void Texture::LoadAllTextures(std::shared_ptr<Device> device)
+void Texture::LoadAllMaterialTextures(std::shared_ptr<Device> device)
 {
     for (auto& texture : textures)
     {
@@ -129,4 +167,13 @@ std::shared_ptr<Texture> Texture::GetOrCreate(PBRTextureType type, const std::st
     sharedTexture->instance = sharedTexture;
     textures.push_back(sharedTexture);
     return sharedTexture;
+}
+
+std::shared_ptr<Texture> Texture::Create3D(std::shared_ptr<Device> device, const std::string& path)
+{
+    auto t = std::make_shared<Texture>(0, path);
+
+    t->LoadAndUpload3DTextureData(device);
+
+    return t;
 }

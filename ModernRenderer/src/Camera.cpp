@@ -95,10 +95,20 @@ void Camera::UpdateCamera(const AppSize& size)
 	gpuData.cameraMeshletFrustumCullingDisabled = RenderSettings::frustumMeshletCullingDisabled;
 	gpuData.cameraMeshletBackfaceCullingDisabled = RenderSettings::backfacingMeshletCullingDisabled;
 
-
 	cameraDataBuffer->UpdateUploadBuffer(0, &gpuData, sizeof(GPUCameraData));
 
+	movedSinceLastFrame = false;
+	if (cameraControls.rotation != glm::vec2(0))
+		movedSinceLastFrame = true;
+	if (cameraControls.movement != glm::vec3(0))
+		movedSinceLastFrame = true;
+
 	cameraControls.Reset();
+}
+
+bool Camera::HasMoved() const
+{
+	return movedSinceLastFrame;
 }
 
 void Camera::CameraControls::CheckKeyMask(unsigned& mask, CameraKey c, int expectedKey, int key, int action)

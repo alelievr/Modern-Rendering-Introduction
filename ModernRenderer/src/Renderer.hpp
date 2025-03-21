@@ -52,9 +52,19 @@ private:
     std::shared_ptr<Shader> pathTracingCallableLibrary;
 
     // Path tracer resources
+    std::shared_ptr<Resource> pathTracingAccumulationTexture;
+    std::shared_ptr<View> pathTracingAccumulationView;
     std::shared_ptr<Pipeline> pathTracerPipeline;
     std::shared_ptr<BindingSet> pathTracerBindingSet;
+    std::shared_ptr<BindingSetLayout> pathTracerBindingSetLayout;
+    std::shared_ptr<BindingSet> pathTracerResolveBindingSet;
+    std::shared_ptr<BindingSetLayout> pathTracerResolveBindingSetLayout;
+    std::shared_ptr<BindingSet> pathTracerClearBindingSet;
+    std::shared_ptr<BindingSetLayout> pathTracerClearBindingSetLayout;
+    std::shared_ptr<Texture> vec2BlueNoiseTexture;
     RayTracingShaderTables shaderTables = {};
+    RenderUtils::ComputeProgram pathTracingResolve;
+    RenderUtils::ComputeProgram pathTracingClear;
 
     // FrameBuffers
     std::shared_ptr<Framebuffer> imGUIFrameBuffer;
