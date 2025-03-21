@@ -65,6 +65,7 @@ private:
     RayTracingShaderTables shaderTables = {};
     RenderUtils::ComputeProgram pathTracingResolve;
     RenderUtils::ComputeProgram pathTracingClear;
+    unsigned pathTracingFrameIndex = 0;
 
     // FrameBuffers
     std::shared_ptr<Framebuffer> imGUIFrameBuffer;

@@ -24,7 +24,7 @@ There are several types of path tracers. For this course, we're particularly int
 
 ### PBRT 4th edition
 
-In this course the reference renderer we're making will mostly follow the guidelines of [Physically Based Rendering V4](https://pbr-book.org/4ed/contents) with some simplifications. We're also doing it fully on the GPU from the start whereas the book only talk about GPU implantation at the end. This book is an amazing resource on path tracing and design, I heavily recommend reading it, or at least the chapters that you're interested in.
+If you're interested in path tracing, I really recommend looking at [Physically Based Rendering V4](https://pbr-book.org/4ed/contents), it's an amazing book covering a great variety of topics for path tracing. We'll be using part of this book to build a simple reference path tracer for this course, with the different that we're building it with hardware ray tracing APIs.
 
 ### Approximations
 

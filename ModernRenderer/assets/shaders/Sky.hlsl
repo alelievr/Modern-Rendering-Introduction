@@ -37,7 +37,6 @@ void mesh(
 
 float4 fragment(MeshToFragment input) : SV_TARGET
 {
-    MaterialData material = LoadMaterialData(materialIndex);
     float3 positionRWS = TransformHClipToCameraRelativeWorld(input.positionCS);
     float3 dir = -normalize(positionRWS);
     

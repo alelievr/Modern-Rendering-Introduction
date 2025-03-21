@@ -108,9 +108,10 @@ void Renderer::CreatePipelineObjects()
     renderPassDesc.depth_stencil.stencil_load_op = RenderPassLoadOp::kClear;
     clearColorRenderPass = device->CreateRenderPass(renderPassDesc);
 
+    BindKey drawRootConstant = { ShaderType::kCompute, ViewType::kConstantBuffer, 1, 0, 3, UINT32_MAX, true };
     BindKey pathTracerMainColorKey = { ShaderType::kLibrary, ViewType::kRWTexture, 0, 0, 1, UINT32_MAX };
-    pathTracerBindingSetLayout = RenderUtils::CreateLayoutSet(device, *camera, { pathTracerMainColorKey, Scene::accelerationStructureKey }, RenderUtils::All, RenderUtils::Compute);
-    pathTracerBindingSet = RenderUtils::CreateBindingSet(device, pathTracerBindingSetLayout, *camera, { { pathTracerMainColorKey, pathTracingAccumulationView }, Scene::accelerationStructureBinding }, RenderUtils::All, RenderUtils::Compute);
+    pathTracerBindingSetLayout = RenderUtils::CreateLayoutSet(device, *camera, { drawRootConstant, pathTracerMainColorKey, Scene::accelerationStructureKey }, RenderUtils::All, RenderUtils::Compute);
+    pathTracerBindingSet = RenderUtils::CreateBindingSet(device, pathTracerBindingSetLayout, *camera, { { drawRootConstant, nullptr }, { pathTracerMainColorKey, pathTracingAccumulationView }, Scene::accelerationStructureBinding }, RenderUtils::All, RenderUtils::Compute);
 
     //Create HW path tracing pipeline
     std::vector<RayTracingShaderGroup> groups;
@@ -242,6 +243,7 @@ void Renderer::RenderRasterization(std::shared_ptr<CommandList> cmd, std::shared
 
 void Renderer::RenderPathTracing(std::shared_ptr<CommandList> cmd, std::shared_ptr<Resource> backBuffer, const Camera& camera, std::shared_ptr<Scene> scene)
 {
+    DXCommandList* dxCmd = (DXCommandList*)cmd.get();
     if (camera.HasMoved())
     {
 		cmd->ResourceBarrier({ { pathTracingAccumulationTexture, ResourceState::kCommon, ResourceState::kUnorderedAccess } });
@@ -255,7 +257,10 @@ void Renderer::RenderPathTracing(std::shared_ptr<CommandList> cmd, std::shared_p
     cmd->BindPipeline(pathTracerPipeline);
     cmd->BindBindingSet(pathTracerBindingSet);
     for (int i = 0; i < RenderSettings::integrationCountPerFrame; i++)
+    {
+        dxCmd->SetComputeConstant(0, pathTracingFrameIndex++, 0);
         cmd->DispatchRays(shaderTables, appSize.width(), appSize.height(), 1);
+    }
     cmd->ResourceBarrier({ { pathTracingAccumulationTexture, ResourceState::kUnorderedAccess, ResourceState::kCommon } });
 
     cmd->ResourceBarrier({ { mainColorTexture, ResourceState::kCommon, ResourceState::kUnorderedAccess } });

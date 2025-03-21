@@ -33,7 +33,7 @@ cbuffer CameraData : register(b0, space0)
 
 cbuffer DrawData : register(b1, space0)
 {
-    uint materialIndex;
+    uint pathTracingFrameIndex;
     uint meshletOffset;
     uint instanceOffset;
 };

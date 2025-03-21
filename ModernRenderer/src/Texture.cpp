@@ -171,9 +171,6 @@ std::shared_ptr<Texture> Texture::GetOrCreate(PBRTextureType type, const std::st
 
 std::shared_ptr<Texture> Texture::Create3D(std::shared_ptr<Device> device, const std::string& path)
 {
-    auto t = std::make_shared<Texture>(0, path);
-
-    t->LoadAndUpload3DTextureData(device);
-
-    return t;
+    // TODO
+    return nullptr;
 }

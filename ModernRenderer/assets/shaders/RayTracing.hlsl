@@ -1,5 +1,8 @@
 #include "Common.hlsl"
 #include "GeometryUtils.hlsl"
+#include "Random.hlsl"
+
+#define MAX_PATH_DEPTH 8
 
 RWTexture2D<float4> _Output : register(u0, space0);
 
@@ -8,16 +11,22 @@ RaytracingAccelerationStructure _RTAS : register(t1, space0);
 struct RayPayload
 {
     float3 color;
+    uint intersectionCount : 4;
+    uint done : 1;
+    uint unused : 27;
 };
 
 [shader("raygeneration")]
 void ray_gen()
 {
-    float2 outputSize;
-    _Output.GetDimensions(outputSize.x, outputSize.y);
     uint2 positionSS = DispatchRaysIndex().xy;
-
-    float3 positionNDC = float3((positionSS / outputSize) * 2 - 1, 1);
+    float2 pixelPosition = positionSS;
+    
+    // Add subpixel jitter for accumulation
+    uint2 temporalOffset = uint2(pathTracingFrameIndex * 29, -pathTracingFrameIndex * 31);
+    pixelPosition += FloatHash22(positionSS + temporalOffset);
+    
+    float3 positionNDC = float3(pixelPosition * cameraResolution.zw * 2 - 1, 1);
     positionNDC.y = -positionNDC.y; // TODO: investigate why this is needed
 
     float3 viewDirWS = TransformNDCToWorldDir(positionNDC);
@@ -25,8 +34,8 @@ void ray_gen()
     RayDesc ray;
     ray.Origin = cameraPosition.xyz;
     ray.Direction = viewDirWS;
-    ray.TMin = 0.001; // TODO: fill with camera params
-    ray.TMax = 10000.0;
+    ray.TMin = cameraNearPlane;
+    ray.TMax = cameraFarPlane;
 
     RayPayload payload;
     TraceRay(_RTAS, 0, 0xFF, 0, 0, 0, ray, payload);

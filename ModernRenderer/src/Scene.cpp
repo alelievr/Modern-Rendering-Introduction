@@ -104,7 +104,7 @@ std::shared_ptr<Scene> Scene::LoadHardcodedScene(std::shared_ptr<Device> device,
 	//scene->LoadStanfordBunnyScene(device, camera);
 	//scene->LoadChessScene(device, camera);
 
-	Texture::LoadAllTextures(device);
+	Texture::LoadAllMaterialTextures(device);
 	Material::AllocateMaterialBuffers(device);
 	scene->UploadInstancesToGPU(device);
 
