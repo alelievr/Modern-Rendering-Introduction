@@ -6,6 +6,7 @@
 #include "Instance/Instance.h"
 #include <Device/DXDevice.h>
 #include <stack>
+#include <ctime>
 
 class Profiler
 {
@@ -15,8 +16,10 @@ private:
 		std::string name;
 		int startIndex;
 		int endIndex;
-		uint64_t startTime;
-		uint64_t endTime;
+		uint64_t startGPUTime;
+		uint64_t endGPUTime;
+		double startCPUTime;
+		double endCPUTime;
 		double elapsedTimeMillis;
 	};
 
@@ -25,6 +28,7 @@ private:
 	std::shared_ptr<Device> device;
 	ImGuiUtils::ProfilersWindow* profilersWindow;
 	std::vector<legit::ProfilerTask> frameGPUTimes;
+	std::vector<legit::ProfilerTask> frameCPUTimes;
 	ComPtr<ID3D12QueryHeap> queryHeap;
 	std::shared_ptr<Resource> readbackBuffer;
 	int frameQueryIndex = 0;

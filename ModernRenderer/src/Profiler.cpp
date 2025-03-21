@@ -40,12 +40,21 @@ void Profiler::BeginFrame()
 	instance.frameQueryIndex = 0;
 	instance.frameMarkers.clear();
 	instance.frameGPUTimes.clear();
+	instance.frameCPUTimes.clear();
 }
 
 void Profiler::EndFrame(std::shared_ptr<CommandList> cmd)
 {
 	auto buf = instance.readbackBuffer->As<DXResource>().resource.Get();
 	cmd->As<DXCommandList>().GetCommandList()->ResolveQueryData(instance.queryHeap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, 0, instance.frameQueryIndex, buf, 0);
+}
+
+double getCurrentTimeInSeconds()
+{
+	LARGE_INTEGER frequency, counter;
+	QueryPerformanceFrequency(&frequency);
+	QueryPerformanceCounter(&counter);
+	return static_cast<double>(counter.QuadPart) / frequency.QuadPart;
 }
 
 void Profiler::BeginMarker(std::shared_ptr<CommandList> cmd, const std::string& name)
@@ -56,6 +65,7 @@ void Profiler::BeginMarker(std::shared_ptr<CommandList> cmd, const std::string& 
 	Marker marker;
 	marker.name = name;
 	marker.startIndex = instance.frameQueryIndex;
+	marker.startCPUTime = getCurrentTimeInSeconds();
 
 	instance.markerIndexStack.push(instance.frameMarkers.size());
 	instance.frameMarkers.push_back(marker);
@@ -71,6 +81,8 @@ void Profiler::EndMarker(std::shared_ptr<CommandList> cmd)
 	auto& marker = instance.frameMarkers[index];
 	cmd->As<DXCommandList>().GetCommandList()->EndQuery(instance.queryHeap.Get(), D3D12_QUERY_TYPE_TIMESTAMP, instance.frameQueryIndex);
 	marker.endIndex = instance.frameQueryIndex;
+	marker.endCPUTime = getCurrentTimeInSeconds();
+
 	instance.frameQueryIndex++;
 }
 
@@ -99,26 +111,36 @@ uint32_t GetColorFromString(const std::string& input)
 
 void Profiler::ReadbackStats(std::shared_ptr<CommandQueue> cmdQueue)
 {
+	if (instance.frameMarkers.size() == 0)
+		return;
+
 	uint64_t* timings = (uint64_t*)instance.readbackBuffer->Map();
 	uint64_t frequency;
 	DXCommandQueue* dxQueue = (DXCommandQueue*)cmdQueue.get();
 	auto nativeQueue = dxQueue->GetQueue();
 	nativeQueue->GetTimestampFrequency(&frequency);
 
-	uint64_t firstMarkerFrameSec = timings[0];
+	uint64_t firstMarkerGPUFrameSec = timings[0];
+	auto firstMarkerCPUTime = instance.frameMarkers[0].startCPUTime;
 
 	for (auto& marker : instance.frameMarkers)
 	{
-		marker.startTime = timings[marker.startIndex];
-		marker.endTime = timings[marker.endIndex];
-		marker.elapsedTimeMillis = (double)(marker.endTime - marker.startTime) / frequency * 1000.0;
-		double startTimeSec = (double)(marker.startTime - firstMarkerFrameSec) / frequency;
-		double endTimeSec = (double)(marker.endTime - firstMarkerFrameSec) / frequency;
-		legit::ProfilerTask task = { startTimeSec, endTimeSec, marker.name, GetColorFromString(marker.name) };
-		instance.frameGPUTimes.push_back(task);
+		marker.startGPUTime = timings[marker.startIndex];
+		marker.endGPUTime = timings[marker.endIndex];
+		marker.elapsedTimeMillis = (double)(marker.endGPUTime - marker.startGPUTime) / frequency * 1000.0;
+		double startGPUTimeSec = (double)(marker.startGPUTime - firstMarkerGPUFrameSec) / frequency;
+		double endGPUTimeSec = (double)(marker.endGPUTime - firstMarkerGPUFrameSec) / frequency;
+		legit::ProfilerTask taskGPU = { startGPUTimeSec, endGPUTimeSec, marker.name, GetColorFromString(marker.name) };
+		instance.frameGPUTimes.push_back(taskGPU);
+
+		double startCPUTime = marker.startCPUTime - firstMarkerCPUTime;
+		double endCPUTime = marker.endCPUTime - firstMarkerCPUTime;
+
+		legit::ProfilerTask taskCPU = { startCPUTime, endCPUTime, marker.name, GetColorFromString(marker.name) };
+		instance.frameCPUTimes.push_back(taskCPU);
 	}
 	instance.readbackBuffer->Unmap();
 
 	instance.profilersWindow->gpuGraph.LoadFrameData(instance.frameGPUTimes.data(), instance.frameGPUTimes.size());
-	instance.profilersWindow->cpuGraph.LoadFrameData(instance.frameGPUTimes.data(), instance.frameGPUTimes.size());
+	instance.profilersWindow->cpuGraph.LoadFrameData(instance.frameCPUTimes.data(), instance.frameCPUTimes.size());
 }
