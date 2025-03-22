@@ -1,10 +1,6 @@
 #include "Common.hlsl"
 #include "MeshUtils.hlsl"
-
-struct RayPayload
-{
-    float3 color;
-};
+#include "PathTracingUtils.hlsl"
 
 [shader("closesthit")]
 void Hit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attribs)
@@ -14,6 +10,7 @@ void Hit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr
     uint triangleID = PrimitiveIndex();
     
     MaterialData material = LoadMaterialData(data.materialIndex);
+    InstanceData instance = LoadInstance(rtInstanceDataIndex);
     
     uint indexBufferOffset = data.indexBufferOffset;
     indexBufferOffset += triangleID * 3;
@@ -27,15 +24,17 @@ void Hit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr
     VertexData v2 = vertexBuffer[i2];
     
     float3 normal = BarycentricInterpolation(v0.normal, v1.normal, v2.normal, attribs.barycentrics);
+    float3 positionOS = BarycentricInterpolation(v0.positionOS, v1.positionOS, v2.positionOS, attribs.barycentrics);
+    float3 positionWS = TransformObjectToWorld(positionOS, instance.objectToWorld);
+    
+    normal = normalize(normal);
     
     float2 bary = attribs.barycentrics;
     payload.color = float3(bary, 1 - bary.x - bary.y);
     payload.color = normal * 0.5 + 0.5;
-    payload.color = material.diffuseRoughness;
-}
-
-[shader("closesthit")]
-void closest_green(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attribs)
-{
-    CallShader(0, payload);
+    //payload.color = material.diffuseRoughness;
+    
+    payload.nextDirection = reflect(WorldRayDirection(), normal);
+    payload.worldPosition = positionWS;
+    payload.done = false;
 }

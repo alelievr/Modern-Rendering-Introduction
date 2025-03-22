@@ -42,6 +42,9 @@ std::shared_ptr<BindingSetLayout> RenderUtils::CreateLayoutSet(std::shared_ptr<D
 	if (flags & SceneInstances)
 		allBindings.insert(allBindings.end(), Scene::bindKeys.begin(), Scene::bindKeys.end());
 
+	if (flags & Sky)
+		allBindings.emplace_back(Sky::bindKey);
+
 	if (flags & TextureList)
 	{
 		for (const auto& textureKeys : Texture::textureBufferBindKeys)
@@ -103,6 +106,9 @@ std::shared_ptr<BindingSet> RenderUtils::CreateBindingSet(std::shared_ptr<Device
 
 	if (flags & SceneInstances)
 		allBindings.insert(allBindings.end(), Scene::bindingDescs.begin(), Scene::bindingDescs.end());
+
+	if (flags & Sky)
+		allBindings.emplace_back(Sky::bindingDesc);
 
 	if (flags & TextureList)
 	{

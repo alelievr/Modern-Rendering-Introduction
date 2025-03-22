@@ -21,6 +21,7 @@ private:
     public:
 		RendererMode rendererMode = RendererMode::Rasterization;
         bool screenshotNextFrame = false;
+        bool resetPathTracingAccumulation = false;
 
         Controls() {}
 
@@ -49,7 +50,7 @@ private:
     std::shared_ptr<Program> pathTracingProgram;
     std::shared_ptr<Shader> pathTracingLibrary;
     std::shared_ptr<Shader> pathTracingHitLibrary;
-    std::shared_ptr<Shader> pathTracingCallableLibrary;
+    std::shared_ptr<Shader> pathTracingMissLibrary;
 
     // Path tracer resources
     std::shared_ptr<Resource> pathTracingAccumulationTexture;

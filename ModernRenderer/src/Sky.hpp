@@ -24,6 +24,9 @@ public:
 	std::shared_ptr<BindingSet> skyBindingSet;
 	std::shared_ptr<Framebuffer> skyFramebuffer;
 
+	static BindKey bindKey;
+	static BindingDesc bindingDesc;
+
 	Sky() = default;
 	~Sky() = default;
 

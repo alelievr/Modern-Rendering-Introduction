@@ -53,7 +53,7 @@ void RenderPipeline::DrawOpaqueObjects(std::shared_ptr<CommandList> cmd, std::sh
             dxCmd->SetGraphicsConstant(0, materialIndex, 0);
             dxCmd->SetGraphicsConstant(0, r.mesh->meshletOffset, 1);
 
-            cmd->DispatchMesh(r.mesh->meshletCount);
+            cmd->DispatchMesh(r.mesh->meshletCount, 1, 1);
         }
     }
 }
@@ -419,7 +419,7 @@ void RenderPipeline::RenderForwardOpaque(std::shared_ptr<CommandList> cmd)
     // Draw fullscreen forward pass
     cmd->BindPipeline(forwardPipeline);
     cmd->BindBindingSet(forwardBindingSet);
-    cmd->DispatchMesh(1);
+    cmd->DispatchMesh(1, 1, 1);
 
     cmd->EndRenderPass();
 

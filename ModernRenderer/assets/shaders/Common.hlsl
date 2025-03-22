@@ -251,13 +251,3 @@ void DecodeVisibility(uint visibility, out uint visibleMeshetID, out uint triang
     visibleMeshetID = visibility & 0x1FFFFFF;
     triangleID = visibility >> 25;
 }
-
-float3 BarycentricInterpolation(float3 v0, float3 v1, float3 v2, float2 bary)
-{
-    return v0 * (1 - bary.x - bary.y) + v1 * bary.x + v2 * bary.y;
-}
-
-float2 BarycentricInterpolation(float2 v0, float2 v1, float2 v2, float2 bary)
-{
-    return v0 * (1 - bary.x - bary.y) + v1 * bary.x + v2 * bary.y;
-}

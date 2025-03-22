@@ -1,6 +1,7 @@
 #include "Common.hlsl"
 #include "GeometryUtils.hlsl"
 #include "Random.hlsl"
+#include "PathTracingUtils.hlsl"
 
 #define MAX_PATH_DEPTH 8
 
@@ -8,16 +9,8 @@ RWTexture2D<float4> _Output : register(u0, space0);
 
 RaytracingAccelerationStructure _RTAS : register(t1, space0);
 
-struct RayPayload
-{
-    float3 color;
-    uint intersectionCount : 4;
-    uint done : 1;
-    uint unused : 27;
-};
-
 [shader("raygeneration")]
-void ray_gen()
+void RayGen()
 {
     uint2 positionSS = DispatchRaysIndex().xy;
     float2 pixelPosition = positionSS;
@@ -37,13 +30,19 @@ void ray_gen()
     ray.TMin = cameraNearPlane;
     ray.TMax = cameraFarPlane;
 
-    RayPayload payload;
-    TraceRay(_RTAS, 0, 0xFF, 0, 0, 0, ray, payload);
+    RayPayload payload = (RayPayload)0;
+    payload.nextDirection = ray.Direction;
+    
+    int depth = 0;
+    while (!payload.done && depth < MAX_PATH_DEPTH)
+    {
+        TraceRay(_RTAS, 0, 0xFF, 0, 0, 0, ray, payload);
+        
+        ray.Direction = payload.nextDirection;
+        ray.Origin = payload.worldPosition;
+        ray.TMin = 0.001;
+        depth++;
+    }
+    
     _Output[DispatchRaysIndex().xy] += float4(payload.color, 1);
-}
-
-[shader("miss")]
-void miss(inout RayPayload payload)
-{
-    payload.color = float3(0.0, 0.2, 0.4);
 }

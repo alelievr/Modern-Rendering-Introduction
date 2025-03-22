@@ -81,9 +81,9 @@ void Renderer::CompileShaders()
         { MODERN_RENDERER_ASSETS_PATH "shaders/RayTracing.hlsl", "", ShaderType::kLibrary, "6_5" });
     pathTracingHitLibrary = device->CompileShader(
         { MODERN_RENDERER_ASSETS_PATH "shaders/RayTracingHit.hlsl", "", ShaderType::kLibrary, "6_5" });
-    pathTracingCallableLibrary = device->CompileShader(
-        { MODERN_RENDERER_ASSETS_PATH "shaders/RayTracingCallable.hlsl", "", ShaderType::kLibrary, "6_5" });
-    pathTracingProgram = device->CreateProgram({ pathTracingLibrary, pathTracingHitLibrary, pathTracingCallableLibrary });
+    pathTracingMissLibrary = device->CompileShader(
+        { MODERN_RENDERER_ASSETS_PATH "shaders/RayTracingMiss.hlsl", "", ShaderType::kLibrary, "6_5" });
+    pathTracingProgram = device->CreateProgram({ pathTracingLibrary, pathTracingHitLibrary, pathTracingMissLibrary });
 }
 
 void Renderer::CreatePipelineObjects()
@@ -115,11 +115,9 @@ void Renderer::CreatePipelineObjects()
 
     //Create HW path tracing pipeline
     std::vector<RayTracingShaderGroup> groups;
-    groups.push_back({ RayTracingShaderGroupType::kGeneral, pathTracingLibrary->GetId("ray_gen") });
-    groups.push_back({ RayTracingShaderGroupType::kGeneral, pathTracingLibrary->GetId("miss") });
+    groups.push_back({ RayTracingShaderGroupType::kGeneral, pathTracingLibrary->GetId("RayGen") });
+    groups.push_back({ RayTracingShaderGroupType::kGeneral, pathTracingMissLibrary->GetId("Miss") });
     groups.push_back({ RayTracingShaderGroupType::kTrianglesHitGroup, 0, pathTracingHitLibrary->GetId("Hit") });
-    groups.push_back({ RayTracingShaderGroupType::kTrianglesHitGroup, 0, pathTracingHitLibrary->GetId("closest_green") });
-    groups.push_back({ RayTracingShaderGroupType::kGeneral, pathTracingCallableLibrary->GetId("callable") });
     pathTracerPipeline = device->CreateRayTracingPipeline({ pathTracingProgram, pathTracerBindingSetLayout, groups });
 
     //Create the shader table for HW path tracing
@@ -150,12 +148,6 @@ void Renderer::CreatePipelineObjects()
     shaderTables.hit = {
         shaderTable,
         2 * device->GetShaderTableAlignment(),
-        2 * device->GetShaderTableAlignment(),
-        device->GetShaderTableAlignment(),
-    };
-    shaderTables.callable = {
-        shaderTable,
-        4 * device->GetShaderTableAlignment(),
         device->GetShaderTableAlignment(),
         device->GetShaderTableAlignment(),
     };
@@ -178,8 +170,11 @@ void Renderer::Controls::OnKey(int key, int action)
 {
 	if (key == GLFW_KEY_SPACE)
 	{
-		if (action == GLFW_PRESS)
-			rendererMode = (RendererMode)!(bool)rendererMode;
+        if (action == GLFW_PRESS)
+        {
+            rendererMode = (RendererMode)!(bool)rendererMode;
+            resetPathTracingAccumulation = true;
+        }
 	}
 
     if (key == GLFW_KEY_F11 || key == GLFW_KEY_F12)
@@ -244,8 +239,9 @@ void Renderer::RenderRasterization(std::shared_ptr<CommandList> cmd, std::shared
 void Renderer::RenderPathTracing(std::shared_ptr<CommandList> cmd, std::shared_ptr<Resource> backBuffer, const Camera& camera, std::shared_ptr<Scene> scene)
 {
     DXCommandList* dxCmd = (DXCommandList*)cmd.get();
-    if (camera.HasMoved())
+    if (camera.HasMoved() || controls.resetPathTracingAccumulation)
     {
+        controls.resetPathTracingAccumulation = false;
 		cmd->ResourceBarrier({ { pathTracingAccumulationTexture, ResourceState::kCommon, ResourceState::kUnorderedAccess } });
 		cmd->BindPipeline(pathTracingClear.pipeline);
 		cmd->BindBindingSet(pathTracerClearBindingSet);

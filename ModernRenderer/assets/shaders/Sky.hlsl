@@ -1,6 +1,6 @@
 #include "Common.hlsl"
 
-Texture2D<float4> _SkyTextureLatLong : register(t0, space4);
+Texture2D<float4> _SkyTextureLatLong : register(t0, space3);
 
 struct MeshToFragment
 {

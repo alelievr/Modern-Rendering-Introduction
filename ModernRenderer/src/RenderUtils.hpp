@@ -28,6 +28,7 @@ public:
 		CameraData = 1 << 2,
 		MaterialBuffers = 1 << 3,
 		SceneInstances = 1 << 4,
+		Sky = 1 << 5,
 		All = ~0,
 	};
 

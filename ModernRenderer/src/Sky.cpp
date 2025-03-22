@@ -3,6 +3,9 @@
 #include "RenderUtils.hpp"
 #include "Profiler.hpp"
 
+BindKey Sky::bindKey;
+BindingDesc Sky::bindingDesc;
+
 void ConvertFloatArrayToHalfInPlace(float* image, int width, int height)
 {
     int numPixels = width * height * 4;
@@ -79,8 +82,8 @@ void Sky::Initialize(std::shared_ptr<Device> device, Camera* camera)
 {
 	this->device = device;
 
-    BindKey bindKey = { ShaderType::kPixel, ViewType::kTexture, 0, 4};
-    BindingDesc bindingDesc = { bindKey, hdriSkyTextureView };
+    bindKey = { ShaderType::kPixel, ViewType::kTexture, 0, 3};
+    bindingDesc = { bindKey, hdriSkyTextureView };
 
     skyLayout = RenderUtils::CreateLayoutSet(device, *camera, { bindKey }, RenderUtils::CameraData | RenderUtils::TextureList, RenderUtils::Mesh | RenderUtils::Fragment);
     skyBindingSet = RenderUtils::CreateBindingSet(device, skyLayout, *camera, { bindingDesc }, RenderUtils::CameraData | RenderUtils::TextureList, RenderUtils::Mesh | RenderUtils::Fragment);
@@ -121,7 +124,7 @@ void Sky::Render(std::shared_ptr<CommandList> cmd, std::shared_ptr<Resource> col
     cmd->BeginRenderPass(skyRenderPass, skyFramebuffer, clearDesc);
 
     // Fullscreen dispatch mesh
-    cmd->DispatchMesh(1);
+    cmd->DispatchMesh(1, 1, 1);
 
     cmd->EndRenderPass();
     cmd->ResourceBarrier({ { colorTexture, ResourceState::kRenderTarget, ResourceState::kCommon } });

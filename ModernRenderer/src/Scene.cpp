@@ -23,7 +23,7 @@ void Scene::LoadSingleSphereScene(std::shared_ptr<Device> device, const Camera& 
 	name = L"SingleSphere";
 
 	ModelImporter importer("assets/models/sphere.fbx", aiProcessPreset_TargetRealtime_Fast);
-	instances.push_back(ModelInstance(importer.GetModel()));
+	instances.push_back(ModelInstance(importer.GetModel(), transpose(MatrixUtils::Translation(glm::vec3(0, 0, 0));
 }
 
 void Scene::LoadRoughnessTestScene(std::shared_ptr<Device> device, const Camera& camera)
@@ -265,6 +265,7 @@ void Scene::BuildRTAS(std::shared_ptr<Device> device)
 		{
 			RaytracingGeometryInstance& rt = rtInstances.emplace_back();
 			rt.transform = glm::mat3x4(instance.transform);
+			rt.flags = RaytracingInstanceFlags::kTriangleFrontCounterclockwise;
 			rt.instance_offset = 0; // This instance offset is used to determine the hit index of the shader table, TODO: multiple shader support
 			rt.instance_mask = 0xff;
 			rt.instance_id = index++; // Pass the index of the first primitive of the mesh so that the hit shader can fetch vertex data
