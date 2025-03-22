@@ -11,6 +11,6 @@ void Miss(inout RayPayload payload)
     
     float4 skyColor = _SkyTextureLatLong.SampleLevel(linearRepeatSampler, uv, 0);
     
-    payload.color = skyColor.rgb;
+    payload.totalRadiance += skyColor.rgb * payload.throughput;
     payload.done = true;
 }

@@ -186,6 +186,6 @@ float4 fragment(ForwardMeshToFragment input) : SV_TARGET0
     
     //return float4(GetRandomColor(visibleMeshetID), 1);
     //return float4(GetRandomColor(triangleID), 1);
-    //return float4(normal * 0.5 + 0.5, 1);
-    return float4(material.diffuseRoughness.xxx, 1);
+    return float4(normal * 0.5 + 0.5, 1);
+    //return float4(material.diffuseRoughness.xxx, 1);
 }

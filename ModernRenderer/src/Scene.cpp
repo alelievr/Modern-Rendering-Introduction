@@ -23,7 +23,7 @@ void Scene::LoadSingleSphereScene(std::shared_ptr<Device> device, const Camera& 
 	name = L"SingleSphere";
 
 	ModelImporter importer("assets/models/sphere.fbx", aiProcessPreset_TargetRealtime_Fast);
-	instances.push_back(ModelInstance(importer.GetModel(), transpose(MatrixUtils::Translation(glm::vec3(0, 0, 0));
+	instances.push_back(ModelInstance(importer.GetModel(), transpose(MatrixUtils::Translation(glm::vec3(0, 0, 0)))));
 }
 
 void Scene::LoadRoughnessTestScene(std::shared_ptr<Device> device, const Camera& camera)
@@ -42,7 +42,7 @@ void Scene::LoadRoughnessTestScene(std::shared_ptr<Device> device, const Camera&
 			auto mat = Material::CreateMaterial();
 			mat->roughness = (float)x / spheresCount;
 			mat->metalness = (float)z / spheresCount;
-			auto instance = ModelInstance(Model(mesh, mat), transpose(MatrixUtils::Translation(glm::vec3(x * 2, 0, z * 2))));
+			auto instance = ModelInstance(Model(mesh, mat), transpose(MatrixUtils::Translation(glm::vec3(x * 2.1, 0, z * 2.1))));
 			instances.push_back(instance);
 		}
 	}
@@ -50,7 +50,7 @@ void Scene::LoadRoughnessTestScene(std::shared_ptr<Device> device, const Camera&
 
 void Scene::LoadMultiObjectSphereScene(std::shared_ptr<Device> device, const Camera& camera)
 {
-	name = L"4 Sphere";
+	name = L"Multi Objects";
 
 	ModelImporter importer("assets/models/sphere.fbx", aiProcessPreset_TargetRealtime_Fast);
 	ModelImporter importer2("assets/models/Cube.fbx", aiProcessPreset_TargetRealtime_Fast);

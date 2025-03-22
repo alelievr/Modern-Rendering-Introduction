@@ -1,6 +1,7 @@
 #define GLM_FORCE_LEFT_HANDED  // For DirectX compatibility
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE  // DirectX depth range is [0,1]
 #include <glm/glm.hpp>
+#include <algorithm>
 
 #include "Camera.hpp"
 #include <glm/gtx/rotate_vector.hpp> 
@@ -134,7 +135,7 @@ void Camera::CameraControls::OnKey(int key, int action)
 
 	float speed = currentSpeed;
 	if ((activeKeyMask & Sprint) != 0)
-		speed *= 5;
+		speed *= 10;
 
 	movement = glm::vec3(0);
 	if (activeKeyMask & Forwad)
@@ -153,9 +154,9 @@ void Camera::CameraControls::OnKey(int key, int action)
 
 void Camera::CameraControls::OnScroll(double xoffset, double yoffset)
 {
-	currentSpeed += yoffset * 0.04f;
-	if (currentSpeed < 0.01f)
-		currentSpeed = 0.01f;
+	currentSpeed *= 1 + std::clamp(yoffset * 0.4f, -1.0, 1.0);
+	if (currentSpeed < 0.0001f)
+		currentSpeed = 0.0001f;
 }
 
 void Camera::CameraControls::OnMouse(bool first, double xpos, double ypos)

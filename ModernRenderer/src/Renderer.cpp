@@ -242,6 +242,7 @@ void Renderer::RenderPathTracing(std::shared_ptr<CommandList> cmd, std::shared_p
     if (camera.HasMoved() || controls.resetPathTracingAccumulation)
     {
         controls.resetPathTracingAccumulation = false;
+        pathTracingFrameIndex = 0;
 		cmd->ResourceBarrier({ { pathTracingAccumulationTexture, ResourceState::kCommon, ResourceState::kUnorderedAccess } });
 		cmd->BindPipeline(pathTracingClear.pipeline);
 		cmd->BindBindingSet(pathTracerClearBindingSet);
