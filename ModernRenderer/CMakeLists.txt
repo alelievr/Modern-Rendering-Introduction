@@ -22,9 +22,6 @@ include(compiler_settings)
 include(3rdparty/imgui)
 
 add_subdirectory(3rdparty/FlyCube)
-add_subdirectory(3rdparty/FlyCube/src/Modules/AppBox)
-add_subdirectory(3rdparty/FlyCube/src/Modules/AppSettings)
-add_subdirectory(3rdparty/FlyCube/src/Modules/AppLoop)
 add_subdirectory(3rdparty/assimp)
 add_subdirectory(3rdparty/meshoptimizer)
 
