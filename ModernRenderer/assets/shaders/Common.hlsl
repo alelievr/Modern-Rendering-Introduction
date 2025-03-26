@@ -1,13 +1,7 @@
 #pragma once
 
 #include "GeometryUtils.hlsl"
-
-#define PI          3.14159265358979323846
-#define INV_PI      0.31830988618379067154
-#define HALF_PI     1.57079632679489661923
-#define LOG2_E      1.44269504088896340736
-#define PI_DIV_FOUR 0.78539816339744830961
-#define MAX_UINT    0xFFFFFFFFu
+#include "MathUtils.hlsl"
 
 // Keep in sync with GPUCameraData in Camera.hpp
 cbuffer CameraData : register(b0, space0)
