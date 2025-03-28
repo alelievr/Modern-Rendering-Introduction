@@ -90,7 +90,6 @@ private:
 	std::shared_ptr<BindingSetLayout> objectLayoutSet;
 	std::shared_ptr<BindingSet> objectBindingSet;
 
-	void DrawOpaqueObjects(std::shared_ptr<CommandList> cmd, std::shared_ptr<BindingSet> set, std::shared_ptr<Pipeline> pipeline);
 	void FrustumCulling(std::shared_ptr<CommandList> cmd);
 	void MeshletCulling(std::shared_ptr<CommandList> cmd);
 	void RenderVisibility(std::shared_ptr<CommandList> cmd);

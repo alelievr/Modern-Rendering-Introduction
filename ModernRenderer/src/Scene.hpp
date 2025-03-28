@@ -33,6 +33,7 @@ private:
 	void LoadSingleCubeScene(std::shared_ptr<Device> device, const Camera& camera);
 	void LoadSponzaScene(std::shared_ptr<Device> device, const Camera& camera);
 	void LoadChessScene(std::shared_ptr<Device> device, const Camera& camera);
+	void LoadTooMuchChessScene(std::shared_ptr<Device> device, const Camera& camera);
 	void LoadStanfordBunnyScene(std::shared_ptr<Device> device, const Camera& camera);
 	
 	void UploadInstancesToGPU(std::shared_ptr<Device> device);
@@ -79,6 +80,7 @@ public:
 	};
 
 	std::vector<ModelInstance> instances;
+	std::vector<InstanceData> instanceData;
 	std::wstring name;
 	std::shared_ptr<View> tlasView;
 	std::shared_ptr<Resource> tlas;

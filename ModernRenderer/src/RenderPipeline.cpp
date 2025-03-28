@@ -30,34 +30,6 @@ RenderPipeline::RenderPipeline(std::shared_ptr<Device> device, const AppSize& ap
     objectBindingSet = RenderUtils::CreateBindingSet(device, objectLayoutSet, camera, { { drawRootConstant, nullptr } }, RenderUtils::All, RenderUtils::Mesh | RenderUtils::Fragment);
 }
 
-void RenderPipeline::DrawOpaqueObjects(std::shared_ptr<CommandList> cmd, std::shared_ptr<BindingSet> set, std::shared_ptr<Pipeline> pipeline)
-{
-    cmd->BindPipeline(pipeline);
-    cmd->BindBindingSet(set);
-
-    // Get the native command list to push constants directly to the commnand buffer.
-    // This allows to have a unique index per draw without having to bind a new constant buffer.
-    auto dxCmd = (DXCommandList*)cmd.get();
-
-    // TODO: batch per materials to avoid pipeline switches & reduce CBuffer updates
-    for (auto& instance : scene->instances)
-    {
-        dxCmd->SetGraphicsConstant(0, instance.instanceDataOffset, 2);
-
-        for (auto& r : instance.model.parts)
-        {
-            // TODO: mesh index when meshlets are supported
-            int materialIndex = r.material->materialIndex;
-
-            // Bind per-draw data, we only need an index, the rest is bindless
-            dxCmd->SetGraphicsConstant(0, materialIndex, 0);
-            dxCmd->SetGraphicsConstant(0, r.mesh->meshletOffset, 1);
-
-            cmd->DispatchMesh(r.mesh->meshletCount, 1, 1);
-        }
-    }
-}
-
 void RenderPipeline::FrustumCulling(std::shared_ptr<CommandList> cmd)
 {
     Profiler::BeginMarker(cmd, "Frustum Culling");
@@ -160,7 +132,7 @@ void RenderPipeline::FrustumCulling(std::shared_ptr<CommandList> cmd)
     cmd->BindPipeline(frustumCullingProgram.pipeline);
     cmd->BindBindingSet(instanceFrustumCullingSet);
     // TODO: multiple dispatch if the instance count is too big
-    int dispatchCount = (scene->instances.size() + 63) / 64;
+    int dispatchCount = (scene->instanceData.size() + 63) / 64;
     cmd->Dispatch(dispatchCount, 1, 1);
 
     cmd->ResourceBarrier({ { Scene::visibleMeshletsBuffer0, ResourceState::kUnorderedAccess, ResourceState::kCommon } });

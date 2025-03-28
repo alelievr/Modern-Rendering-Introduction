@@ -64,15 +64,13 @@ float3 oren_nayar_compensated_diffuse_dir_albedo(float cosTheta, float roughness
     return lerp(colorMultiScatter, color, dirAlbedo);
 }
 
-void oren_nayar_diffuse_bsdf_reflection(
-    float3 L, float3 V, float3 P, float occlusion, float weight, float3 color, float roughness, float3 normal, inout BSDF bsdf)
+void oren_nayar_diffuse_bsdf_reflection(float3 L, float3 V, float3 P, float occlusion, float weight, float3 color, float roughness, float3 normal, inout BSDF bsdf)
 {
     bsdf.throughput = float3(0.0, 0.0, 0.0);
 
     if (weight < FLOAT_EPSYLON)
         return;
 
-    //normal = forward_facing_normal(normal, V);
 
     float NdotV = clamp(dot(normal, V), FLOAT_EPSYLON, 1.0);
     float NdotL = clamp(dot(normal, L), FLOAT_EPSYLON, 1.0);

@@ -118,6 +118,8 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, const glm::m
     float scale = 1;
     scene->mMetaData->Get("UnitScaleFactor", scale);
 
+    // TODO: handle negative scale (cancel it)
+
     std::shared_ptr<Mesh> currentMesh = std::make_shared<Mesh>();
     currentMesh->name = mesh->mName.C_Str();
     std::shared_ptr<Material> currentMaterial = Material::CreateMaterial();

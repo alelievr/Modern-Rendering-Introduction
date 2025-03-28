@@ -85,6 +85,25 @@ void Scene::LoadChessScene(std::shared_ptr<Device> device, const Camera& camera)
 	instances.push_back(ModelInstance(importer.GetModel()));
 }
 
+void Scene::LoadTooMuchChessScene(std::shared_ptr<Device> device, const Camera& camera)
+{
+	name = L"Roughness Test";
+
+	ModelImporter importer("assets/models/ABeautifulGame/glTF/ABeautifulGame.gltf", aiProcessPreset_TargetRealtime_Fast);
+	auto model = importer.GetModel();
+	auto mesh = model.parts[0].mesh;
+
+	int chessCount = 10;
+	for (int x = 0; x < chessCount; x++)
+	{
+		for (int z = 0; z < chessCount; z++)
+		{
+			auto instance = ModelInstance(model, transpose(MatrixUtils::Translation(glm::vec3(x * 0.71, 0, z * 0.71))));
+			instances.push_back(instance);
+		}
+	}
+}
+
 void Scene::LoadStanfordBunnyScene(std::shared_ptr<Device> device, const Camera& camera)
 {
 	name = L"Stanford Bunny";
@@ -99,16 +118,20 @@ std::shared_ptr<Scene> Scene::LoadHardcodedScene(std::shared_ptr<Device> device,
 
 	//scene->LoadSingleCubeScene(device, camera);
 	//scene->LoadSingleSphereScene(device, camera);
-	scene->LoadRoughnessTestScene(device, camera);
+	//scene->LoadRoughnessTestScene(device, camera);
 	//scene->LoadMultiObjectSphereScene(device, camera);
 	//scene->LoadStanfordBunnyScene(device, camera);
 	//scene->LoadChessScene(device, camera);
+	scene->LoadTooMuchChessScene(device, camera);
+	//scene->LoadSponzaScene(device, camera);
 
 	Texture::LoadAllMaterialTextures(device);
 	Material::AllocateMaterialBuffers(device);
 	scene->UploadInstancesToGPU(device);
 
 	scene->sky.LoadHDRI(device, "assets/HDRIs/rogland_overcast_8k.hdr");
+	//scene->sky.LoadHDRI(device, "assets/HDRIs/lenong_2_8k.hdr");
+	//scene->sky.LoadHDRI(device, "assets/HDRIs/sunflowers_puresky_8k.hdr");
 	scene->sky.Initialize(device , &camera);
 
 	return scene;
@@ -122,7 +145,6 @@ void Scene::UploadInstancesToGPU(std::shared_ptr<Device> device)
 	BuildRTAS(device);
 
 	// Prepate and upload instance data
-	std::vector<InstanceData> instanceData;
 	std::vector<RTInstanceData> rtInstanceData;
 	size_t maxMeshletsVisible = 0;
 	int index = 0;

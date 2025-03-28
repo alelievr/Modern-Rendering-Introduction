@@ -3,6 +3,60 @@
 #include "PathTracingUtils.hlsl"
 #include "Random.hlsl"
 
+struct BSDFData
+{
+    float3 baseColor;
+    float diffuseRoughness;
+    float3 normal;
+    float3 geometricNormal;
+    float3 tangent;
+    float3 biTangent;
+};
+
+BSDFData EvaluateMaterial(InstanceData instance, float3 geometricNormalWS, float3 geometricTangentWS, float2 uv)
+{
+    BSDFData bsdf = (BSDFData)0;
+    MaterialData material = LoadMaterialData(instance.materialIndex);
+    
+    // geometric information
+    bsdf.geometricNormal = geometricNormalWS;
+    bsdf.tangent = geometricTangentWS;
+    bsdf.biTangent = cross(bsdf.normal, bsdf.tangent); // TODO: bitangent direction, check assimp tangent vector generation
+    
+    bsdf.baseColor = material.baseColor;
+    if (material.baseColorTextureIndex != -1)
+        bsdf.baseColor *= SampleTextureLOD(material.baseColorTextureIndex, linearClampSampler, uv, 0).rgb;
+    
+    bsdf.diffuseRoughness = material.diffuseRoughness;
+    if (material.diffuseRoughnessTextureIndex != -1)
+        bsdf.diffuseRoughness *= SampleTextureLOD(material.diffuseRoughnessTextureIndex, linearClampSampler, uv, 0).r;
+    
+    return bsdf;
+}
+
+//float3 EvaluateBSDF(BSDFData bsdf)
+//{
+//    float roughnessSquared = bsdf.diffuseRoughness * bsdf.diffuseRoughness;
+    
+//    float c = roughnessSquared / (roughnessSquared + 0.33);
+//    float d = roughnessSquared / (roughnessSquared + 0.13);
+//    float e = roughnessSquared / (roughnessSquared + 0.09);
+    
+//    float A = INV_PI * (1.0 - 0.5 * c + 0.17 * bsdf.baseColor * d);
+//    float B = INV_PI * (0.45 * e);
+    
+//    // Oren nayar term
+//    float3 orenNayar = 
+    
+//    // Compensation for Oren Nayar to support multi-scattering
+//    float3 compensatedON = 
+    
+//    // diffuse term
+//    float3 diffuse = orenNayar + compensatedON;
+    
+//    // Glossy diffuse term = spec + diffuse
+//}
+
 [shader("closesthit")]
 void Hit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attribs)
 {
@@ -26,9 +80,12 @@ void Hit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr
     
     float3 normalOS = BarycentricInterpolation(v0.normal, v1.normal, v2.normal, attribs.barycentrics);
     float3 positionOS = BarycentricInterpolation(v0.positionOS, v1.positionOS, v2.positionOS, attribs.barycentrics);
+    float3 tangentOS = BarycentricInterpolation(v0.tangent, v1.tangent, v2.tangent, attribs.barycentrics);
+    float2 uv = BarycentricInterpolation(v0.uv, v1.uv, v2.uv, attribs.barycentrics);
     
     float3 positionWS = TransformObjectToWorld(positionOS, instance.objectToWorld);
     float3 normalWS = TransformObjectToWorldNormal(normalOS, instance.objectToWorld);
+    float3 tangentWS = TransformObjectToWorldNormal(tangentOS, instance.objectToWorld);
     
     // Evaluate direct lighting
     // TODO: cast shadow rays
@@ -37,7 +94,12 @@ void Hit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr
     
     // albedo
     // Apply material BSDF to throughput for next intersection (taking into account incoming light)
-    payload.throughput *= float3(0.5, 0.5, 0.5); // TODO: read material albedo
+    
+    BSDFData bsdf = EvaluateMaterial(instance, normalWS, tangentWS, uv);
+    
+    //float3 d = EvaluateBSDF(bsdf);
+    
+    payload.throughput *= bsdf.baseColor; // TODO: read material albedo
     
     // Compute an offset for the ray origin to avoid self-intersections when the normal is not aligned with the geometric normal.
     float3 triangleNormal = normalize(cross(v1.positionOS - v0.positionOS, v2.positionOS - v0.positionOS));

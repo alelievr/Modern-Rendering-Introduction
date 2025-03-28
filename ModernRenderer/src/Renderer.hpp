@@ -21,7 +21,6 @@ private:
     public:
 		RendererMode rendererMode = RendererMode::Rasterization;
         bool screenshotNextFrame = false;
-        bool resetPathTracingAccumulation = false;
 
         Controls() {}
 
@@ -67,6 +66,7 @@ private:
     RenderUtils::ComputeProgram pathTracingResolve;
     RenderUtils::ComputeProgram pathTracingClear;
     unsigned pathTracingFrameIndex = 0;
+    bool resetPathTracingAccumulation;
 
     // FrameBuffers
     std::shared_ptr<Framebuffer> imGUIFrameBuffer;

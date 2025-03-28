@@ -173,7 +173,6 @@ void Renderer::Controls::OnKey(int key, int action)
         if (action == GLFW_PRESS)
         {
             rendererMode = (RendererMode)!(bool)rendererMode;
-            resetPathTracingAccumulation = true;
         }
 	}
 
@@ -194,6 +193,9 @@ void Renderer::UpdateCommandList(std::shared_ptr<CommandList> cmd, std::shared_p
 
     Profiler::BeginFrame();
     Profiler::BeginMarker(cmd, "Total Frame");
+
+    if (camera.HasMoved())
+        resetPathTracingAccumulation = true;
 
 	if (controls.rendererMode == RendererMode::Rasterization)
 	{
@@ -239,9 +241,9 @@ void Renderer::RenderRasterization(std::shared_ptr<CommandList> cmd, std::shared
 void Renderer::RenderPathTracing(std::shared_ptr<CommandList> cmd, std::shared_ptr<Resource> backBuffer, const Camera& camera, std::shared_ptr<Scene> scene)
 {
     DXCommandList* dxCmd = (DXCommandList*)cmd.get();
-    if (camera.HasMoved() || controls.resetPathTracingAccumulation)
+    if (resetPathTracingAccumulation)
     {
-        controls.resetPathTracingAccumulation = false;
+        resetPathTracingAccumulation = false;
         pathTracingFrameIndex = 0;
 		cmd->ResourceBarrier({ { pathTracingAccumulationTexture, ResourceState::kCommon, ResourceState::kUnorderedAccess } });
 		cmd->BindPipeline(pathTracingClear.pipeline);

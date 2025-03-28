@@ -25,7 +25,7 @@ void RenderSettings::RenderImGUISettingsWindow()
 
     ImGui::Begin("Path Tracing Settings", nullptr, ImGuiWindowFlags_NoCollapse);
 
-    ImGui::SliderInt("Integration count per frame", &integrationCountPerFrame, 1, 10);
+    ImGui::SliderInt("Integration count per frame", &integrationCountPerFrame, 1, 100);
     ImGui::InputInt("Max Accumulation Count", &MaxAccumulationCount);
 
     ImGui::End();
