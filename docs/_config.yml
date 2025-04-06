@@ -112,3 +112,5 @@ footer:
   copyright: ""
   links:
   allow_override: true
+
+favicon_path:     ../assets/favicon.ico
