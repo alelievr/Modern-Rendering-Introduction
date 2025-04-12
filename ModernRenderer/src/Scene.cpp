@@ -23,6 +23,7 @@ void Scene::LoadSingleSphereScene(std::shared_ptr<Device> device, const Camera& 
 	name = L"SingleSphere";
 
 	ModelImporter importer("assets/models/sphere.fbx", aiProcessPreset_TargetRealtime_Fast);
+	importer.GetModel().parts[0].material->roughness = 0.0f;
 	instances.push_back(ModelInstance(importer.GetModel(), transpose(MatrixUtils::Translation(glm::vec3(0, 0, 0)))));
 }
 
@@ -40,7 +41,8 @@ void Scene::LoadRoughnessTestScene(std::shared_ptr<Device> device, const Camera&
 		for (int z = 0; z < spheresCount; z++)
 		{
 			auto mat = Material::CreateMaterial();
-			mat->roughness = (float)x / spheresCount;
+			float r = (float)x / spheresCount;
+			mat->roughness = r * r;
 			mat->metalness = (float)z / spheresCount;
 			auto instance = ModelInstance(Model(mesh, mat), transpose(MatrixUtils::Translation(glm::vec3(x * 2.1, 0, z * 2.1))));
 			instances.push_back(instance);
@@ -66,6 +68,15 @@ void Scene::LoadSingleCubeScene(std::shared_ptr<Device> device, const Camera& ca
 	name = L"SingleCube";
 
 	ModelImporter importer("assets/models/Cube.fbx", aiProcessPreset_TargetRealtime_Fast);
+	instances.push_back(ModelInstance(importer.GetModel()));
+}
+
+void Scene::LoadSinglePlaneScene(std::shared_ptr<Device> device, const Camera& camera)
+{
+	name = L"SinglePlane";
+
+	ModelImporter importer("assets/models/Plane.fbx", aiProcessPreset_TargetRealtime_Fast);
+	importer.GetModel().parts[0].material->roughness = 0.06f;
 	instances.push_back(ModelInstance(importer.GetModel()));
 }
 
@@ -118,11 +129,12 @@ std::shared_ptr<Scene> Scene::LoadHardcodedScene(std::shared_ptr<Device> device,
 
 	//scene->LoadSingleCubeScene(device, camera);
 	//scene->LoadSingleSphereScene(device, camera);
-	//scene->LoadRoughnessTestScene(device, camera);
+	//scene->LoadSinglePlaneScene(device, camera);
+	scene->LoadRoughnessTestScene(device, camera);
 	//scene->LoadMultiObjectSphereScene(device, camera);
 	//scene->LoadStanfordBunnyScene(device, camera);
 	//scene->LoadChessScene(device, camera);
-	scene->LoadTooMuchChessScene(device, camera);
+	//scene->LoadTooMuchChessScene(device, camera);
 	//scene->LoadSponzaScene(device, camera);
 
 	Texture::LoadAllMaterialTextures(device);

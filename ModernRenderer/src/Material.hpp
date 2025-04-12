@@ -5,15 +5,6 @@
 #include "Texture.hpp"
 #include <glm/glm.hpp>
 
-enum class MaterialParameterType
-{
-	Float,
-	Float4,
-	Matrix4x4,
-	Texture,
-	Int,
-};
-
 // Keep in sync with MaterialData in Common.hlsl
 struct GPUMaterial
 {
@@ -29,9 +20,9 @@ struct GPUMaterial
 	// Specular layer
 	// TODO
 	//float specularWeight;
-	//glm::vec3 specularColor;
-	//int specularColorTextureIndex;
-	//float specularRoughness;
+	glm::vec3 specularColor;
+	int specularColorTextureIndex;
+	float specularRoughness;
 	//float specularRoughnessAnisotropy;
 	//float specularIOR;
 
@@ -45,7 +36,6 @@ struct GPUMaterial
 
 	// Extra padding to ensure the struct is aligned on 16 bytes
 	int padding0;
-	int padding1;
 };
 
 class Material

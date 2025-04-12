@@ -2,60 +2,8 @@
 #include "MeshUtils.hlsl"
 #include "PathTracingUtils.hlsl"
 #include "Random.hlsl"
-
-struct BSDFData
-{
-    float3 baseColor;
-    float diffuseRoughness;
-    float3 normal;
-    float3 geometricNormal;
-    float3 tangent;
-    float3 biTangent;
-};
-
-BSDFData EvaluateMaterial(InstanceData instance, float3 geometricNormalWS, float3 geometricTangentWS, float2 uv)
-{
-    BSDFData bsdf = (BSDFData)0;
-    MaterialData material = LoadMaterialData(instance.materialIndex);
-    
-    // geometric information
-    bsdf.geometricNormal = geometricNormalWS;
-    bsdf.tangent = geometricTangentWS;
-    bsdf.biTangent = cross(bsdf.normal, bsdf.tangent); // TODO: bitangent direction, check assimp tangent vector generation
-    
-    bsdf.baseColor = material.baseColor;
-    if (material.baseColorTextureIndex != -1)
-        bsdf.baseColor *= SampleTextureLOD(material.baseColorTextureIndex, linearClampSampler, uv, 0).rgb;
-    
-    bsdf.diffuseRoughness = material.diffuseRoughness;
-    if (material.diffuseRoughnessTextureIndex != -1)
-        bsdf.diffuseRoughness *= SampleTextureLOD(material.diffuseRoughnessTextureIndex, linearClampSampler, uv, 0).r;
-    
-    return bsdf;
-}
-
-//float3 EvaluateBSDF(BSDFData bsdf)
-//{
-//    float roughnessSquared = bsdf.diffuseRoughness * bsdf.diffuseRoughness;
-    
-//    float c = roughnessSquared / (roughnessSquared + 0.33);
-//    float d = roughnessSquared / (roughnessSquared + 0.13);
-//    float e = roughnessSquared / (roughnessSquared + 0.09);
-    
-//    float A = INV_PI * (1.0 - 0.5 * c + 0.17 * bsdf.baseColor * d);
-//    float B = INV_PI * (0.45 * e);
-    
-//    // Oren nayar term
-//    float3 orenNayar = 
-    
-//    // Compensation for Oren Nayar to support multi-scattering
-//    float3 compensatedON = 
-    
-//    // diffuse term
-//    float3 diffuse = orenNayar + compensatedON;
-    
-//    // Glossy diffuse term = spec + diffuse
-//}
+#include "Material.hlsl"
+#include "BSDF.hlsl"
 
 [shader("closesthit")]
 void Hit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attribs)
@@ -97,16 +45,21 @@ void Hit(inout RayPayload payload, in BuiltInTriangleIntersectionAttributes attr
     
     BSDFData bsdf = EvaluateMaterial(instance, normalWS, tangentWS, uv);
     
-    //float3 d = EvaluateBSDF(bsdf);
-    
-    payload.throughput *= bsdf.baseColor; // TODO: read material albedo
+    float3 throughput, nextDirection;
+    bool sampleBSDFFailed = EvaluateOpenPBRSurface(bsdf, -WorldRayDirection(), nextDirection, throughput);
     
     // Compute an offset for the ray origin to avoid self-intersections when the normal is not aligned with the geometric normal.
     float3 triangleNormal = normalize(cross(v1.positionOS - v0.positionOS, v2.positionOS - v0.positionOS));
+    // TODO: flip offset for transmitted rays
     float3 originOffset = triangleNormal * (1 - dot(triangleNormal, normalWS)) * 0.0001;
-    
-    // Lambertian reflection
-    payload.nextDirection = normalize(normalWS + RandomHemisphereVector(positionWS, normalWS));
+
+    // Output payload data
+    payload.throughput *= throughput;
+    payload.nextDirection = nextDirection;
     payload.worldPosition = positionWS + originOffset;
     payload.done = false;
+
+    // Debug
+    //payload.totalRadiance = nextDirection * 0.5 + 0.5;
+    //payload.done = true;
 }

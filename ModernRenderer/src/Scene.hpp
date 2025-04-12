@@ -31,6 +31,7 @@ private:
 	void LoadRoughnessTestScene(std::shared_ptr<Device> device, const Camera& camera);
 	void LoadMultiObjectSphereScene(std::shared_ptr<Device> device, const Camera& camera);
 	void LoadSingleCubeScene(std::shared_ptr<Device> device, const Camera& camera);
+	void LoadSinglePlaneScene(std::shared_ptr<Device> device, const Camera& camera);
 	void LoadSponzaScene(std::shared_ptr<Device> device, const Camera& camera);
 	void LoadChessScene(std::shared_ptr<Device> device, const Camera& camera);
 	void LoadTooMuchChessScene(std::shared_ptr<Device> device, const Camera& camera);

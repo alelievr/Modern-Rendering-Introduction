@@ -59,5 +59,7 @@ void RayGen()
         depth++;
     }
     
-    _Output[DispatchRaysIndex().xy] += float4(payload.totalRadiance, 1);
+    // Prevent errors from accumulating
+    if (all(isfinite(payload.totalRadiance)))
+        _Output[DispatchRaysIndex().xy] += float4(payload.totalRadiance, 1);
 }

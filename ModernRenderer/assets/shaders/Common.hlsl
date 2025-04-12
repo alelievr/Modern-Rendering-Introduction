@@ -62,11 +62,14 @@ struct MaterialData
     float diffuseRoughness;
     int diffuseRoughnessTextureIndex;
     
+    float3 specularColor;
+    int specularColorTextureIndex;
+    
+    float specularRoughness;
     int normalTextureIndex;
     int ambientOcclusionTextureIndex;
     
     int padding0;
-    int padding1;
 };
 
 // Bindless textures for materials
@@ -79,6 +82,7 @@ MaterialData LoadMaterialData(uint materialIndex)
 {
     return materialBuffer.Load(materialIndex);
 }
+
 InstanceData LoadInstance(uint instanceIndex, bool culling = false)
 {
     InstanceData data = instanceData.Load(instanceIndex);

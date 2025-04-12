@@ -8,22 +8,27 @@
 #define MAX_UINT        0xFFFFFFFFu
 #define FLOAT_EPSYLON   1e-5
 
-float sq(float x)
+float Sq(float x)
 {
     return x * x;
 }
 
-float2 sq(float2 x)
+float2 Sq(float2 x)
 {
     return x * x;
 }
 
-float3 sq(float3 x)
+float3 Sq(float3 x)
 {
     return x * x;
 }
 
-float4 sq(float4 x)
+float4 Sq(float4 x)
 {
     return x * x;
+}
+
+float SafeDiv(float numer, float denom)
+{
+    return (numer != denom) ? numer / denom : 1;
 }
