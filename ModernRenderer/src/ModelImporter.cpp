@@ -65,6 +65,12 @@ void ModelImporter::ProcessNode(aiNode* node, const aiScene* scene, const glm::m
     glm::mat4 transformation = AiMatrix4x4ToGlm(&node->mTransformation);
     glm::mat4 globalTransformation = transformation * parentTransformation;
 
+    int upAxis;
+
+    if (scene->mMetaData->Get("UpAxis", upAxis)) {
+        printf("%i", upAxis);
+    }
+
     for (uint32_t i = 0; i < node->mNumMeshes; ++i) {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
         ProcessMesh(mesh, scene, globalTransformation);
@@ -110,6 +116,11 @@ bool SkipMesh(aiMesh* mesh, const aiScene* scene)
     return q.count(std::string(name.C_Str()));
 }
 
+glm::vec3 TransformDirection(const glm::mat4& matrix, const glm::vec3& vec)
+{
+    return glm::normalize(glm::mat3(matrix) * vec);
+}
+
 void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, const glm::mat4 transform)
 {
     if (SkipMesh(mesh, scene))
@@ -146,13 +157,13 @@ void ModelImporter::ProcessMesh(aiMesh* mesh, const aiScene* scene, const glm::m
 
         if (mesh->HasNormals())
         {
-            vertex.normal = AiVector3DToVec3(mesh->mNormals[i]);
+            vertex.normal = TransformDirection(transform, AiVector3DToVec3(mesh->mNormals[i]));
         }
 
         if (mesh->HasTangentsAndBitangents())
         {
-            vertex.tangent = AiVector3DToVec3(mesh->mTangents[i]);
-            vertex.bitangent = AiVector3DToVec3(mesh->mBitangents[i]);
+            vertex.tangent = TransformDirection(transform, AiVector3DToVec3(mesh->mTangents[i]));
+            vertex.bitangent = TransformDirection(transform, AiVector3DToVec3(mesh->mBitangents[i]));
 
             if (glm::dot(glm::cross(vertex.normal, vertex.tangent), vertex.bitangent) < 0.0f)
                 vertex.tangent *= -1.0f;
