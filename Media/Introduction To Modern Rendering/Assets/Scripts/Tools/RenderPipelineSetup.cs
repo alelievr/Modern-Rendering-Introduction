@@ -21,9 +21,9 @@ public class RenderPipelineSetup : MonoBehaviour
     void OnEnable()
     {
         if (renderPipeline == RenderPipeline.HDRP)
-            GraphicsSettings.renderPipelineAsset = Resources.Load<RenderPipelineAsset>("HDRP");
+            GraphicsSettings.defaultRenderPipeline = Resources.Load<RenderPipelineAsset>("HDRP");
         else
-            GraphicsSettings.renderPipelineAsset = null;
+            GraphicsSettings.defaultRenderPipeline = null;
 
 #if UNITY_EDITOR
         EditorSceneManager.sceneClosing -= ResetRenderPipeline;
@@ -33,7 +33,7 @@ public class RenderPipelineSetup : MonoBehaviour
 
     void ResetRenderPipeline(Scene scene, bool removingScene)
     {
-        GraphicsSettings.renderPipelineAsset = null;
+        GraphicsSettings.defaultRenderPipeline = null;
 #if UNITY_EDITOR
         EditorSceneManager.sceneClosing -= ResetRenderPipeline;
 #endif
