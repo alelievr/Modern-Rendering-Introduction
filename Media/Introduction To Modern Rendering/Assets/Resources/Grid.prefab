@@ -47,13 +47,17 @@ MonoBehaviour:
   mainLineWidth: 0.025
   secondaryLineWidth: 0.01
   show3D: 0
-  mainColor: {r: 0.23696157, g: 0.60748017, b: 0.7075472, a: 1}
-  secondaryColor: {r: 0.3262727, g: 0.39751774, b: 0.49056602, a: 1}
+  mainColor: {r: 0.23696157, g: 0.60748017, b: 0.7075472, a: 0.2}
+  secondaryColor: {r: 0.3262727, g: 0.39751774, b: 0.49056602, a: 0.2}
   scale: 1
   coloredAxis: 1
+  orientation: 0
   showSecondaryLines: 1
   xAxisColor: {r: 1, g: 0.33490568, b: 0.33490568, a: 1}
   yAxisColor: {r: 0.2991723, g: 0.764151, b: 0.2991723, a: 1}
   zAxisColor: {r: 0.18396229, g: 0.5269122, b: 1, a: 1}
   neutralAxisColor: {r: 1, g: 1, b: 1, a: 1}
+  showXAxis: 1
+  showYAxis: 1
+  showZAxis: 1
   lineCount: 10
