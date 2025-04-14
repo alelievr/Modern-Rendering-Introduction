@@ -1,6 +1,6 @@
 ![](docs/assets/Images/ReadmeHeader.png)
 
-This repository contains the source code for the *Modern Rendering Introduction* course, along with its accompanying renderer. The course is free and open source, with a focus on explaining fundamental concepts behind real-time 3D scene rendering.
+This repository contains the source code for the **Modern Rendering Introduction** course, along with its accompanying renderer. The course is free and open source, with a focus on explaining fundamental concepts behind real-time 3D scene rendering.
 
 ## Online Course
 
@@ -15,6 +15,8 @@ This GitHub repository also includes the D3D12 renderer used in the course. It i
 ## Unity Media Project
 
 Most of the images and GIFs featured in the course are generated using a Unity project located in the [Media/Introduction To Modern Rendering](https://github.com/alelievr/Modern-Rendering-Introduction/tree/master/Media/Introduction%20To%20Modern%20Rendering) folder. If you're interested in seeing how the GIFs are made or wish to modify them, you can open the project using Unity 6.0 LTS.
+
+![](docs/assets/Images/UnityExample.png)
 
 ## Future Plans
 
