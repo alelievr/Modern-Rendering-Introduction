@@ -70,7 +70,7 @@ It indicates the rotation direction in which the vertices are arranged to form t
 
 This step consist into rasterizing the input geometry at a low resolution to check if the triangle overlaps a tile (8x8 pixels for example). If the triangle overlaps a tile, then it can proceed to the next stages.
 
-## Hierarchical-Z Test
+## Hierarchical-Z Test (Hi-Z Test)
 
 When **Depth Testing** is enabled in the rasterization config, the GPU can perform an early depth test on the tiles from the coarse rasterization. This is also an optimization that allows to early out the rasterization process in case the whole tile of pixels fail the depth test.
 
@@ -186,6 +186,8 @@ The [discard](https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-gr
 
 As mentioned above in the diagram, adding a discard instruction in the fragment shader automatically moves all the early depth and stencil tests after the fragment shader evaluation making them less interesting in terms of performance.
 
+If you're interested in learning more about the details of early-z testing and how it works with other GPU features, I recommend reading [To Early-Z, or Not To Early-Z](https://therealmjp.github.io/posts/to-earlyz-or-not-to-earlyz).
+
 ### Multiple Render Targets
 
 The fragment shader can have a maximum of 8 color outputs, each output is 4 channel, so it's a maximum of 32 values representing "color" data that can be output from the fragment shader.
@@ -299,4 +301,6 @@ I want to mention that there are several other interesting features in the raste
 - 📄 [Face Culling - OpenGL Wiki](https://www.khronos.org/opengl/wiki/Face_Culling)
 - 📄 [Stencil Test Explained Using Code - AsaWicki](https://www.asawicki.info/news_1654_stencil_test_explained_using_code)
 - 📄 [Output Merger Stage - Direct3D 11 - Microsoft Learn](https://learn.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-output-merger-stage)
-- 📄 [MSAA Overview - MJP's Blog](https://therealmjp.github.io/posts/msaa-overview/)
+- 📄 [MSAA Overview - TheRealMJP's blog](https://therealmjp.github.io/posts/msaa-overview/)
+- 📄 [Life of a triangle - NVIDIA's logical pipeline](https://developer.nvidia.com/content/life-triangle-nvidias-logical-pipeline)
+- 📄 [To Early-Z, or Not To Early-Z - TheRealMJP's blog](https://therealmjp.github.io/posts/to-earlyz-or-not-to-earlyz/)
