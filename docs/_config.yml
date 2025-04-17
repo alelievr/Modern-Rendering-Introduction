@@ -27,7 +27,7 @@ description: >- # this means to ignore newlines until "baseurl:"
  while building a simple rendering engine. Designed for programmers interested in graphics,
  it provides a solid foundation for modern rendering techniques without focusing
  on specific graphics APIs.
-baseurl: "" # the subpath of your site, e.g. /blog
+baseurl: "/Modern-Rendering-Introduction" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: alelievr
 github_username:  alelievr/Modern-Rendering-Introduction
