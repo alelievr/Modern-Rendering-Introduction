@@ -4,7 +4,7 @@ This repository contains the source code for the **Modern Rendering Introduction
 
 ## Online Course
 
-You can access the online course here: TODO LINK
+You can access the online course here: https://alelievr.github.io/Modern-Rendering-Introduction
 
 The course website is built using a Jekyll theme, available at: [jekyll-gitbook](https://github.com/alelievr/jekyll-gitbook). The pages are written in Markdown and can be found in the [docs/_articles](https://github.com/alelievr/Modern-Rendering-Introduction/tree/master/docs/_articles) folder.
 
