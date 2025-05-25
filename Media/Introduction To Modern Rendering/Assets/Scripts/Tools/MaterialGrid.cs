@@ -6,6 +6,7 @@ public class MaterialGrid : MonoBehaviour
     public int gridHeight = 10;
     public float spacing = 1.5f;
     public Material baseMaterial;
+    public bool disabledByDefault = false;
 
     void Start()
     {
@@ -32,6 +33,9 @@ public class MaterialGrid : MonoBehaviour
                 float roughness = (float)y / (gridHeight - 1);
 
                 GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+
+                if (disabledByDefault)
+                    sphere.SetActive(false);
 
                 Material sphereMaterial = new Material(baseMaterial);
                 sphereMaterial.SetFloat("_Metallic", metallic);

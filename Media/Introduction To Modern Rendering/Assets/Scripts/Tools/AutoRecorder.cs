@@ -25,9 +25,23 @@ public class AutoRecorder : MonoBehaviour
         Picture,
         Gif,
     }
+
+    public enum RecordStopMode
+    {
+        TimeInSeconds,
+        FrameCount,
+    }
+
+    [Header("Recording Mode")]
     public Mode mode;
     public bool recordOnPlay = true;
+
+    [Header("Recording Stop Condition")]
+    public RecordStopMode recordStopMode = RecordStopMode.TimeInSeconds;
     public float recordingTimeInSeconds = 5.0f;
+    public int recordingFrameCount = 150;
+
+    [Header("Recording Settings")]
     public float frameRate = 30.0f;
     public uint gifQuality = 40;
     public float waitBeforeRecording = 0.0f;
@@ -36,6 +50,7 @@ public class AutoRecorder : MonoBehaviour
     RecorderController m_RecorderController;
 
     float startTime;
+    int startFrame;
 
     void OnEnable()
     {
@@ -64,6 +79,7 @@ public class AutoRecorder : MonoBehaviour
         {
             m_RecorderController.StartRecording();
             startTime = Time.timeSinceLevelLoad;
+            startFrame = Time.frameCount;
         }
 
         Debug.Log($"Started recording for file {controllerSettings.RecorderSettings.First().OutputFile}");
@@ -127,11 +143,25 @@ public class AutoRecorder : MonoBehaviour
             Debug.Log("Recording finished");
             enabled = false;
         }
-        else if (d > recordingTimeInSeconds)
+
+        switch (recordStopMode)
         {
-            m_RecorderController.StopRecording();
-            Debug.Log("Recording finished");
-            enabled = false;
+            case RecordStopMode.TimeInSeconds:
+                if (d > recordingTimeInSeconds)
+                {
+                    m_RecorderController.StopRecording();
+                    Debug.Log("Recording finished");
+                    enabled = false;
+                }
+                break;
+            case RecordStopMode.FrameCount:
+                if (m_RecorderController.IsRecording() && Time.frameCount - startFrame >= recordingFrameCount)
+                {
+                    m_RecorderController.StopRecording();
+                    Debug.Log("Recording finished");
+                    enabled = false;
+                }
+                break;
         }
     }
 }
