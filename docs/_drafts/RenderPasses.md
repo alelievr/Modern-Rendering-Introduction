@@ -19,19 +19,19 @@ The objects pass purpose is to draw geometry into one or several render targets.
 
 Another way to see object passes is a pass that project the geometric information of a list of 3D objects on a 2D texture, during this projection, any geometric attribute, surface attribute or lighting data can be extracted, computed and outputed to the resulting images. This give extreme flexibility in the algorithms you can implement later on with the intermediate data.
 
-### Forward Rendering Case
+### Forward Rendering Example
 
 A simple example of rendering objects into a color texture is forward rendering. As previously seen in the [Forward Opaque Rendering](../_articles/TheRenderPipeline.md#forward-opaque-rendering) section, this render pass relies entirely on the object's shader to do the vertex transformation and shading in a single render pass. The output in this case is the color buffer of the camera as well as often accompanied with a depth buffer.
 
 ![](../assets/Recordings/The%20Render%20Pipeline%20-%20Forward.gif)
 
-### Deferred Rendering Case
+### Deferred Rendering Example
 
 Another case would be the part of deferred rendering where objects are rendered in the GBuffer color and depth textures.
 
 ![](../assets/Recordings/The%20Render%20Pipeline%20-%20GBuffer.gif)
 
-### Object Transparency Rendering Case
+### Object Transparency Rendering Example
 
 Transparent object can also be rendered with the forward path but this time using the [Hardware Blending](https://vkguide.dev/docs/new_chapter_3/blending/) of the GPU to simulate the effect of transparency.
 
@@ -55,7 +55,7 @@ The difference between a copy and a blit is that the copy will just do a memory 
 
 ### Post Processing Example
 
-Another very common example is with post processing, the concept is very similar to the copy pass as a simple color post process takes one input image and outputs to anoter one.
+Another very common example is with post processing, the concept is similar to the copy pass as a simple color post process takes one input image and outputs to anoter one. More advanced post process can take several images as input like the color, depth, and do several full-screen passes
 
 ![](../assets/Recordings/Render%20Passes%20-%20Post%20Process.gif)
 
