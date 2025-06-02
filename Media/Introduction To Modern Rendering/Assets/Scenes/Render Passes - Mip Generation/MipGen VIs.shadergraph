@@ -252,7 +252,7 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
-    "m_filter": 2,
+    "m_filter": 1,
     "m_wrap": 1,
     "m_aniso": 0
 }
