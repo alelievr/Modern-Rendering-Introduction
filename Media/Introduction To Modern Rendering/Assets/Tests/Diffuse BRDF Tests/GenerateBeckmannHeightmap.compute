@@ -1,0 +1,41 @@
+#pragma kernel BeckmannHeightMap
+
+#pragma enable_d3d11_debug_symbols  
+
+RWTexture2D<float> _Result;
+
+struct Wave
+{
+    float phi; // phase
+    float fx; // frequency in x direction
+    float fy; // frequency in y direction
+};
+
+StructuredBuffer<Wave> _Waves;
+uint _Resolution;
+uint _WaveCount;
+float _Scale;
+
+// Based on Generating Procedural Beckmann Surfaces - Eric Heitz
+// https://drive.google.com/file/d/0BzvWIdpUpRx_U1NOUjlINmljQzg/view?resourcekey=0-v4_BEatN1wDHRTnTACcIOQ
+[numthreads(8, 8, 1)]
+void BeckmannHeightMap(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id >= _Resolution))
+        return;
+
+    float2 uv = (float2(id.xy) + 0.5) / (float)_Resolution;
+    float2 pixelPosition = id.xy + 0.5;
+
+    float h = 0.0;
+    for (uint i = 0; i < _WaveCount; ++i)
+    {
+        float phi = _Waves[i].phi;
+        float fx = _Waves[i].fx;
+        float fy = _Waves[i].fy;
+
+        h += cos(phi + pixelPosition.x * fx + pixelPosition.y * fy);
+    }
+
+    _Result[id.xy] = h * _Scale;
+}

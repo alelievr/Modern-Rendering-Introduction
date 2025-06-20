@@ -1,0 +1,158 @@
+#pragma kernel Trace
+#pragma kernel ClearLUT
+
+#pragma target 6.6
+
+Texture2D<float> _HeightField;
+SamplerState sampler_HeightField;
+RWTexture3D<float2> _OutputLUT;
+
+RWTexture2D<float4> _DebugTrace;
+
+int  _MaxBounces;
+float _Roughness;
+float3 _RayDir;
+
+uint3 _LUTSize;
+
+float SampleHeightField(float2 uv)
+{
+    // The values in the height field are in the range of around +5 to -5
+    float h = _HeightField.SampleLevel(sampler_HeightField, uv + 0.5, 0);
+
+    // Scale back to approximately 0 to 1
+    return (h + 5) * 0.1;
+}
+
+// naive ray‐march against the height field
+float IntersectHeightField(float3 origin, float3 dir)
+{
+    float stepSize = 0.001;
+    float t = 0;
+
+    for (int i = 0; i < 5000; ++i)
+    {
+        float3 p = origin + t * dir;
+
+        // We remove 1 because the height field is below the plane (to match the POM visualization)
+        float h = SampleHeightField(p.xz) - 1;
+        if (p.y < h)
+        {
+            // If we return this distance, the next point will be under the surface,
+            // so we need to offset it a bit before continuing.
+            return t - stepSize;
+        }
+
+        // If we're above the surface, it means that the ray bounced back so we can stop
+        if (p.y > 0.01 && dir.y > 0)
+            return -1;
+
+        t += stepSize;
+    }
+    return -1;
+}
+
+float3 GetHeightFieldNormal(float2 pos)
+{
+	float2 eps = float2(0.01, 0);
+
+	float HXn = SampleHeightField(pos - eps.xy);
+	float HXp = SampleHeightField(pos + eps.xy);
+	float HYn = SampleHeightField(pos - eps.yx);
+	float HYp = SampleHeightField(pos + eps.yx);
+
+	return normalize(float3( HXn - HXp, HYn - HYp, 2.0 * eps.x));
+}
+
+
+[numthreads(8,8,8)]
+void Trace(uint3 id : SV_DispatchThreadID)
+{
+    uint2 heightFieldDimensions;
+    _HeightField.GetDimensions(heightFieldDimensions.x, heightFieldDimensions.y);
+
+    float3 N = float3(0, 1, 0); // normal in the XZ plane
+    float2 uv = (float2(id.xy) + 0.5) / (float)heightFieldDimensions.xy;
+    
+    float NdotL = dot(N, -_RayDir);
+
+    // Clear debug
+    _DebugTrace[id.xy] = 0;
+
+    // If the light is below the surface, we can skip it because we're only looking at direct diffuse interactions
+    if (NdotL < 0)
+        return;
+    
+    // TODO: make the rays start form a plane towards the patch (each ray has 1 px)
+    float3 up    = normalize(cross(float3(0, 0, 1), _RayDir));
+    float3 right = normalize(cross(up, _RayDir));
+    float2 p = uv - 0.5;
+    float3 rayOrigin = -_RayDir + right * right.z * p.x + up * up.x * p.y;
+
+    // Intersect with a plane to get closer before starting the ray march
+    float3 pos = rayOrigin;
+    float3 dir = normalize(_RayDir);
+
+    float denom = dot(N, _RayDir);
+    if (abs(denom) > 1e-5)
+    {
+        float t = -dot(N, rayOrigin) / denom;
+        pos = rayOrigin + t * _RayDir;
+    }
+
+    pos.y = 0.0;
+    rayOrigin = pos;
+
+    float lastHeight = -5;
+    float3 lastNormal = float3(0, 1, 0);
+    [loop]
+    for (int bounce = 0; bounce < _MaxBounces; ++bounce)
+    {
+        // ray‐march / height field intersection
+        float t = IntersectHeightField(pos, dir);
+        if (t < 0) break;
+
+        // Place starting point at the intersection
+        pos += t * dir;
+
+        float h = SampleHeightField(pos.xz);
+        lastHeight = h;
+
+        // Calculate height field normal
+        float3 normal = GetHeightFieldNormal(pos.xz);
+
+        lastNormal = normal;
+        
+        // TODO: calculate bounce direction using lambertian reflector instead of mirror
+        dir = reflect(dir, normal);
+
+    }
+
+    // Compute the output coordinates in the LUT between 0 and 1
+    float3 outputPosition = float3(
+        NdotL * 0.5 + 0.5, // N.L
+        dot(-_RayDir, dir) * 0.5 + 0.5, // L.V
+        _Roughness
+    );
+
+    float debug = 1 - lastHeight;
+    debug = length(pos - rayOrigin) / 5;
+
+    _DebugTrace[id.xy] = float4(debug, debug, debug, 1); // debug output to visualize the trace
+    // _DebugTrace[id.xy] = float4(lastNormal, 1); // debug output to visualize the trace
+
+    // TODO:
+    // _OutputLUT[(uint3)(outputPosition * _LUTSize)] += 1;
+}
+
+[numthreads(8,8,8)]
+void ClearLUT(uint3 id : SV_DispatchThreadID)
+{
+    uint3 dimensions;
+    _OutputLUT.GetDimensions(dimensions.x, dimensions.y, dimensions.z);
+
+    if (id.x >= dimensions.x || id.y >= dimensions.y || id.z >= dimensions.z)
+        return;
+
+    _OutputLUT[id] = float2(0, 0);
+}
