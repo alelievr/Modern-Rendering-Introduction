@@ -295,6 +295,7 @@ MonoBehaviour:
   lightAngleDegrees: 0
   maxBounces: 8
   debugTrace: {fileID: 8400000, guid: e65fb8665d5b20c4cbf8c3d71967678d, type: 2}
+  debugLinesMaterial: {fileID: 2100000, guid: 5d5964bd75eb1e7479acffc38de153a4, type: 2}
 --- !u!4 &1279102181
 Transform:
   m_ObjectHideFlags: 0

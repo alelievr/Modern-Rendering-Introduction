@@ -75,7 +75,7 @@ Shader "Unlit/VisualizeHeightmap"
 
             float2 ParallaxOcclusionMapping(float2 uv, float3 viewDirTS)
             {
-                float2 dir = normalize(viewDirTS.xy) * _HeightScale / viewDirTS.z;
+                float2 dir = viewDirTS.xy * _HeightScale / viewDirTS.z;
                 float2 delta = -dir / _POMNumSteps;
                 float2 curUV = uv;
                 float curHeight = 0.0;

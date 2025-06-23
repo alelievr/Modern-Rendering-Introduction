@@ -1,6 +1,6 @@
 #pragma kernel BeckmannHeightMap
 
-#pragma enable_d3d11_debug_symbols  
+#pragma enable_d3d11_debug_symbols
 
 RWTexture2D<float> _Result;
 

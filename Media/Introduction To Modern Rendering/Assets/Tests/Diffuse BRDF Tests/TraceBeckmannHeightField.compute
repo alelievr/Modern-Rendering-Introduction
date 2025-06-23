@@ -1,7 +1,14 @@
 #pragma kernel Trace
 #pragma kernel ClearLUT
 
-#pragma target 6.6
+#pragma target 5.0
+
+#pragma enable_d3d11_debug_symbols
+
+#include "DebugLines.hlsl"
+#include "Random.hlsl"
+
+#define PI 3.14159265358979323846
 
 Texture2D<float> _HeightField;
 SamplerState sampler_HeightField;
@@ -13,6 +20,8 @@ int  _MaxBounces;
 float _Roughness;
 float3 _RayDir;
 
+float2 _DebugCursorPosition;
+
 uint3 _LUTSize;
 
 float SampleHeightField(float2 uv)
@@ -21,7 +30,9 @@ float SampleHeightField(float2 uv)
     float h = _HeightField.SampleLevel(sampler_HeightField, uv + 0.5, 0);
 
     // Scale back to approximately 0 to 1
-    return (h + 5) * 0.1;
+    float h01 = (h + 5) * 0.1;
+
+    return h01;
 }
 
 // naive ray‐march against the height field
@@ -40,7 +51,7 @@ float IntersectHeightField(float3 origin, float3 dir)
         {
             // If we return this distance, the next point will be under the surface,
             // so we need to offset it a bit before continuing.
-            return t - stepSize;
+            return t - stepSize * 2;
         }
 
         // If we're above the surface, it means that the ray bounced back so we can stop
@@ -64,10 +75,43 @@ float3 GetHeightFieldNormal(float2 pos)
 	return normalize(float3( HXn - HXp, HYn - HYp, 2.0 * eps.x));
 }
 
+// Build orthonormal basis from a 3D Unit Vector Without normalization
+// https://backend.orbit.dtu.dk/ws/portalfiles/portal/126824972/onb_frisvad_jgt2012_v2.pdf
+void BuildOrthonormalBasis(float3 normal, out float3 tangent, out float3 biTangent)
+{
+    float a = normal.z > -0.9999999f ? 1.0f / (1.0f + normal.z) : 0.0f;
+    float b = -normal.x * normal.y * a;
 
-[numthreads(8,8,8)]
+    tangent = float3(1.0f - normal.x * normal.x * a, b, -normal.x);
+    biTangent = float3(b, 1.0f - normal.y * normal.y * a, -normal.y);
+}
+
+// Generate a random direction on the hemisphere using the cosine-weighted distribution
+float3 GetRandomDirection(float3 normal)
+{
+    // Bounce off the surface using random direction
+    float3 tangent, biTangent;
+    BuildOrthonormalBasis(normal, tangent, biTangent);
+
+    float r1 = NextRandomFloat();
+    float r2 = NextRandomFloat();
+
+    float	cosTheta = sqrt(r1);
+    float	sinTheta = sqrt(1.0 - r1);
+    float2	scPhi;
+    sincos( 2.0 * PI * r2, scPhi.x, scPhi.y );
+
+    float3	lsDirection = float3(sinTheta * scPhi.x, sinTheta * scPhi.y, cosTheta);
+
+    return normalize(lsDirection.x * tangent + lsDirection.y * biTangent + lsDirection.z * normal);
+}
+
+
+[numthreads(8,8,1)]
 void Trace(uint3 id : SV_DispatchThreadID)
 {
+    InitRandomSeed(uint4(id, 0));
+
     uint2 heightFieldDimensions;
     _HeightField.GetDimensions(heightFieldDimensions.x, heightFieldDimensions.y);
 
@@ -78,6 +122,9 @@ void Trace(uint3 id : SV_DispatchThreadID)
 
     // Clear debug
     _DebugTrace[id.xy] = 0;
+    bool isDebugThread = id.x == (uint)_DebugCursorPosition.x && id.y == (uint)_DebugCursorPosition.y;
+
+    isDebugThread = id.x == 512 && id.y == 512;
 
     // If the light is below the surface, we can skip it because we're only looking at direct diffuse interactions
     if (NdotL < 0)
@@ -110,6 +157,14 @@ void Trace(uint3 id : SV_DispatchThreadID)
     {
         // ray‐march / height field intersection
         float t = IntersectHeightField(pos, dir);
+        
+        // Debug ray tracing code
+        if (isDebugThread)
+        {
+            float d = t > 0 ? t : 1;
+            AddDebugLine(pos, pos + dir * d, float4(1, 0, 0, 1));
+        }
+
         if (t < 0) break;
 
         // Place starting point at the intersection
@@ -124,8 +179,7 @@ void Trace(uint3 id : SV_DispatchThreadID)
         lastNormal = normal;
         
         // TODO: calculate bounce direction using lambertian reflector instead of mirror
-        dir = reflect(dir, normal);
-
+        dir = GetRandomDirection(normal);
     }
 
     // Compute the output coordinates in the LUT between 0 and 1
@@ -155,4 +209,7 @@ void ClearLUT(uint3 id : SV_DispatchThreadID)
         return;
 
     _OutputLUT[id] = float2(0, 0);
+
+    if (id.x == 0 && id.y == 0 && id.z == 0)
+        _IndirectLineDrawArgs[0].instanceCount = 0;
 }

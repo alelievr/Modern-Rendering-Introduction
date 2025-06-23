@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: VisualizeHeightmap
-  m_Shader: {fileID: 4800000, guid: 1c42713c1eb1c9c44bf63b8c7ee3f0fd, type: 3}
+  m_Name: DebugLines
+  m_Shader: {fileID: 4800000, guid: 6e7cc6056512e6f4f9262cfa89e6b2a9, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -24,15 +24,11 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _MainTex:
-        m_Texture: {fileID: 8400000, guid: 3593d6d56c13d714c9500411944c9a41, type: 2}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
-    m_Floats:
-    - _HeightScale: 0.0203
-    - _POMNumSteps: 1024
-    - _ViewMode: 1
-    m_Colors:
-    - _Remap: {r: -3, g: 3, b: 0, a: 0}
+    m_Floats: []
+    m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1
