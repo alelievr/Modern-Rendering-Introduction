@@ -41,7 +41,7 @@ hidden: true
 - Rasterization [complete]
 - Bindless Bindings [complete]
 - The Render Pipeline [complete]
-- Render Passes
+- Render Passes [complete]
 - Visibility Pass
 - Forward Opaque Pass
 - Sky Pass
