@@ -13,6 +13,9 @@ public class TraceBeckmannHeightField : MonoBehaviour
     [Header("Tracing Settings")]
     [Range(1, 10)] public int maxBounces = 3;
 
+    // This is the number of ray we launch to accumulate a single dimension of the LUT per pixel.
+    public int rayCountPerDimension = 4;
+
     [Header("Debug")]
     public RenderTexture debugTrace;
     public Material debugLinesMaterial;
@@ -20,12 +23,16 @@ public class TraceBeckmannHeightField : MonoBehaviour
     GraphicsBuffer debugLinesArgs;
     GraphicsBuffer debugLinesData;
 
+    int rayCounter = 0;
+
     void OnEnable()
     {
         debugLinesArgs = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 1, GraphicsBuffer.IndirectDrawArgs.size);
         debugLinesArgs.SetData(new uint[] { 2, 0, 0, 0 });
 
         debugLinesData = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 65536, sizeof(float) * 10);
+
+        DispatchClearLUT();
     }
 
     void OnDisable()
@@ -39,9 +46,12 @@ public class TraceBeckmannHeightField : MonoBehaviour
 
     void Update()
     {
-        DispatchClearLUT();
+        DispatchClearDebug();
 
-        DispatchTrace();
+        if (rayCounter < rayCountPerDimension)
+            DispatchTrace();
+
+        rayCounter++;
     }
 
     void DispatchTrace()
@@ -54,6 +64,7 @@ public class TraceBeckmannHeightField : MonoBehaviour
         traceCS.SetBuffer(0, "_IndirectLineDrawArgs", debugLinesArgs);
 
         traceCS.SetInt("_MaxBounces", maxBounces);
+        traceCS.SetInt("_Seed", Time.frameCount);
 
         // The output LUT stores N.L in X, L.V in Y, and roughness in Z
         traceCS.SetVector("_LUTSize", new Vector3(outputLUT.width, outputLUT.height, outputLUT.volumeDepth));
@@ -125,5 +136,11 @@ public class TraceBeckmannHeightField : MonoBehaviour
         traceCS.SetTexture(1, "_OutputLUT", outputLUT);
         traceCS.SetBuffer(1, "_IndirectLineDrawArgs", debugLinesArgs);
         traceCS.Dispatch(1, Mathf.CeilToInt(outputLUT.width / 8.0f), Mathf.CeilToInt(outputLUT.height / 8.0f), Mathf.CeilToInt(outputLUT.volumeDepth / 8.0f));
+    }
+
+    void DispatchClearDebug()
+    {
+        traceCS.SetBuffer(2, "_IndirectLineDrawArgs", debugLinesArgs);
+        traceCS.Dispatch(2, 1, 1, 1);
     }
 }

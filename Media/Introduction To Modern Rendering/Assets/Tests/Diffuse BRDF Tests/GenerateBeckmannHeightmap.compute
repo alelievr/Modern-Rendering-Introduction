@@ -24,7 +24,6 @@ void BeckmannHeightMap(uint3 id : SV_DispatchThreadID)
     if (any(id >= _Resolution))
         return;
 
-    float2 uv = (float2(id.xy) + 0.5) / (float)_Resolution;
     float2 pixelPosition = id.xy + 0.5;
 
     float h = 0.0;
