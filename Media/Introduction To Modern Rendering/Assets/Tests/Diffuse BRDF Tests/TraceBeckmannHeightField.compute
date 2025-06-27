@@ -231,7 +231,10 @@ void Trace(uint3 id : SV_DispatchThreadID)
     _DebugTrace[id.xy] = float4(debug, debug, debug, 1); // debug output to visualize the trace
     // _DebugTrace[id.xy] = float4(lastNormal, 1); // debug output to visualize the trace
 
-    InterlockedAdd(_OutputLUT[(uint3)(saturate(outputPosition) * (_LUTSize - 1))], 1);
+
+    outputPosition = clamp(outputPosition, 0, 0.999);
+    uint3 o = (uint3)(floor(outputPosition * _LUTSize));
+    InterlockedAdd(_OutputLUT[o], 1);
     // TODO:
     // InterlockedAdd(_OutputLUT[(uint3)(saturate(outputPosition) * _LUTSize)].y, bounceCount);
 }

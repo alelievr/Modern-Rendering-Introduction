@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -23,8 +25,6 @@ public class TraceBeckmannHeightField : MonoBehaviour
     GraphicsBuffer debugLinesArgs;
     GraphicsBuffer debugLinesData;
 
-    int rayCounter = 0;
-
     void OnEnable()
     {
         debugLinesArgs = new GraphicsBuffer(GraphicsBuffer.Target.IndirectArguments, 1, GraphicsBuffer.IndirectDrawArgs.size);
@@ -33,6 +33,8 @@ public class TraceBeckmannHeightField : MonoBehaviour
         debugLinesData = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 65536, sizeof(float) * 10);
 
         DispatchClearLUT();
+
+        StartCoroutine(GenerateLUT());
     }
 
     void OnDisable()
@@ -44,15 +46,60 @@ public class TraceBeckmannHeightField : MonoBehaviour
         }
     }
 
-    void Update()
+
+    IEnumerator GenerateLUT()
     {
-        DispatchClearDebug();
+        HashSet<int> bucks = new HashSet<int>();
 
-        if (rayCounter < rayCountPerDimension)
-            DispatchTrace();
+        for (int x = 0; x < outputLUT.width; x++)
+        {
+            // TODO: generate beckmann height field with specific roughness here
 
-        rayCounter++;
+            for (int y = 0; y < outputLUT.height; y++)
+            {
+                float ndotl = Mathf.Lerp(-1, 1, y / (float)outputLUT.width);
+                ndotl += 0.5f / outputLUT.width; // evaluate the center pixel of the LUT
+
+                // convert back to degrees
+                lightAngleDegrees = Mathf.Acos(ndotl) * Mathf.Rad2Deg;
+
+                int b = Mathf.FloorToInt(ndotl * outputLUT.width);
+                Debug.Log(lightAngleDegrees + " , " + ndotl + " , " + b);
+                if (!bucks.Add(b))
+                {
+                    Debug.LogError("Bucket " + b + " already exists for angle " + lightAngleDegrees);
+                }
+
+                for (int r = 0; r < rayCountPerDimension; r++)
+                    {
+                        DispatchClearDebug();
+                        DispatchTrace();
+                        yield return new WaitForEndOfFrame();
+                    }
+
+                yield return new WaitForEndOfFrame();
+            }
+
+            yield break;
+        }
     }
+
+    // void Update()
+    // {
+    //     DispatchClearDebug();
+
+    //     lightAngleDegrees = Mathf.Lerp(0, 90, ndotlCounter / (float)outputLUT.width);
+    //     if (rayCounter < rayCountPerDimension)
+    //         DispatchTrace();
+
+    //     rayCounter++;
+
+    //     if (rayCounter == rayCountPerDimension)
+    //     {
+    //         rayCounter = 0;
+    //         ndotlCounter++;
+    //     }
+    // }
 
     void DispatchTrace()
     {
