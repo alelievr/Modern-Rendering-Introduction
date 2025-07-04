@@ -12,6 +12,8 @@
 #define PI 3.14159265358979323846
 
 // #define DEBUG_NORMAL_HIT
+#define DEBUG_REFLECTED_DIR
+// #define DEBUG_INTERSECTION_CURSOR
 
 Texture2D<float> _HeightField;
 SamplerState sampler_HeightField;
@@ -188,12 +190,22 @@ void Trace(uint3 id : SV_DispatchThreadID)
         // ray‐march / height field intersection
         float t = IntersectHeightField(pos, dir, localToWorldScale);
 
+#ifdef DEBUG_REFLECTED_DIR
+        if (t < 0)
+        {
+            // show only output ray dir
+            AddDebugLine(0, dir, float4(1, 0, 0, 1));
+        }
+#endif
+
+#ifdef DEBUG_INTERSECTION_CURSOR
         // Debug ray tracing code
         if (g_IsDebugThread)
         {
             float d = t > 0 ? t : 1;
             AddDebugLine(pos, pos + dir * d, float4(ColorFromIteration(bounceCount), 1));
         }
+#endif
 
         if (t < 0) break;
 
@@ -206,11 +218,6 @@ void Trace(uint3 id : SV_DispatchThreadID)
         // Calculate height field normal
         float3 normal = GetHeightFieldNormal(pos.xz, localToWorldScale);
 
-        if (g_IsDebugThread)
-        {
-            AddDebugLine(pos, pos + normal * 0.1, float4(0, 1, 0, 1)); // visualize the normal
-        }
-
         lastNormal = normal;
         
         // Random direction on the hemisphere
@@ -218,9 +225,14 @@ void Trace(uint3 id : SV_DispatchThreadID)
         // dir = reflect(dir, -normal);
     }
 
+    // If we didn't hit the surface, we don't write to the LUT
+    // In theory this is incorrect because the ray should hit the surface somewhere but the tracing is approximate
+    if (bounceCount == 0)
+        return;
+
     // Compute the output coordinates in the LUT between 0 and 1
     float3 outputPosition = float3(
-        NdotL * 0.5 + 0.5, // N.L
+        NdotL, // N.L
         dot(-_RayDir, dir) * 0.5 + 0.5, // L.V
         _Roughness
     );
@@ -230,7 +242,6 @@ void Trace(uint3 id : SV_DispatchThreadID)
 
     _DebugTrace[id.xy] = float4(debug, debug, debug, 1); // debug output to visualize the trace
     // _DebugTrace[id.xy] = float4(lastNormal, 1); // debug output to visualize the trace
-
 
     outputPosition = clamp(outputPosition, 0, 0.999);
     uint3 o = (uint3)(floor(outputPosition * _LUTSize));

@@ -1,0 +1,16 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel NormalizeLUT
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+Texture3D<uint> _Input;
+RWTexture3D<float> _Output;
+
+float _HitCountPerPixel;
+
+[numthreads(8,8,1)]
+void NormalizeLUT(uint3 id : SV_DispatchThreadID)
+{
+    _Output[id] = _Input[id] / _HitCountPerPixel;
+    // TODO: merge saturation data as well
+}
