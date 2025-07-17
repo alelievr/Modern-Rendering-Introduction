@@ -6,6 +6,7 @@ Shader "Unlit/Visualize3DTextureUInt"
         _Tex3D("3D Texture", 3D) = "" {}
         [Enum(Point, 0, Bilinear, 1, Trilinear, 2)] _FilterMode("Filter Mode", Float) = 0
         _SamplePerPixels("Sample Per Pixel", Float) = 4 // Set this to the total number of samples used for normalization
+        _Show0Axis("Show 0 Axis", Float) = 1 // If enabled, will show the 0 axis in red
     }
     SubShader
     {
@@ -46,6 +47,7 @@ Shader "Unlit/Visualize3DTextureUInt"
             float _TotalSampleCount;
             float _FilterMode;
             float _SamplePerPixels;
+            float _Show0Axis;
 
             float LoadNormalizedHitCount(uint3 coord)
             {
@@ -76,8 +78,6 @@ Shader "Unlit/Visualize3DTextureUInt"
                 coord.xy = uint2(i.uv * size.xy);
                 coord.z = uint(_Slice * (size.z - 1) + 0.5);
                 
-                _TotalSampleCount = 1024 * 1024; // TODO: send value from C#
-
                 float throughput = 0.0f;
                 switch ((uint)_FilterMode)
                 {
@@ -120,8 +120,19 @@ Shader "Unlit/Visualize3DTextureUInt"
                 }
 
                 throughput /= _SamplePerPixels;
+                float3 color = throughput;
 
-                return fixed4(throughput, throughput, throughput, 1.0);
+                if (_Show0Axis > 0)
+                {
+                    if (coord.x == 0)
+                        color.x = 1.0;
+                    if (coord.y == 0)
+                        color.y = 1.0;
+                    if (coord.z == 0)
+                        color.z = 1.0;
+                }
+
+                return fixed4(color, 1.0);
             }
             ENDHLSL
         }

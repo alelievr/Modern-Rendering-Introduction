@@ -28,6 +28,7 @@ public class TraceBeckmannHeightField : MonoBehaviour
     public Material debugLinesMaterial;
     public bool forceRoughness = false;
     public float forceRoughnessValue = 0.5f;
+    public Material visualizeLUT; 
 
     GraphicsBuffer debugLinesArgs;
     GraphicsBuffer debugLinesData;
@@ -77,6 +78,10 @@ public class TraceBeckmannHeightField : MonoBehaviour
             if (forceRoughness)
                 roughness = forceRoughnessValue;
 
+            visualizeLUT.SetFloat("_Slice", roughness);
+            visualizeLUT.SetFloat("_TotalSampleCount", beckmannHeightField.width * beckmannHeightField.height);
+            visualizeLUT.SetFloat("_SamplePerPixels", rayCountPerDimension);
+
             // Isotropic roughness as we have only 1 dimensions reserved for roughness
             beckmannHeightmap.alphaX = beckmannHeightmap.alphaY = roughness;
 
@@ -91,7 +96,7 @@ public class TraceBeckmannHeightField : MonoBehaviour
                 {
                     DispatchClearDebug();
                     DispatchTrace();
-                    yield return new WaitForEndOfFrame();
+                    // yield return new WaitForEndOfFrame();
                 }
 
                 yield return new WaitForEndOfFrame();
@@ -146,7 +151,7 @@ public class TraceBeckmannHeightField : MonoBehaviour
         traceCS.SetFloat("_Roughness", beckmannHeightmap.alphaX);
 
         traceCS.SetInt("_MaxBounces", maxBounces);
-        traceCS.SetInt("_Seed", Time.frameCount);
+        traceCS.SetInt("_Seed", Time.frameCount * 1000 + Random.Range(0, 1000));
 
         // The output LUT stores N.L in X, L.V in Y, and roughness in Z
         traceCS.SetVector("_LUTSize", new Vector3(outputLUT.width, outputLUT.height, outputLUT.volumeDepth));

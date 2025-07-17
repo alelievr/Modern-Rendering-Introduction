@@ -31,4 +31,9 @@ This book is a classic reference on real-time computer graphics techniques—man
 
 ## [SIGGRAPH PBR Courses](https://github.com/neil3d/awesome-pbr)
 
-This curated collection features many talks and presentations from SIGGRAPH on physically based rendering (PBR). It includes both introductory and advanced material—well worth exploring if you're looking to deepen your understanding of PBR.
+This curated collection features many talks and presentations from SIGGRAPH on physically based rendering (PBR). It includes both introductory and advanced material worth exploring if you're looking to deepen your understanding of PBR.
+
+
+## [The Graphics Codex](https://graphicscodex.com/)
+
+A concise graphics dictionary by Morgan McGuire covering topics like shading, rendering, math, and physically based rendering. It’s well-suited for learning fundamentals, exploring advanced techniques, or quickly referencing equations and code. Content is clear, cross-referenced, and accessible through a searchable web or app interface.
