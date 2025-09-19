@@ -135,6 +135,7 @@ float3 EvaluateGlossySlab(BSDFData bsdf, float3 wo, float3 wi, float pdf)
     float NdotL = max(0.0, dot(bsdf.normalWS, wi));
     float NdotV = max(0.0, dot(bsdf.normalWS, wo));
     float NdotH = max(0.0, dot(bsdf.normalWS, h));
+    float VdotH = max(0.0, dot(h, wo));
 
     if (NdotL == 0.0 || NdotV == 0.0)
         return 0.0; // No contribution
@@ -207,17 +208,59 @@ bool EvaluateOpenPBRSurface(BSDFData bsdf, float3 outgoingDirectionWS, out float
     // Evaluate random for the new direction
     float u1 = FloatHash21(outgoingDirectionWS.xy + float2(pathTracingFrameIndex * 0.001, pathTracingFrameIndex * 0.0017));
     float u2 = FloatHash21(outgoingDirectionWS.yz + float2(pathTracingFrameIndex * 0.0017, pathTracingFrameIndex * 0.0023));
+    float u3 = FloatHash21(outgoingDirectionWS.xz + float2(pathTracingFrameIndex * 0.0013, pathTracingFrameIndex * 0.0019));
     
-    // Determine next direction using importance sampling of roughness only to keep things simple
-    float3 microfacetNormalTS = GetRandomDirectionGGX_VNDF(outgoingDirectionTS, bsdf.diffuseRoughness, u1, u2);
+    // Use the properly computed F0 and diffuse color from the material evaluation
+    float3 f0 = bsdf.specularColor;
+    float3 diffuseColor = bsdf.baseColor;
     
+    // Choose between diffuse and specular sampling based on energy
+    float3 specularReflectance = FresnelSchlick(f0, max(0.0, dot(bsdf.normalWS, outgoingDirectionWS)));
+    float specularWeight = max(specularReflectance.r, max(specularReflectance.g, specularReflectance.b));
+    float diffuseWeight = (1.0 - specularWeight) * dot(diffuseColor, float3(0.299, 0.587, 0.114)); // Luminance
+    float totalWeight = specularWeight + diffuseWeight;
     
-    float3 incomingDirectionTS = reflect(-outgoingDirectionTS, microfacetNormalTS);
+    if (totalWeight < FLOAT_EPSYLON)
+    {
+        incomingDirectionWS = 0;
+        throughput = 0.0;
+        return false;
+    }
+    
+    float specularProbability = specularWeight / totalWeight;
+    
+    float3 incomingDirectionTS;
+    float pdf;
+    bool isSpecular = u3 < specularProbability;
+    
+    if (isSpecular)
+    {
+        // Sample specular reflection using GGX VNDF
+        float3 microfacetNormalTS = GetRandomDirectionGGX_VNDF(outgoingDirectionTS, bsdf.specularRoughness, u1, u2);
+        incomingDirectionTS = reflect(-outgoingDirectionTS, microfacetNormalTS);
+        
+        // Compute PDF for specular sampling
+        float3 h = normalize(outgoingDirectionTS + incomingDirectionTS);
+        float NdotH = max(0.0, h.y); // Normal is (0,1,0) in tangent space
+        float VdotH = max(0.0, dot(outgoingDirectionTS, h));
+        pdf = D_GGX(NdotH, bsdf.specularRoughness) * NdotH / (4.0 * VdotH) * specularProbability;
+    }
+    else
+    {
+        // Sample diffuse reflection using cosine-weighted hemisphere
+        float cosTheta = sqrt(max(0.0, u1));
+        float sinTheta = sqrt(max(0.0, 1.0 - u1));
+        float phi = 2.0 * PI * u2;
+        
+        incomingDirectionTS = float3(sinTheta * cos(phi), cosTheta, sinTheta * sin(phi));
+        pdf = cosTheta * INV_PI * (1.0 - specularProbability);
+    }
     
     // Convert back to world space
     incomingDirectionWS = mul(incomingDirectionTS, tangentFrame);
     
-    if (microfacetNormalTS.y < 0.001 || dot(bsdf.geometricNormalWS, incomingDirectionWS) < 0)
+    // Check for valid directions
+    if (incomingDirectionTS.y < 0.001 || dot(bsdf.geometricNormalWS, incomingDirectionWS) < 0)
     {
         incomingDirectionWS = 0;
         throughput = 0.0;
@@ -231,24 +274,154 @@ bool EvaluateOpenPBRSurface(BSDFData bsdf, float3 outgoingDirectionWS, out float
     float VdotH = max(0.0, dot(outgoingDirectionWS, h));
     float NdotH = max(0.0, dot(bsdf.normalWS, h));
     
-    float pdf = 1.0; // TODO
-    //float pdf = bsdf.diffuseRoughness > 0.001 ? D_GGX(NdotH, bsdf.diffuseRoughness) * NdotH / (4.0 * VdotH) : 1.0;
+    if (pdf < FLOAT_EPSYLON)
+    {
+        incomingDirectionWS = 0;
+        throughput = 0.0;
+        return false;
+    }
     
-    // Compute the diffuse part of the surface, using the energy conserving Oren-Nayar BRDF in OpenPBR
-    float3 diffuseSlab = EvaluateDiffuseSlab(bsdf, outgoingDirectionWS, incomingDirectionWS, pdf);
+    // Compute the diffuse and specular components
+    float3 diffuseBRDF = float3(0, 0, 0);
+    float3 specularBRDF = float3(0, 0, 0);
     
-    // Compute the glossy part of the surface, using the Cook-Torrance microfacet model;
-    float3 glossySlab = EvaluateGlossySlab(bsdf, outgoingDirectionWS, incomingDirectionWS, pdf);
+    // Only evaluate diffuse if we have non-zero diffuse color (non-metallic)
+    if (dot(diffuseColor, diffuseColor) > FLOAT_EPSYLON)
+    {
+        float3 eon = oren_nayar_compensated_diffuse(NdotV, NdotL, dot(incomingDirectionWS, outgoingDirectionWS), bsdf.diffuseRoughness, diffuseColor);
+        diffuseBRDF = eon * INV_PI;
+    }
     
-    // The glossy BRDF is layered on top of the diffuse BRDF:
-    // Compute the directional reflectance of the glossy BRDF
-    // This is the part of the light that is reflected by the glossy slab
-    // The rest of the light is transmitted to the diffuse slab underneeth
-    // We use this factor to combine both BRDFs while conserving energy
-    float3 glossyDirectionalReflectance = ComputeGlossyDirectionalReflectance(NdotV, bsdf.diffuseRoughness, bsdf.specularColor);
+    // Evaluate specular BRDF
+    float D = D_GGX(NdotH, bsdf.specularRoughness);
+    float G = G_MaskingSmithGGX(NdotV, bsdf.specularRoughness) * G_MaskingSmithGGX(NdotL, bsdf.specularRoughness);
+    float3 F = FresnelSchlick(f0, VdotH);
+    
+    specularBRDF = (D * G * F) / (4.0 * NdotV * NdotL + FLOAT_EPSYLON);
+    
+    // Combine contributions according to OpenPBR layering model
+    float3 brdf = diffuseBRDF + specularBRDF;
     
     // Apply cosine term and divide by PDF
     throughput = brdf * NdotL / pdf;
     
     return true;
+}
+
+// Environment lighting evaluation functions for reuse across rendering paths
+
+// Evaluate diffuse BRDF for environment lighting (without cosine term)
+float3 EvaluateDiffuseBRDF(BSDFData bsdf, float3 wo, float3 wi)
+{
+    float NdotL = max(0.0, dot(bsdf.normalWS, wi));
+    float NdotV = max(0.0, dot(bsdf.normalWS, wo));
+    
+    if (NdotL <= 0.0 || NdotV <= 0.0)
+        return float3(0, 0, 0);
+    
+    // Only evaluate diffuse if we have non-zero diffuse color (non-metallic)
+    if (dot(bsdf.baseColor, bsdf.baseColor) <= FLOAT_EPSYLON)
+        return float3(0, 0, 0);
+    
+    float3 eon = oren_nayar_compensated_diffuse(NdotV, NdotL, dot(wi, wo), bsdf.diffuseRoughness, bsdf.baseColor);
+    return eon * INV_PI;
+}
+
+// Evaluate specular BRDF for environment lighting (without cosine term)
+float3 EvaluateSpecularBRDF(BSDFData bsdf, float3 wo, float3 wi)
+{
+    float3 h = normalize(wo + wi);
+    float NdotL = max(0.0, dot(bsdf.normalWS, wi));
+    float NdotV = max(0.0, dot(bsdf.normalWS, wo));
+    float NdotH = max(0.0, dot(bsdf.normalWS, h));
+    float VdotH = max(0.0, dot(wo, h));
+    
+    if (NdotL <= 0.0 || NdotV <= 0.0)
+        return float3(0, 0, 0);
+    
+    // Compute the GGX reflection using Cook-Torrance microfacet model
+    float D = D_GGX(NdotH, bsdf.specularRoughness);
+    float G = G_MaskingSmithGGX(NdotV, bsdf.specularRoughness) * G_MaskingSmithGGX(NdotL, bsdf.specularRoughness);
+    float3 F = FresnelSchlick(bsdf.specularColor, VdotH);
+    
+    return (D * G * F) / (4.0 * NdotV * NdotL + FLOAT_EPSYLON);
+}
+
+// Combined BRDF evaluation for a single light direction
+float3 EvaluateOpenPBRBRDF(BSDFData bsdf, float3 wo, float3 wi)
+{
+    float3 diffuse = EvaluateDiffuseBRDF(bsdf, wo, wi);
+    float3 specular = EvaluateSpecularBRDF(bsdf, wo, wi);
+    return diffuse + specular;
+}
+
+// Simplified environment reflection evaluation for rasterization
+float3 EvaluateEnvironmentReflection(BSDFData bsdf, float3 viewDir, float3 reflectionColor)
+{
+    float NdotV = max(0.0, dot(bsdf.normalWS, viewDir));
+    
+    // Apply Fresnel for environment reflections
+    float3 F = FresnelSchlick(bsdf.specularColor, NdotV);
+    
+    // Apply a simple approximation for the geometry and distribution terms
+    // In a full IBL implementation, this would use precomputed BRDF integration
+    float roughnessApprox = bsdf.specularRoughness;
+    float envBRDFApprox = (1.0 - roughnessApprox) * 0.8 + 0.2; // Simple approximation
+    
+    return reflectionColor * F * envBRDFApprox;
+}
+
+// Ambient diffuse evaluation for environment lighting
+float3 EvaluateAmbientDiffuse(BSDFData bsdf, float3 ambientColor)
+{
+    // Only apply ambient diffuse if we have non-zero diffuse color (non-metallic)
+    if (dot(bsdf.baseColor, bsdf.baseColor) <= FLOAT_EPSYLON)
+        return float3(0, 0, 0);
+    
+    return bsdf.baseColor * ambientColor;
+}
+
+// Directional environment lighting (for key light approximation)
+float3 EvaluateDirectionalEnvironment(BSDFData bsdf, float3 lightDir, float3 lightColor, float3 viewDir)
+{
+    float NdotL = max(0.0, dot(bsdf.normalWS, lightDir));
+    
+    if (NdotL <= 0.0)
+        return float3(0, 0, 0);
+    
+    // Evaluate full BRDF for directional lighting
+    float3 brdf = EvaluateOpenPBRBRDF(bsdf, viewDir, lightDir);
+    
+    return brdf * lightColor * NdotL;
+}
+
+// Multiple directional environment sampling for better lighting quality
+float3 EvaluateMultiDirectionalEnvironment(BSDFData bsdf, float3 viewDir, Texture2D<float4> envTexture, SamplerState envSampler)
+{
+    float3 totalRadiance = float3(0, 0, 0);
+    
+    // Sample multiple directions with different weights
+    float3 directions[6] = {
+        float3(0, 1, 0),        // Up
+        float3(0, 0.3, 1),      // Front-up
+        float3(1, 0.2, 0),      // Right-up
+        float3(-1, 0.2, 0),     // Left-up
+        float3(0, 0.3, -1),     // Back-up
+        float3(0, -0.5, 0)      // Down (softer)
+    };
+    
+    float weights[6] = { 0.4, 0.2, 0.15, 0.15, 0.1, 0.05 };
+    float roughnessLevels[6] = { 0.5, 0.7, 0.8, 0.8, 0.9, 1.0 };
+    
+    for (int i = 0; i < 6; ++i)
+    {
+        float3 lightDir = normalize(directions[i]);
+        float2 uv = DirectionToLatLongCoordinate(lightDir);
+        float mipLevel = roughnessLevels[i] * 8.0;
+        float3 lightColor = envTexture.SampleLevel(envSampler, uv, mipLevel).rgb * weights[i];
+        
+        totalRadiance += EvaluateDirectionalEnvironment(bsdf, lightDir, lightColor, viewDir);
+    }
+    
+    return totalRadiance;
 }

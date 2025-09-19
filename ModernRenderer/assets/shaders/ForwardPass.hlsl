@@ -1,7 +1,10 @@
 #include "Common.hlsl"
 #include "MeshUtils.hlsl"
+#include "Material.hlsl"
+#include "BSDF.hlsl"
 
 Texture2D<uint> _VisibilityTexture : register(t1, space2);
+Texture2D<float4> _SkyTextureLatLong : register(t0, space3);
 
 struct ForwardMeshToFragment
 {
@@ -146,6 +149,27 @@ void mesh(
     vertices[2] = GetFullscreenTriangleVertex(2);
 }
 
+float3 SampleEnvironmentMap(float3 direction, float roughness)
+{
+    // Convert 3D direction to latlong UV coordinates
+    float2 uv = DirectionToLatLongCoordinate(direction);
+    
+    // Use roughness to determine mip level for diffuse vs specular sampling
+    // Higher roughness = higher mip (blurrier)
+    float mipLevel = roughness * 8.0; // Assuming max 8 mip levels
+    
+    float4 envColor = _SkyTextureLatLong.SampleLevel(linearRepeatSampler, uv, mipLevel);
+    return envColor.rgb;
+}
+
+float3 SampleAmbientEnvironment()
+{
+    // Sample the highest mip level for ambient lighting
+    float2 uv = float2(0.5, 0.5); // Sample center, though it doesn't matter for highest mip
+    float4 envColor = _SkyTextureLatLong.SampleLevel(linearRepeatSampler, uv, 10.0); // Very high mip for ambient
+    return envColor.rgb * 0.1; // Scale down ambient contribution
+}
+
 float4 fragment(ForwardMeshToFragment input) : SV_TARGET0
 {
     uint visibilityData = _VisibilityTexture.Load(uint3(input.positionCS.xy, 0));
@@ -173,19 +197,47 @@ float4 fragment(ForwardMeshToFragment input) : SV_TARGET0
     pixelNDC.y = -pixelNDC.y;
     BarycentricDeriv bary = CalcFullBary(attrib0.positionCS, attrib1.positionCS, attrib2.positionCS, pixelNDC, cameraResolution.zw * 2);
     
-    // Interpolate
+    // Interpolate vertex attributes
     float3 normal, normalDDX, normalDDY;
     InterpolateWithDeriv(bary, attrib0.normal, attrib1.normal, attrib2.normal, normal, normalDDX, normalDDY);
     float2 uv, uvDDX, uvDDY;
     InterpolateWithDeriv(bary, attrib0.uv, attrib1.uv, attrib2.uv, uv, uvDDX, uvDDY);
+    float3 worldPos, worldPosDDX, worldPosDDY;
+    InterpolateWithDeriv(bary, attrib0.positionWS, attrib1.positionWS, attrib2.positionWS, worldPos, worldPosDDX, worldPosDDY);
+    float3 tangent, tangentDDX, tangentDDY;
+    InterpolateWithDeriv(bary, attrib0.tangent, attrib1.tangent, attrib2.tangent, tangent, tangentDDX, tangentDDY);
     
-    // Shade material surface with lighting
-    MaterialData material = materialBuffer.Load(instance.materialIndex);
+    // Normalize interpolated vectors
+    normal = normalize(normal);
+    tangent = normalize(tangent);
     
-    // Apply fog
+    // Evaluate material properties using the same system as ray tracing
+    BSDFData bsdf = EvaluateMaterial(instance, normal, tangent, uv);
     
-    //return float4(GetRandomColor(visibleMeshetID), 1);
-    //return float4(GetRandomColor(triangleID), 1);
-    return float4(normal * 0.5 + 0.5, 1);
-    //return float4(material.diffuseRoughness.xxx, 1);
+    // Get absolute world position for lighting calculations
+    float3 absoluteWorldPos = GetAbsolutePosition(worldPos);
+    float3 viewDir = normalize(cameraPosition.xyz - absoluteWorldPos);
+    
+    // Environment-based lighting using reusable BRDF functions
+    float3 totalRadiance = float3(0, 0, 0);
+    
+    // 1. Ambient lighting from environment map (using highest mip level)
+    float3 ambientLight = SampleAmbientEnvironment();
+    totalRadiance += EvaluateAmbientDiffuse(bsdf, ambientLight);
+    
+    // 2. Specular reflection from environment map
+    float3 reflectionDir = reflect(-viewDir, bsdf.normalWS);
+    float3 specularEnvColor = SampleEnvironmentMap(reflectionDir, bsdf.specularRoughness);
+    totalRadiance += EvaluateEnvironmentReflection(bsdf, viewDir, specularEnvColor);
+    
+    // 3. Multi-directional environment lighting for better quality
+    totalRadiance += EvaluateMultiDirectionalEnvironment(bsdf, viewDir, _SkyTextureLatLong, linearRepeatSampler);
+    
+    // Simple tone mapping to prevent oversaturation
+    totalRadiance = totalRadiance / (totalRadiance + 1.0);
+    
+    // Gamma correction (approximate)
+    totalRadiance = pow(abs(totalRadiance), 1.0 / 2.2);
+    
+    return float4(totalRadiance, 1.0);
 }
