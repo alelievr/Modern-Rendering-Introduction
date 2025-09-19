@@ -114,8 +114,8 @@ float3 EvaluateDiffuseSlab(BSDFData bsdf, float3 wo, float3 wi, float pdf)
     
     float3 eon = oren_nayar_compensated_diffuse(NdotV, NdotL, dot(wi, wo), bsdf.diffuseRoughness, bsdf.baseColor);
     
-    // Compute the diffuse reflection
-    return eon / pdf;
+    // Return BRDF value (not divided by PDF - that's handled in the main function)
+    return eon * INV_PI * NdotL;
 }
 
 float D_GGX(float NdotH, float roughness)
@@ -139,12 +139,13 @@ float3 EvaluateGlossySlab(BSDFData bsdf, float3 wo, float3 wi, float pdf)
     if (NdotL == 0.0 || NdotV == 0.0)
         return 0.0; // No contribution
 
-    // Compute the GGX reflection
+    // Compute the GGX reflection using Cook-Torrance microfacet model
     float D = D_GGX(NdotH, bsdf.specularRoughness);
-    float G = G_MaskingSmithGGX(NdotL, bsdf.specularRoughness);
-    float3 F = FresnelSchlick(float3(0.04, 0.04, 0.04), max(0.0, dot(h, wo)));
+    float G = G_MaskingSmithGGX(NdotV, bsdf.specularRoughness) * G_MaskingSmithGGX(NdotL, bsdf.specularRoughness);
+    float3 F = FresnelSchlick(bsdf.specularColor, VdotH);
 
-    return (D * G * F) / (4.0 * NdotL * NdotV * pdf);
+    // Return BRDF value (not divided by PDF - that's handled in the main function)
+    return (D * G * F) / (4.0 * NdotL * NdotV) * NdotL;
 }
 
 // https://schuttejoe.github.io/post/ggximportancesamplingpart2/
@@ -246,10 +247,8 @@ bool EvaluateOpenPBRSurface(BSDFData bsdf, float3 outgoingDirectionWS, out float
     // We use this factor to combine both BRDFs while conserving energy
     float3 glossyDirectionalReflectance = ComputeGlossyDirectionalReflectance(NdotV, bsdf.diffuseRoughness, bsdf.specularColor);
     
-    // albedo-scaling approximation to layer glossy and diffuse surfaces
-    float3 glossyDiffuse = glossySlab + diffuseSlab * (1 - glossyDirectionalReflectance);
-
-    throughput = glossyDiffuse;
+    // Apply cosine term and divide by PDF
+    throughput = brdf * NdotL / pdf;
     
     return true;
 }

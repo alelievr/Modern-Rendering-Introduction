@@ -30,6 +30,11 @@ BSDFData EvaluateMaterial(InstanceData instance, float3 geometricNormalWS, float
     if (material.baseColorTextureIndex != -1)
         bsdf.baseColor *= SampleTextureLOD(material.baseColorTextureIndex, linearClampSampler, uv, 0).rgb;
     
+    // Handle metallic workflow properly for OpenPBR
+    float metallic = material.metalness;
+    if (material.metalnessTextureIndex != -1)
+        metallic *= SampleTextureLOD(material.metalnessTextureIndex, linearClampSampler, uv, 0).r;
+    
     bsdf.diffuseRoughness = material.diffuseRoughness;
     if (material.diffuseRoughnessTextureIndex != -1)
         bsdf.diffuseRoughness *= SampleTextureLOD(material.diffuseRoughnessTextureIndex, linearClampSampler, uv, 0).r;
@@ -38,6 +43,12 @@ BSDFData EvaluateMaterial(InstanceData instance, float3 geometricNormalWS, float
     bsdf.specularColor = material.specularColor;
     if (material.specularColorTextureIndex != -1)
         bsdf.specularColor *= SampleTextureLOD(material.specularColorTextureIndex, linearClampSampler, uv, 0).rgb;
+    
+    // Apply metallic workflow: interpolate between dielectric and metallic
+    // For dielectrics: F0 = 0.04, diffuse = baseColor
+    // For metals: F0 = baseColor, diffuse = 0
+    bsdf.specularColor = lerp(float3(0.04, 0.04, 0.04), bsdf.baseColor, metallic);
+    bsdf.baseColor = lerp(bsdf.baseColor, float3(0.0, 0.0, 0.0), metallic);
     
     return bsdf;
 }

@@ -68,6 +68,9 @@ void Material::AllocateMaterialBuffers(std::shared_ptr<Device> device)
 		gpuMaterial.normalTextureIndex = GetTextureBindlessIndex(material->normalTexture);
 		gpuMaterial.ambientOcclusionTextureIndex = GetTextureBindlessIndex(material->ambientOcclusion);
 
+		// For now we have a single roughness for both specular and diffuse
+		gpuMaterial.specularRoughness = material->roughness;
+
 		material->materialIndex = index++;
 		materialBuffer.push_back(gpuMaterial);
 	}

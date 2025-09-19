@@ -21,6 +21,7 @@ struct TransformedVertex
     float3 normal;
     float3 positionWS;
     float3 positionOS;
+    float3 tangent;
 };
 
 struct VisibleMeshlet
@@ -93,6 +94,7 @@ TransformedVertex LoadVertexAttributes(uint meshletIndex, uint vertexIndex, uint
     vout.positionWS = positionWS;
     vout.uv = vertex.uv;
     vout.normal = TransformObjectToWorldNormal(vertex.normal, instance.objectToWorld);
+    vout.tangent = TransformObjectToWorldNormal(vertex.tangent, instance.objectToWorld);
 
     return vout;
 }
