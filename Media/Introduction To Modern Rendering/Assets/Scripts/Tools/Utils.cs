@@ -16,8 +16,8 @@ public static class Utils
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Init()
     {
-        axises = Object.FindObjectOfType<BackgroundAxises>(true);
-        grid = Object.FindObjectOfType<BackgroundGrid>(true);
+        axises = GameObject.FindAnyObjectByType<BackgroundAxises>(FindObjectsInactive.Include);
+        grid = GameObject.FindAnyObjectByType<BackgroundGrid>(FindObjectsInactive.Include);
     }
 
     public static Color GetXAxisColor()

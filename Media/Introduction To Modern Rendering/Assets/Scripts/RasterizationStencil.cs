@@ -16,7 +16,7 @@ public class RasterizationStencil : MonoBehaviour
     
     void Start()
     {
-        renderers = new List<MeshRenderer>(FindObjectsOfType<MeshRenderer>());
+        renderers = new List<MeshRenderer>(FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None));
     }
 
     void Update()
