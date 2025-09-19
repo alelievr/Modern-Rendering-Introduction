@@ -24,6 +24,7 @@ public class AutoRecorder : MonoBehaviour
     {
         Picture,
         Gif,
+        Movie,
     }
 
     public enum RecordStopMode
@@ -129,6 +130,22 @@ public class AutoRecorder : MonoBehaviour
                 // Simple file name (no wildcards) so that FileInfo constructor works in OutputFile getter.
                 m.OutputFile = Path.Combine(mediaOutputFolder, SceneManager.GetActiveScene().name);
                 return m;
+            case Mode.Movie:
+                var movieRecorder = ScriptableObject.CreateInstance<MovieRecorderSettings>();
+                movieRecorder.name = "Movie Recorder";
+                movieRecorder.Enabled = true;
+
+                movieRecorder.CaptureAlpha = false;
+
+                movieRecorder.ImageInputSettings = new GameViewInputSettings
+                {
+                    OutputWidth = overrideResolution.enabled ? overrideResolution.width : 1920,
+                    OutputHeight = overrideResolution.enabled ? overrideResolution.height : 1080
+                };
+
+                // Simple file name (no wildcards) so that FileInfo constructor works in OutputFile getter.
+                movieRecorder.OutputFile = Path.Combine(mediaOutputFolder, SceneManager.GetActiveScene().name);
+                return movieRecorder;
             default:
                 return null;
         }

@@ -35,7 +35,8 @@ Material:
     m_Floats:
     - _FilterMode: 1
     - _SamplePerPixels: 1
-    - _Slice: 0
+    - _Show0Axis: 1
+    - _Slice: 1
     m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1
